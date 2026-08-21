@@ -1,0 +1,72 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: ${POSTGRES_CONTAINER_NAME:-jarvis-postgres}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-jarvis_stock_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password_dev}
+    ports:
+      - "${POSTGRES_PORT:-5450}:5432"
+    volumes:
+      - jarvis_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: ./be
+      dockerfile: Dockerfile
+      args:
+        - BACKEND_PORT=${BACKEND_PORT:-3050}
+    container_name: ${BACKEND_CONTAINER_NAME:-jarvis-backend}
+    ports:
+      - "${BACKEND_PORT:-3050}:${BACKEND_PORT:-3050}"
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      PORT: ${BACKEND_PORT:-3050}
+      DATABASE_URL: ${DATABASE_URL_DOCKER}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+    volumes:
+      - ./be:/app
+      - /app/node_modules
+    command: npm run dev
+
+  frontend:
+    build:
+      context: ./fe
+      dockerfile: dockerfile
+    container_name: ${FRONTEND_CONTAINER_NAME:-jarvis-frontend}
+    ports:
+      - "${FRONTEND_PORT:-3051}:${FRONTEND_PORT:-3051}"
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      PORT: ${FRONTEND_PORT:-3051}
+      HOSTNAME: 0.0.0.0
+      NEXT_PUBLIC_API_URL: http://${APP_PUBLIC_HOST:-localhost}:${BACKEND_PORT:-3050}/api
+      INTERNAL_API_URL: http://backend:${BACKEND_PORT:-3050}/api
+    volumes:
+      - ./fe:/app
+      - /app/node_modules
+    command: npm run dev
+
+volumes:
+  jarvis_postgres_data:
