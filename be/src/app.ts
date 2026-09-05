@@ -3,6 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import path from "path";
 import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { pool } from "./config/database";
 import { runMigrations } from "./database/migrationRunner";
 import routes from "./routes/index";
@@ -38,6 +39,20 @@ app.use(
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(morgan("dev"));
+
+// Rate Limiters
+const stockApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: "error",
+    statusCode: 429,
+    message: "Terlalu banyak permintaan ke server. Silakan coba beberapa saat lagi.",
+  },
+});
+app.use("/api", stockApiLimiter);
 
 app.use(express.urlencoded({ extended: true, limit: ENV.JSON_BODY_LIMIT }));
 app.use(express.json({ limit: ENV.JSON_BODY_LIMIT }));

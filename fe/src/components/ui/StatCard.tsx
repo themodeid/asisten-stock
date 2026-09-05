@@ -21,16 +21,16 @@ export default function StatCard({
   trend,
 }: StatCardProps) {
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition shadow-sm">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700/80 transition shadow-sm">
       <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-slate-400">{title}</span>
-        <div className="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-blue-400">
-          <Icon className="w-5 h-5" />
+        <span className="text-xs font-medium text-zinc-400">{title}</span>
+        <div className="w-9 h-9 rounded-lg bg-zinc-800 border border-zinc-700/80 flex items-center justify-center text-zinc-200">
+          <Icon className="w-4 h-4" />
         </div>
       </div>
 
-      <div className="mt-4">
-        <h3 className="text-2xl font-bold text-slate-100 tracking-tight">
+      <div className="mt-3">
+        <h3 className="text-xl font-bold text-zinc-100 tracking-tight">
           {value}
         </h3>
         <div className="flex items-center gap-2 mt-1.5">
@@ -38,15 +38,15 @@ export default function StatCard({
             <span
               className={`text-xs font-semibold px-2 py-0.5 rounded-md ${
                 trend.isPositive
-                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                  : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                  ? "bg-emerald-950/40 text-emerald-300 border border-emerald-800/60"
+                  : "bg-red-950/40 text-red-300 border border-red-800/60"
               }`}
             >
               {trend.value}
             </span>
           )}
           {subtitle && (
-            <span className="text-xs text-slate-400">{subtitle}</span>
+            <span className="text-xs text-zinc-400">{subtitle}</span>
           )}
         </div>
       </div>

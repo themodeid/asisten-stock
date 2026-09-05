@@ -6,7 +6,7 @@ import * as transactionService from "../transactions/transaction.service";
 import * as marketService from "../market-data/market.service";
 import * as portfolioService from "../portfolio/portfolio.service";
 import * as alertService from "../watchlist-alert/alert.service";
-import { formatRupiah } from "../../utils/stockHelper";
+import { formatRupiah, parseIndonesianMoneyString, detectAssetSymbolFromText } from "../../utils/stockHelper";
 import { pool } from "../../config/database";
 
 export interface ChatResponse {
@@ -21,11 +21,18 @@ export const processUserMessage = async (
 ): Promise<ChatResponse> => {
   const executedTools: { toolName: string; args: any; result: any }[] = [];
 
+  // Ensure user and portfolio exist
+  await portfolioService.getPrimaryPortfolioByUserId(userId);
+
   // Log user message to database
-  await pool.query(
-    "INSERT INTO chat_logs (user_id, role, message) VALUES ($1, $2, $3);",
-    [userId, "user", userMessage]
-  );
+  try {
+    await pool.query(
+      "INSERT INTO chat_logs (user_id, role, message) VALUES ($1, $2, $3);",
+      [userId, "user", userMessage]
+    );
+  } catch (logErr) {
+    console.warn("Failed to write user chat log:", logErr);
+  }
 
   // If no Gemini API key configured, use intelligent rule-based agentic fallback
   if (!ENV.GEMINI_API_KEY || ENV.GEMINI_API_KEY === "your_gemini_api_key_here") {
@@ -87,14 +94,21 @@ export const processUserMessage = async (
 
         let toolResult: any = null;
 
-        if (toolName === "log_stock_transaction") {
+        if (toolName === "log_asset_transaction" || toolName === "log_stock_transaction") {
           const portfolio = await portfolioService.getPrimaryPortfolioByUserId(userId);
+          const rawSymbol = args.symbol || args.ticker;
+          const quantity = Number(args.quantity || (args.lots ? args.lots : 1));
+          const price = Number(args.price_per_unit || args.price_per_share);
+
           toolResult = await transactionService.recordTransaction({
             portfolio_id: portfolio.id,
-            ticker: args.ticker,
+            ticker: rawSymbol,
+            asset_type: args.asset_type,
             type: args.action,
-            lots: Number(args.lots),
-            price_per_share: Number(args.price_per_share),
+            lots: args.lots ? Number(args.lots) : undefined,
+            quantity: quantity,
+            price_per_share: price,
+            currency: args.currency,
             notes: args.notes,
           });
         } else if (toolName === "get_stock_quote") {
@@ -162,7 +176,7 @@ export const processUserMessage = async (
       });
 
       const replyText =
-        finalRes.text || "Operasi telah berhasil diselesaikan oleh Jarvis Stock.";
+        finalRes.text || "Operasi portofolio telah berhasil diselesaikan oleh Jarvis.";
 
       // Log assistant message
       await pool.query(
@@ -175,7 +189,7 @@ export const processUserMessage = async (
 
     const replyText =
       response.text ||
-      "Halo! Saya Jarvis Stock, asisten portofolio saham pribadi Anda. Ada yang bisa saya bantu?";
+      "Halo! Saya Jarvis AI, asisten portofolio pribadi multi-aset Anda. Ada yang bisa saya bantu?";
 
     await pool.query(
       "INSERT INTO chat_logs (user_id, role, message) VALUES ($1, $2, $3);",
@@ -191,7 +205,7 @@ export const processUserMessage = async (
 };
 
 /**
- * Intelligent regex/keyword fallback handler for instant offline responsiveness
+ * Intelligent regex/keyword fallback handler for instant offline multi-asset responsiveness
  */
 async function handleRuleBasedFallback(
   userId: number,
@@ -201,105 +215,281 @@ async function handleRuleBasedFallback(
   const executedTools: any[] = [];
   const portfolio = await portfolioService.getPrimaryPortfolioByUserId(userId);
 
-  // 1. BUY / BELI Pattern: e.g. "Beli BBCA 10 lot di 9850"
-  const buyMatch = text.match(/(?:beli|buy)\s+([a-zA-Z]{4,5})\s+(\d+)\s*(?:lot)?\s*(?:di|harga|@)?\s*(\d+[\d\.]*)/i);
-  if (buyMatch) {
-    const ticker = buyMatch[1].toUpperCase();
-    const lots = Number(buyMatch[2]);
-    const price = Number(buyMatch[3].replace(/\./g, ""));
+  // Check recent chat context if current message might be a continuation (e.g. "dicatat untuk btc")
+  let effectiveText = text;
+  let detected = detectAssetSymbolFromText(effectiveText);
+  let money = parseIndonesianMoneyString(effectiveText);
+
+  const isShortContinuation =
+    text.split(/\s+/).length <= 4 &&
+    /(?:untuk|itu|tadi|lanjut|catat|tolong|dong|ya|masukin)/i.test(lower);
+
+  if ((!detected || !money) && isShortContinuation) {
+    try {
+      const recentLogs = await pool.query(
+        "SELECT message FROM chat_logs WHERE user_id = $1 AND role = 'user' ORDER BY created_at DESC LIMIT 3;",
+        [userId]
+      );
+      if (recentLogs.rows.length > 1) {
+        // Look at previous user message
+        const prevMsg = recentLogs.rows[1].message;
+        if (!detected) {
+          detected = detectAssetSymbolFromText(prevMsg);
+        }
+        if (!money) {
+          money = parseIndonesianMoneyString(prevMsg);
+        }
+      }
+    } catch (dbErr) {
+      console.warn("Context fetch error:", dbErr);
+    }
+  }
+
+  // 1. Check BUY Intent (Explicit Quantity & Price OR Budget DCA)
+  const isBuyIntent =
+    /(?:beli|buy|serok|tambah|nabung|dca|masuk|abis|habis|barusan|pembelian|catat|dicatat)/i.test(
+      lower
+    ) && !/(?:jual|sell|lepas|tp|cuan)/i.test(lower);
+
+  const isSellIntent = /(?:jual|sell|lepas|tp|take\s*profit|cuan|penjualan)/i.test(lower);
+
+  // 1A. EXPLICIT BUY: e.g. "Beli BTC 0.05 di 64500 USD" or "Beli BBCA 10 lot di 9850"
+  const explicitBuyMatch = text.match(
+    /(?:beli|buy)\s+([a-zA-Z0-9_\.]{2,15})\s+([\d\.]+)\s*(?:lot|lembar|gram|unit|koin)?\s*(?:di|harga|@)?\s*(\$?[\d\.,]+)\s*(usd|idr|rp)?/i
+  );
+
+  if (explicitBuyMatch && (text.includes("di") || text.includes("@") || text.includes("harga") || text.includes("lot"))) {
+    const rawSymbol = explicitBuyMatch[1].toUpperCase();
+    const qty = Number(explicitBuyMatch[2]);
+    const cleanPrice = explicitBuyMatch[3].replace(/[\$\.,]/g, "");
+    const price = Number(cleanPrice);
+    const isLot = text.toLowerCase().includes("lot");
+    const currency =
+      explicitBuyMatch[4]?.toUpperCase() === "USD" || explicitBuyMatch[3].includes("$")
+        ? "USD"
+        : "IDR";
 
     const result = await transactionService.recordTransaction({
       portfolio_id: portfolio.id,
-      ticker,
+      ticker: rawSymbol,
       type: "BUY",
-      lots,
+      lots: isLot ? qty : undefined,
+      quantity: isLot ? undefined : qty,
       price_per_share: price,
-      notes: "Dicatat via Jarvis Chat",
+      currency,
+      notes: "Dicatat via Jarvis Multi-Asset Chat",
     });
 
+    const assetType = result.transaction.asset_type;
+    const isStock = assetType === "STOCK";
+    const qtyText = isStock ? `${qty} Lot (${qty * 100} lbr)` : `${qty} Unit`;
+    const priceFormatted =
+      currency === "USD" ? `$${price.toLocaleString()}` : formatRupiah(price);
+    const totalFormatted =
+      currency === "USD"
+        ? `$${(qty * price).toLocaleString()}`
+        : formatRupiah((isStock ? qty * 100 : qty) * price);
+
     executedTools.push({
-      toolName: "log_stock_transaction",
-      args: { ticker, action: "BUY", lots, price_per_share: price },
+      toolName: "log_asset_transaction",
+      args: { symbol: rawSymbol, asset_type: assetType, action: "BUY", quantity: qty, price },
       result,
     });
 
     return {
-      replyText: `✅ **Transaksi Beli Berhasil Dicatat!**\n\n📌 **Ticker:** ${ticker}\n📊 **Jumlah:** ${lots} Lot (${lots * 100} lembar)\n💵 **Harga:** ${formatRupiah(price)} / lembar\n💰 **Total Investasi:** ${formatRupiah(lots * 100 * price)}\n\nPosisi holding Anda telah diperbarui secara otomatis.`,
+      replyText: `✅ **Transaksi Beli ${assetType} Berhasil Dicatat!**\n\n📌 **Aset:** ${result.transaction.ticker} (${assetType})\n📊 **Jumlah:** ${qtyText}\n💵 **Harga:** ${priceFormatted} / unit\n💰 **Total Nilai:** ${totalFormatted}\n\nPosisi portofolio & alokasi aset Anda telah diperbarui secara otomatis.`,
       toolCallsExecuted: executedTools,
     };
   }
 
-  // 2. SELL / JUAL Pattern: e.g. "Jual BBCA 5 lot di 10000"
-  const sellMatch = text.match(/(?:jual|sell)\s+([a-zA-Z]{4,5})\s+(\d+)\s*(?:lot)?\s*(?:di|harga|@)?\s*(\d+[\d\.]*)/i);
-  if (sellMatch) {
-    const ticker = sellMatch[1].toUpperCase();
-    const lots = Number(sellMatch[2]);
-    const price = Number(sellMatch[3].replace(/\./g, ""));
-
+  // 1B. BUDGET DCA BUY: e.g. "saya abis beli btc sebesar 1.100.000 rupiah tolong di catat", "beli bbca 5jt", "beli emas 3jt"
+  if (isBuyIntent && detected && money && money.amount > 0) {
     try {
       const result = await transactionService.recordTransaction({
         portfolio_id: portfolio.id,
-        ticker,
-        type: "SELL",
-        lots,
-        price_per_share: price,
-        notes: "Penjualan via Jarvis Chat",
+        ticker: detected.symbol,
+        asset_type: detected.assetType,
+        type: "BUY",
+        total_budget: money.amount,
+        currency: money.currency,
+        notes: `DCA Otomatis: ${money.currency === "USD" ? `$${money.amount}` : formatRupiah(money.amount)}`,
       });
 
+      const tx = result.transaction;
+      const assetType = tx.asset_type;
+      const isStock = assetType === "STOCK";
+      const qtyText = isStock
+        ? `${tx.lots} Lot (${tx.shares} lbr)`
+        : `${tx.quantity} ${assetType === "GOLD" ? "gram" : assetType === "CRYPTO" ? detected.symbol : "unit"}`;
+      const priceFormatted =
+        tx.currency === "USD"
+          ? `$${Number(tx.price_per_share).toLocaleString()}`
+          : formatRupiah(tx.price_per_share);
+      const totalFormatted =
+        tx.currency === "USD"
+          ? `$${Number(tx.total_amount).toLocaleString()}`
+          : formatRupiah(tx.total_amount);
+
       executedTools.push({
-        toolName: "log_stock_transaction",
-        args: { ticker, action: "SELL", lots, price_per_share: price },
+        toolName: "log_asset_transaction",
+        args: { symbol: detected.symbol, asset_type: assetType, total_budget: money.amount },
         result,
       });
 
       return {
-        replyText: `✅ **Transaksi Jual Berhasil Dicatat!**\n\n📌 **Ticker:** ${ticker}\n📊 **Jumlah:** ${lots} Lot\n💵 **Harga Realisasi:** ${formatRupiah(price)}\n💰 **Total Dana Diterima:** ${formatRupiah(lots * 100 * price)}`,
+        replyText: `🤖 **AI Smart Calculation: Transaksi Beli Berhasil Dicatat!**\n\n💡 *Harga pasar terkini diambil otomatis:* **${priceFormatted} / unit**\n\n📌 **Aset:** ${tx.ticker} (${assetType})\n💰 **Nominal Belanja:** ${money.currency === "USD" ? `$${money.amount}` : formatRupiah(money.amount)}\n📊 **Kuantitas Didapat:** **${qtyText}**\n💵 **Total Realisasi:** ${totalFormatted}\n\nPosisi portofolio & alokasi aset Anda telah diperbarui otomatis dengan harga bursa hari ini.`,
         toolCallsExecuted: executedTools,
       };
     } catch (e: any) {
+      console.warn("Budget DCA fallback failed:", e);
       return {
-        replyText: `❌ Gagal mencatat penjualan: ${e.message}`,
+        replyText: `❌ Gagal mencatat transaksi: ${e.message}`,
         toolCallsExecuted: [],
       };
     }
   }
 
-  // 3. PORTFOLIO SUMMARY: e.g. "Portofolio saya", "Cek portofolio", "Ringkasan"
-  if (lower.includes("portofolio") || lower.includes("portfolio") || lower.includes("saldo") || lower.includes("pnl")) {
+  // 2. SELL Pattern: e.g. "Jual BBCA 5 lot di 10000" or "Jual BTC 0.02 di 68000"
+  if (isSellIntent) {
+    const sellMatch = text.match(
+      /(?:jual|sell|lepas)\s+([a-zA-Z0-9_\.]{2,15})\s+([\d\.]+)\s*(?:lot|lembar|gram|unit|koin)?\s*(?:di|harga|@)?\s*(\$?[\d\.,]+)?\s*(usd|idr|rp)?/i
+    );
+
+    if (sellMatch) {
+      const rawSymbol = sellMatch[1].toUpperCase();
+      const qty = Number(sellMatch[2]);
+      const cleanPrice = sellMatch[3] ? sellMatch[3].replace(/[\$\.,]/g, "") : null;
+      const price = cleanPrice ? Number(cleanPrice) : undefined;
+      const isLot = text.toLowerCase().includes("lot");
+      const currency =
+        sellMatch[4]?.toUpperCase() === "USD" || (sellMatch[3] && sellMatch[3].includes("$"))
+          ? "USD"
+          : "IDR";
+
+      try {
+        const result = await transactionService.recordTransaction({
+          portfolio_id: portfolio.id,
+          ticker: rawSymbol,
+          type: "SELL",
+          lots: isLot ? qty : undefined,
+          quantity: isLot ? undefined : qty,
+          price_per_share: price,
+          currency,
+          notes: "Penjualan via Jarvis Multi-Asset Chat",
+        });
+
+        const assetType = result.transaction.asset_type;
+        const isStock = assetType === "STOCK";
+        const qtyText = isStock ? `${qty} Lot` : `${qty} Unit`;
+        const priceFormatted =
+          currency === "USD" ? `$${result.transaction.price_per_share.toLocaleString()}` : formatRupiah(result.transaction.price_per_share);
+        const totalFormatted =
+          currency === "USD"
+            ? `$${Number(result.transaction.total_amount).toLocaleString()}`
+            : formatRupiah(result.transaction.total_amount);
+
+        executedTools.push({
+          toolName: "log_asset_transaction",
+          args: { symbol: rawSymbol, asset_type: assetType, action: "SELL", quantity: qty, price },
+          result,
+        });
+
+        return {
+          replyText: `✅ **Transaksi Jual ${assetType} Berhasil Dicatat!**\n\n📌 **Aset:** ${result.transaction.ticker}\n📊 **Jumlah:** ${qtyText}\n💵 **Harga Realisasi:** ${priceFormatted}\n💰 **Total Dana Diterima:** ${totalFormatted}`,
+          toolCallsExecuted: executedTools,
+        };
+      } catch (e: any) {
+        return {
+          replyText: `❌ Gagal mencatat penjualan: ${e.message}`,
+          toolCallsExecuted: [],
+        };
+      }
+    }
+  }
+
+  // 3. PORTFOLIO SUMMARY & ALLOCATIONS: e.g. "Portofolio saya", "Cek saldo", "Alokasi aset"
+  if (
+    lower.includes("portofolio") ||
+    lower.includes("portfolio") ||
+    lower.includes("saldo") ||
+    lower.includes("alokasi") ||
+    lower.includes("pnl") ||
+    lower.includes("holding") ||
+    lower.includes("aset saya")
+  ) {
     const summary = await portfolioService.getPortfolioSummary(portfolio.id);
     executedTools.push({ toolName: "get_portfolio_summary", args: {}, result: summary });
 
     const pnlEmoji = summary.total_floating_pnl >= 0 ? "🟢" : "🔴";
     const holdingsList = summary.holdings
-      .map(
-        (h) =>
-          `• **${h.ticker}**: ${h.total_lots} Lot | Avg: ${formatRupiah(h.avg_buy_price)} | Now: ${formatRupiah(h.current_price || h.avg_buy_price)} (${h.floating_pnl_percent! >= 0 ? "+" : ""}${h.floating_pnl_percent}%)`
-      )
+      .map((h) => {
+        const qtyDisplay =
+          h.asset_type === "STOCK"
+            ? `${h.total_lots} Lot`
+            : `${h.quantity} ${h.asset_type === "GOLD" ? "gr" : "unit"}`;
+        const priceDisplay =
+          h.currency === "USD"
+            ? `$${h.current_price?.toLocaleString() || h.avg_buy_price}`
+            : formatRupiah(h.current_price || h.avg_buy_price);
+        return `• [${h.asset_type}] **${h.ticker}**: ${qtyDisplay} | Now: ${priceDisplay} (${
+          h.floating_pnl_percent! >= 0 ? "+" : ""
+        }${h.floating_pnl_percent}%)`;
+      })
       .join("\n");
 
+    const allocationList = summary.asset_allocations
+      ? summary.asset_allocations
+          .map((a) => `• ${a.label}: **${a.percentage}%** (${formatRupiah(a.total_value)})`)
+          .join("\n")
+      : "";
+
     return {
-      replyText: `📊 **Ringkasan Portofolio (${summary.portfolio_name})**\n\n💰 **Total Nilai Portofolio:** ${formatRupiah(summary.total_net_worth)}\n💵 **Total Modal Ditanam:** ${formatRupiah(summary.total_invested)}\n${pnlEmoji} **Floating P/L:** ${formatRupiah(summary.total_floating_pnl)} (${summary.total_floating_pnl_percent >= 0 ? "+" : ""}${summary.total_floating_pnl_percent}%)\n\n📌 **Daftar Saham Aktif:**\n${holdingsList || "*(Belum ada posisi saham aktif)*"}`,
+      replyText: `📊 **Ringkasan Portofolio Multi-Aset (${summary.portfolio_name})**\n\n💰 **Total Nilai Portofolio:** ${formatRupiah(
+        summary.total_net_worth
+      )}\n💵 **Total Modal Ditanam:** ${formatRupiah(summary.total_invested)}\n${pnlEmoji} **Floating P/L:** ${formatRupiah(
+        summary.total_floating_pnl
+      )} (${summary.total_floating_pnl_percent >= 0 ? "+" : ""}${summary.total_floating_pnl_percent}%)\n\n🍰 **Alokasi Kelas Aset:**\n${
+        allocationList || "*(Belum ada aset aktif)*"
+      }\n\n📌 **Daftar Aset Aktif:**\n${holdingsList || "*(Belum ada aset aktif)*"}`,
       toolCallsExecuted: executedTools,
     };
   }
 
-  // 4. CEK HARGA / ANALISIS: e.g. "Harga BBCA", "Analisa BBRI", "Valuasi TLKM"
-  const tickerMatch = text.match(/\b([a-zA-Z]{4})\b/i);
-  if (tickerMatch && (lower.includes("harga") || lower.includes("analis") || lower.includes("valuasi") || lower.includes("cek"))) {
-    const ticker = tickerMatch[1].toUpperCase();
-    const quote = await marketService.getStockQuote(ticker);
-    executedTools.push({ toolName: "analyze_stock", args: { ticker }, result: quote });
+  // 4. CEK HARGA / ANALISIS ASET: e.g. "Harga BTC", "Harga BBCA", "Harga Emas"
+  if (
+    detected &&
+    (lower.includes("harga") ||
+      lower.includes("analis") ||
+      lower.includes("valuasi") ||
+      lower.includes("cek") ||
+      lower.includes("berapa"))
+  ) {
+    const quote = await marketService.getStockQuote(detected.symbol);
+    executedTools.push({ toolName: "get_stock_quote", args: { ticker: detected.symbol }, result: quote });
 
     const changeEmoji = quote.regularMarketChange >= 0 ? "🟢 +" : "🔴 ";
+    const priceDisplay =
+      quote.currency === "USD"
+        ? `$${quote.regularMarketPrice.toLocaleString()}`
+        : formatRupiah(quote.regularMarketPrice);
+
     return {
-      replyText: `📈 **Data & Analisis Valuasi Saham ${quote.name} (${quote.ticker})**\n\n💵 **Harga Terkini:** ${formatRupiah(quote.regularMarketPrice)} (${changeEmoji}${quote.regularMarketChangePercent.toFixed(2)}%)\n📊 **Rentang Harian:** ${formatRupiah(quote.regularMarketDayLow)} - ${formatRupiah(quote.regularMarketDayHigh)}\n\n🔍 **Rasio Valuasi & Finansial:**\n• **P/E Ratio (PER):** ${quote.trailingPE ? quote.trailingPE.toFixed(1) + "x" : "N/A"}\n• **Price to Book (PBV):** ${quote.priceToBook ? quote.priceToBook.toFixed(1) + "x" : "N/A"}\n• **Return on Equity (ROE):** ${quote.returnOnEquity ? quote.returnOnEquity.toFixed(1) + "%" : "N/A"}\n• **Dividend Yield:** ${quote.dividendYield ? quote.dividendYield.toFixed(1) + "%" : "N/A"}\n\n💡 *Gunakan Web Dashboard untuk grafik teknikal lengkap dan breakdown fundamental mendalam.*`,
+      replyText: `📈 **Data Harga & Performa: ${quote.name} (${quote.ticker})**\n\n💵 **Harga Terkini:** ${priceDisplay} (${changeEmoji}${quote.regularMarketChangePercent.toFixed(
+        2
+      )}%)\n📊 **Rentang Harian:** ${
+        quote.currency === "USD"
+          ? `$${quote.regularMarketDayLow} - $${quote.regularMarketDayHigh}`
+          : `${formatRupiah(quote.regularMarketDayLow)} - ${formatRupiah(quote.regularMarketDayHigh)}`
+      }\n\n💡 *Buka Web Dashboard untuk grafik visual dan breakdown portofolio lengkap.*`,
       toolCallsExecuted: executedTools,
     };
   }
 
   // General default message
   return {
-    replyText: `🤖 **Halo! Saya Jarvis Stock Assistant.**\n\nAnda dapat meminta saya untuk:\n1. **Catat Beli/Jual**: *"Beli BBCA 10 lot di 9850"* atau *"Jual BBRI 5 lot di 4800"*\n2. **Cek Portofolio**: *"Portofolio saya gimana?"*\n3. **Cek Harga & Valuasi**: *"Analisa valuasi BMRI"* atau *"Cek harga TLKM"*\n4. **Pasang Alert**: *"Ingatkan kalau ASII tembus 5200"*\n\nAda yang bisa saya bantu saat ini?`,
+    replyText: `🤖 **Halo! Saya Jarvis Multi-Asset Assistant.**\n\nAnda dapat mencatat dan memantau berbagai aset:\n1. **Saham**: *"Beli BBCA 10 lot di 9850"* atau *"Beli BBCA 5 juta"*\n2. **Kripto (Crypto)**: *"Beli BTC 1.100.000 rupiah"* atau *"Beli BTC 0.05 di 64500 USD"*\n3. **Emas / Logam Mulia**: *"Beli Emas Antam 2 juta"* atau *"Beli Emas 10 gram di 1410000"*\n4. **Obligasi / SBN**: *"Beli ORI024 10000000"*\n5. **ETF**: *"Beli SPY 2 unit di 550 USD"*\n6. **Cek Portofolio**: *"Cek portofolio & alokasi aset saya"*\n\nAda yang ingin dicatat atau dicek saat ini?`,
     toolCallsExecuted: [],
   };
 }
+
+

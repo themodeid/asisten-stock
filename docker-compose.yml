@@ -63,10 +63,6 @@ services:
       HOSTNAME: 0.0.0.0
       NEXT_PUBLIC_API_URL: http://${APP_PUBLIC_HOST:-localhost}:${BACKEND_PORT:-3050}/api
       INTERNAL_API_URL: http://backend:${BACKEND_PORT:-3050}/api
-    volumes:
-      - ./fe:/app
-      - /app/node_modules
-    command: npm run dev
 
 volumes:
   jarvis_postgres_data:

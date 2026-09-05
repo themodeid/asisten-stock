@@ -29,13 +29,13 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-scaleUp">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl animate-scaleUp">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-          <h3 className="text-lg font-bold text-slate-100">{title}</h3>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+          <h3 className="text-base font-semibold text-zinc-100">{title}</h3>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 transition p-1 rounded-lg hover:bg-slate-800"
+            className="text-zinc-400 hover:text-zinc-200 transition p-1 rounded-lg hover:bg-zinc-800"
           >
             <X className="w-5 h-5" />
           </button>

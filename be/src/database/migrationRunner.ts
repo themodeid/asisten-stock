@@ -53,7 +53,8 @@ export const runMigrations = async () => {
 
     if (!appliedMigrations.includes(migrationName)) {
       console.log(`⏳ Applying migration: ${migrationName}...`);
-      const sql = fs.readFileSync(path.join(migrationsPath, file), "utf-8");
+      const rawSql = fs.readFileSync(path.join(migrationsPath, file), "utf-8");
+      const sql = rawSql.replace(/^\uFEFF/, "");
 
       const client = await pool.connect();
       try {
@@ -101,7 +102,8 @@ export const rollbackMigration = async () => {
   }
 
   console.log(`⏳ Rolling back migration: ${lastMigration}...`);
-  const sql = fs.readFileSync(filePath, "utf-8");
+  const rawSql = fs.readFileSync(filePath, "utf-8");
+  const sql = rawSql.replace(/^\uFEFF/, "");
 
   const client = await pool.connect();
   try {

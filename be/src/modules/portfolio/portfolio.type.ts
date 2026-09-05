@@ -1,3 +1,5 @@
+import { AssetType } from "../transactions/transaction.type";
+
 export interface Portfolio {
   id: number;
   user_id: number;
@@ -11,8 +13,11 @@ export interface PortfolioHolding {
   id: number;
   portfolio_id: number;
   ticker: string;
-  total_shares: number;
-  total_lots: number;
+  asset_type: AssetType;
+  quantity: number;
+  currency: string;
+  total_shares?: number;
+  total_lots?: number;
   avg_buy_price: number;
   total_invested: number;
   updated_at: Date;
@@ -23,6 +28,14 @@ export interface PortfolioHolding {
   floating_pnl_percent?: number;
   weight_percent?: number;
   company_name?: string;
+}
+
+export interface AssetAllocation {
+  asset_type: AssetType;
+  label: string;
+  total_value: number;
+  percentage: number;
+  count: number;
 }
 
 export interface PortfolioSummary {
@@ -36,4 +49,6 @@ export interface PortfolioSummary {
   total_floating_pnl_percent: number;
   holdings_count: number;
   holdings: PortfolioHolding[];
+  asset_allocations?: AssetAllocation[];
 }
+

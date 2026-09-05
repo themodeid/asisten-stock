@@ -13,6 +13,7 @@ export interface DashboardMetrics {
   holdings: any[];
   recentTransactions: any[];
   watchlist: any[];
+  assetAllocations?: any[];
 }
 
 export const getDashboardMetrics = async (
@@ -33,5 +34,7 @@ export const getDashboardMetrics = async (
     holdings: summary.holdings,
     recentTransactions: transactions.slice(0, 5),
     watchlist: watchlist.slice(0, 5),
+    assetAllocations: summary.asset_allocations || [],
   };
 };
+

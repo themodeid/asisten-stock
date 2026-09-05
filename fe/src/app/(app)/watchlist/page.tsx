@@ -95,14 +95,14 @@ export default function WatchlistPage() {
     <div className="flex-1 flex flex-col">
       <Header title="Watchlist & Price Alerts" />
 
-      <main className="p-8 space-y-6 max-w-7xl w-full mx-auto">
+      <main className="p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto">
         {/* Top bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-bold text-slate-100">
+            <h2 className="text-base font-semibold text-zinc-100">
               Daftar Pantau Saham (Watchlist)
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-zinc-400">
               Pantau emiten potensial dan aktifkan notifikasi otomatis ke Telegram
             </p>
           </div>
@@ -110,36 +110,36 @@ export default function WatchlistPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsAlertModalOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-sm font-medium transition flex items-center gap-2"
+              className="px-3.5 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700/80 text-zinc-200 border border-zinc-700/80 text-xs font-medium transition flex items-center gap-2"
             >
-              <Bell className="w-4 h-4 text-amber-400" /> Pasang Price Alert
+              <Bell className="w-3.5 h-3.5 text-zinc-300" /> Pasang Price Alert
             </button>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold shadow-md shadow-blue-600/30 transition flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 text-xs font-semibold shadow-sm transition flex items-center gap-2 active:scale-[0.98]"
             >
-              <Plus className="w-4 h-4" /> Tambah Emiten
+              <Plus className="w-4 h-4 text-zinc-900" /> Tambah Emiten
             </button>
           </div>
         </div>
 
         {/* Watchlist Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {watchlist.length > 0 ? (
             watchlist.map((item) => {
               const isUp = (item.day_change_percent || 0) >= 0;
               return (
                 <div
                   key={item.id}
-                  className="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition relative flex flex-col justify-between"
+                  className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700/80 transition relative flex flex-col justify-between shadow-sm"
                 >
                   <div>
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="text-xl font-extrabold text-slate-100">
+                        <h3 className="text-lg font-bold text-zinc-100">
                           {item.ticker}
                         </h3>
-                        <p className="text-xs text-slate-400 truncate max-w-[200px]">
+                        <p className="text-[11px] text-zinc-400 truncate max-w-[200px]">
                           {item.company_name}
                         </p>
                       </div>
@@ -149,17 +149,17 @@ export default function WatchlistPage() {
                       </Badge>
                     </div>
 
-                    <div className="mt-4">
-                      <span className="text-xs text-slate-500">Harga Terkini</span>
-                      <div className="text-2xl font-bold text-slate-100">
+                    <div className="mt-3">
+                      <span className="text-[11px] text-zinc-500">Harga Terkini</span>
+                      <div className="text-xl font-bold text-zinc-100">
                         {formatIDR(item.current_price || 0)}
                       </div>
                     </div>
 
                     {/* Targets */}
-                    <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-800 text-xs">
+                    <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-zinc-800 text-xs">
                       <div>
-                        <span className="text-slate-500">Target Buy:</span>
+                        <span className="text-zinc-500 text-[11px]">Target Buy:</span>
                         <div className="font-semibold text-emerald-400">
                           {item.target_buy_price
                             ? formatIDR(item.target_buy_price)
@@ -167,8 +167,8 @@ export default function WatchlistPage() {
                         </div>
                       </div>
                       <div>
-                        <span className="text-slate-500">Target Sell:</span>
-                        <div className="font-semibold text-blue-400">
+                        <span className="text-zinc-500 text-[11px]">Target Sell:</span>
+                        <div className="font-semibold text-zinc-200">
                           {item.target_sell_price
                             ? formatIDR(item.target_sell_price)
                             : "-"}
@@ -177,35 +177,35 @@ export default function WatchlistPage() {
                     </div>
 
                     {item.notes && (
-                      <p className="text-xs text-slate-400 mt-3 italic bg-slate-800/40 p-2 rounded-lg">
+                      <p className="text-xs text-zinc-400 mt-3 italic bg-zinc-850 p-2 rounded-lg border border-zinc-800">
                         "{item.notes}"
                       </p>
                     )}
                   </div>
 
-                  <div className="mt-5 pt-3 border-t border-slate-800/60 flex items-center justify-between">
+                  <div className="mt-4 pt-3 border-t border-zinc-800/80 flex items-center justify-between">
                     <button
                       onClick={() => {
                         setAlertTicker(item.ticker);
                         setIsAlertModalOpen(true);
                       }}
-                      className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                      className="text-xs font-medium text-zinc-300 hover:text-white flex items-center gap-1"
                     >
                       <Bell className="w-3.5 h-3.5" /> Pasang Alert
                     </button>
                     <button
                       onClick={() => handleDelete(item.ticker)}
-                      className="p-1 text-slate-500 hover:text-rose-400 transition"
+                      className="p-1 text-zinc-500 hover:text-red-400 transition"
                       title="Hapus"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
               );
             })
           ) : (
-            <div className="col-span-full py-16 text-center text-slate-500 bg-slate-900 border border-slate-800 rounded-3xl">
+            <div className="col-span-full py-12 text-center text-zinc-500 bg-zinc-900 border border-zinc-800 rounded-xl">
               {loading
                 ? "Memuat watchlist..."
                 : "Watchlist Anda masih kosong. Tambahkan emiten favorit yang ingin dipantau!"}
@@ -219,9 +219,9 @@ export default function WatchlistPage() {
           onClose={() => setIsModalOpen(false)}
           title="Tambah Emiten ke Watchlist"
         >
-          <form onSubmit={handleAddWatchlist} className="space-y-4">
+          <form onSubmit={handleAddWatchlist} className="space-y-4 text-xs sm:text-sm">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5">
+              <label className="block text-xs font-medium text-zinc-400 mb-1.5">
                 KODE EMITEN (TICKER)
               </label>
               <input
@@ -230,13 +230,13 @@ export default function WatchlistPage() {
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value.toUpperCase())}
                 required
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-blue-500 uppercase"
+                className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 uppercase"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">
+                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
                   TARGET BELI (Rp)
                 </label>
                 <input
@@ -244,11 +244,11 @@ export default function WatchlistPage() {
                   placeholder="9200"
                   value={targetBuy}
                   onChange={(e) => setTargetBuy(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1.5">
+                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
                   TARGET JUAL / TP (Rp)
                 </label>
                 <input
@@ -256,13 +256,13 @@ export default function WatchlistPage() {
                   placeholder="10500"
                   value={targetSell}
                   onChange={(e) => setTargetSell(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5">
+              <label className="block text-xs font-medium text-zinc-400 mb-1.5">
                 CATATAN / ALASAN PANTAU
               </label>
               <input
@@ -270,13 +270,13 @@ export default function WatchlistPage() {
                 placeholder="Misal: Tunggu laporan keuangan Q3 rilis"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-md shadow-blue-600/30 transition mt-2"
+              className="w-full py-2.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-semibold text-xs shadow-sm transition mt-2 active:scale-[0.98]"
             >
               Simpan ke Watchlist
             </button>
@@ -289,9 +289,9 @@ export default function WatchlistPage() {
           onClose={() => setIsAlertModalOpen(false)}
           title="Pasang Notifikasi Price Alert"
         >
-          <form onSubmit={handleCreateAlert} className="space-y-4">
+          <form onSubmit={handleCreateAlert} className="space-y-4 text-xs sm:text-sm">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5">
+              <label className="block text-xs font-medium text-zinc-400 mb-1.5">
                 KODE EMITEN (TICKER)
               </label>
               <input
@@ -300,22 +300,22 @@ export default function WatchlistPage() {
                 value={alertTicker}
                 onChange={(e) => setAlertTicker(e.target.value.toUpperCase())}
                 required
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-blue-500 uppercase"
+                className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 uppercase"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5">
+              <label className="block text-xs font-medium text-zinc-400 mb-1.5">
                 KONDISI PEMICU
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setAlertCondition("ABOVE")}
-                  className={`py-2 rounded-xl font-bold text-xs border transition ${
+                  className={`py-2 rounded-lg font-medium text-xs border transition ${
                     alertCondition === "ABOVE"
-                      ? "bg-emerald-500/20 border-emerald-500 text-emerald-400"
-                      : "bg-slate-800 border-slate-700 text-slate-400"
+                      ? "bg-emerald-950/40 border-emerald-800/60 text-emerald-300 font-semibold"
+                      : "bg-zinc-800 border-zinc-700 text-zinc-400"
                   }`}
                 >
                   NAIK DI ATAS (&gt;=)
@@ -323,10 +323,10 @@ export default function WatchlistPage() {
                 <button
                   type="button"
                   onClick={() => setAlertCondition("BELOW")}
-                  className={`py-2 rounded-xl font-bold text-xs border transition ${
+                  className={`py-2 rounded-lg font-medium text-xs border transition ${
                     alertCondition === "BELOW"
-                      ? "bg-rose-500/20 border-rose-500 text-rose-400"
-                      : "bg-slate-800 border-slate-700 text-slate-400"
+                      ? "bg-red-950/40 border-red-800/60 text-red-300 font-semibold"
+                      : "bg-zinc-800 border-zinc-700 text-zinc-400"
                   }`}
                 >
                   TURUN DI BAWAH (&lt;=)
@@ -335,7 +335,7 @@ export default function WatchlistPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5">
+              <label className="block text-xs font-medium text-zinc-400 mb-1.5">
                 TARGET HARGA PEMICU (Rp)
               </label>
               <input
@@ -344,15 +344,15 @@ export default function WatchlistPage() {
                 value={alertTargetPrice}
                 onChange={(e) => setAlertTargetPrice(e.target.value)}
                 required
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm shadow-md shadow-amber-600/30 transition mt-2 flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-semibold text-xs shadow-sm transition mt-2 flex items-center justify-center gap-2 active:scale-[0.98]"
             >
-              <Bell className="w-4 h-4" /> Aktifkan Alert
+              <Bell className="w-3.5 h-3.5 text-zinc-900" /> Aktifkan Alert
             </button>
           </form>
         </Modal>

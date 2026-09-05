@@ -97,10 +97,93 @@ const FALLBACK_DATABASE: Record<string, Partial<StockQuote>> = {
     dividendYield: 0,
     returnOnEquity: -8.5,
   },
+  "BTC-USD": {
+    name: "Bitcoin",
+    currency: "USD",
+    regularMarketPrice: 64500,
+    regularMarketChange: 1250,
+    regularMarketChangePercent: 1.97,
+    regularMarketDayHigh: 65200,
+    regularMarketDayLow: 63100,
+    regularMarketVolume: 28000000000,
+    marketCap: 1270000000000,
+    fiftyTwoWeekHigh: 73750,
+    fiftyTwoWeekLow: 26500,
+  },
+  "ETH-USD": {
+    name: "Ethereum",
+    currency: "USD",
+    regularMarketPrice: 3450,
+    regularMarketChange: 45,
+    regularMarketChangePercent: 1.32,
+    regularMarketDayHigh: 3500,
+    regularMarketDayLow: 3380,
+    regularMarketVolume: 15000000000,
+    marketCap: 415000000000,
+  },
+  "SOL-USD": {
+    name: "Solana",
+    currency: "USD",
+    regularMarketPrice: 145,
+    regularMarketChange: 3.5,
+    regularMarketChangePercent: 2.47,
+    regularMarketDayHigh: 148,
+    regularMarketDayLow: 139,
+    regularMarketVolume: 3500000000,
+    marketCap: 67000000000,
+  },
+  "GOLD.IDR": {
+    name: "Emas Logam Mulia (Antam/UBS per Gram)",
+    currency: "IDR",
+    regularMarketPrice: 1410000,
+    regularMarketChange: 5000,
+    regularMarketChangePercent: 0.36,
+    regularMarketDayHigh: 1415000,
+    regularMarketDayLow: 1405000,
+  },
+  "SPY": {
+    name: "SPDR S&P 500 ETF Trust",
+    currency: "USD",
+    regularMarketPrice: 550,
+    regularMarketChange: 2.8,
+    regularMarketChangePercent: 0.51,
+    dividendYield: 1.25,
+  },
+  "QQQ": {
+    name: "Invesco QQQ Trust",
+    currency: "USD",
+    regularMarketPrice: 480,
+    regularMarketChange: 3.2,
+    regularMarketChangePercent: 0.67,
+    dividendYield: 0.58,
+  },
+  "AAPL": {
+    name: "Apple Inc.",
+    currency: "USD",
+    regularMarketPrice: 225,
+    regularMarketChange: 1.5,
+    regularMarketChangePercent: 0.67,
+    trailingPE: 33.5,
+    priceToBook: 48.0,
+    dividendYield: 0.45,
+  },
+  "NVDA": {
+    name: "NVIDIA Corporation",
+    currency: "USD",
+    regularMarketPrice: 120,
+    regularMarketChange: 2.1,
+    regularMarketChangePercent: 1.78,
+    trailingPE: 55.0,
+    priceToBook: 42.0,
+    dividendYield: 0.08,
+  },
 };
 
-export const getStockQuote = async (rawTicker: string): Promise<StockQuote> => {
-  const ticker = formatTicker(rawTicker);
+export const getStockQuote = async (
+  rawTicker: string,
+  assetType?: string
+): Promise<StockQuote> => {
+  const ticker = formatTicker(rawTicker, assetType as any);
 
   // Check cache
   const cached = quoteCache.get(ticker);

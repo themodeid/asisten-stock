@@ -58,32 +58,32 @@ export default function AnalyticsPage() {
     <div className="flex-1 flex flex-col">
       <Header title="AI Stock Analyst & Research Hub" />
 
-      <main className="p-8 space-y-8 max-w-7xl w-full mx-auto">
+      <main className="p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto">
         {/* Search & Popular Tickers */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm">
           <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="w-5 h-5 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Masukkan Kode Saham (contoh: BBCA, BBRI, BMRI, TLKM)..."
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value.toUpperCase())}
-                className="w-full bg-slate-800/80 border border-slate-700 rounded-2xl pl-12 pr-4 py-3 text-slate-100 placeholder-slate-500 font-medium focus:outline-none focus:border-blue-500 uppercase"
+                className="w-full bg-zinc-950 border border-zinc-700 rounded-lg pl-9 pr-4 py-2 text-zinc-100 placeholder-zinc-500 font-medium text-xs focus:outline-none focus:border-zinc-400 uppercase"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-md shadow-blue-600/30 transition flex items-center justify-center gap-2"
+              className="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-semibold text-xs shadow-sm transition flex items-center justify-center gap-2 active:scale-[0.98]"
             >
-              <Search className="w-4 h-4" /> Cari Emiten
+              <Search className="w-3.5 h-3.5 text-zinc-900" /> Cari Emiten
             </button>
           </form>
 
           {/* Quick Ticker Chips */}
-          <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-800/80">
-            <span className="text-xs text-slate-400 font-semibold mr-1">
+          <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-zinc-800">
+            <span className="text-[11px] text-zinc-400 font-medium mr-1">
               Emiten Populer:
             </span>
             {POPULAR_TICKERS.map((t) => (
@@ -93,7 +93,7 @@ export default function AnalyticsPage() {
                   setTicker(t);
                   fetchQuote(t);
                 }}
-                className="px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-300 transition"
+                className="px-2.5 py-1 rounded-md bg-zinc-800 hover:bg-zinc-700/80 border border-zinc-700/80 text-[11px] font-medium text-zinc-300 transition"
               >
                 {t}
               </button>
@@ -105,10 +105,10 @@ export default function AnalyticsPage() {
         {quote && (
           <div className="space-y-6 animate-fadeIn">
             {/* Header info */}
-            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm">
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-3xl font-extrabold text-white tracking-tight">
+                  <h1 className="text-2xl font-bold text-zinc-100 tracking-tight">
                     {quote.ticker}
                   </h1>
                   <Badge
@@ -120,8 +120,8 @@ export default function AnalyticsPage() {
                     {quote.regularMarketChangePercent?.toFixed(2)}%
                   </Badge>
                 </div>
-                <p className="text-slate-400 text-sm mt-1">{quote.name}</p>
-                <div className="text-3xl font-bold text-slate-100 mt-4">
+                <p className="text-zinc-400 text-xs mt-1">{quote.name}</p>
+                <div className="text-2xl font-bold text-zinc-100 mt-3">
                   {formatIDR(quote.regularMarketPrice)}
                 </div>
               </div>
@@ -130,9 +130,9 @@ export default function AnalyticsPage() {
                 <button
                   onClick={runAiAnalysis}
                   disabled={analyzing}
-                  className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-blue-500/20 transition flex items-center justify-center gap-2"
+                  className="px-5 py-2.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-semibold text-xs shadow-sm transition flex items-center justify-center gap-2 active:scale-[0.98]"
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-4 h-4 text-zinc-900" />
                   {analyzing ? "Gemini Sedang Menganalisis..." : "Analisis Mendalam AI"}
                 </button>
               </div>
@@ -140,54 +140,54 @@ export default function AnalyticsPage() {
 
             {/* Valuation Ratios Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
-                  <Activity className="w-4 h-4 text-blue-400" />
+              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 shadow-sm">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+                  <Activity className="w-3.5 h-3.5 text-zinc-400" />
                   P/E RATIO (PER)
                 </div>
-                <div className="text-2xl font-bold text-slate-100 mt-2">
+                <div className="text-xl font-bold text-zinc-100 mt-2">
                   {quote.trailingPE ? `${quote.trailingPE.toFixed(1)}x` : "N/A"}
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-[10px] text-zinc-500 mt-0.5">
                   Valuasi Laba Bersih
                 </p>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
-                  <DollarSign className="w-4 h-4 text-indigo-400" />
+              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 shadow-sm">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+                  <DollarSign className="w-3.5 h-3.5 text-zinc-400" />
                   PRICE TO BOOK (PBV)
                 </div>
-                <div className="text-2xl font-bold text-slate-100 mt-2">
+                <div className="text-xl font-bold text-zinc-100 mt-2">
                   {quote.priceToBook ? `${quote.priceToBook.toFixed(1)}x` : "N/A"}
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-[10px] text-zinc-500 mt-0.5">
                   Valuasi Nilai Buku
                 </p>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
-                  <Percent className="w-4 h-4 text-emerald-400" />
+              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 shadow-sm">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+                  <Percent className="w-3.5 h-3.5 text-zinc-400" />
                   RETURN ON EQUITY (ROE)
                 </div>
-                <div className="text-2xl font-bold text-slate-100 mt-2">
+                <div className="text-xl font-bold text-zinc-100 mt-2">
                   {quote.returnOnEquity ? `${quote.returnOnEquity.toFixed(1)}%` : "N/A"}
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-[10px] text-zinc-500 mt-0.5">
                   Efisiensi Profitabilitas
                 </p>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
-                  <ShieldCheck className="w-4 h-4 text-amber-400" />
+              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 shadow-sm">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+                  <ShieldCheck className="w-3.5 h-3.5 text-zinc-400" />
                   DIVIDEND YIELD
                 </div>
-                <div className="text-2xl font-bold text-slate-100 mt-2">
+                <div className="text-xl font-bold text-zinc-100 mt-2">
                   {quote.dividendYield ? `${quote.dividendYield.toFixed(1)}%` : "N/A"}
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-[10px] text-zinc-500 mt-0.5">
                   Imbal Hasil Dividen
                 </p>
               </div>
@@ -195,12 +195,12 @@ export default function AnalyticsPage() {
 
             {/* AI Report Card */}
             {aiReport && (
-              <div className="bg-slate-900 border border-blue-500/30 rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden animate-scaleUp">
-                <div className="flex items-center gap-2 text-blue-400 font-bold text-sm mb-4">
-                  <Sparkles className="w-5 h-5" />
+              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm relative overflow-hidden animate-scaleUp">
+                <div className="flex items-center gap-2 text-zinc-200 font-semibold text-xs mb-3">
+                  <Sparkles className="w-4 h-4 text-zinc-300" />
                   Laporan Analisis AI Gemini 2.5 Flash
                 </div>
-                <div className="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+                <div className="text-zinc-300 text-xs leading-relaxed whitespace-pre-wrap font-sans">
                   {aiReport}
                 </div>
               </div>

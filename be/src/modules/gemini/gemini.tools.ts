@@ -2,8 +2,49 @@ import { FunctionDeclaration, Type } from "@google/genai";
 
 export const geminiToolDeclarations: FunctionDeclaration[] = [
   {
+    name: "log_asset_transaction",
+    description: "Catat transaksi pembelian (BUY) atau penjualan (SELL) aset apa saja (Saham, Crypto, ETF, Obligasi/SBN, Emas/Logam Mulia, Reksadana) ke portofolio pengguna.",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        symbol: {
+          type: Type.STRING,
+          description: "Kode ticker atau nama aset (contoh: BBCA, BTC, ETH, SOL, SPY, EMAS, ORI024, AAPL).",
+        },
+        asset_type: {
+          type: Type.STRING,
+          enum: ["STOCK", "CRYPTO", "ETF", "BOND", "MUTUAL_FUND", "GOLD", "CASH"],
+          description: "Jenis kelas aset: STOCK (saham), CRYPTO (kripto), ETF, BOND (obligasi/SBN), MUTUAL_FUND (reksadana), GOLD (emas), CASH (kas).",
+        },
+        action: {
+          type: Type.STRING,
+          enum: ["BUY", "SELL"],
+          description: "Jenis aksi: BUY untuk beli, SELL untuk jual.",
+        },
+        quantity: {
+          type: Type.NUMBER,
+          description: "Jumlah unit yang ditransaksikan (Lot untuk saham lokal, unit desimal untuk crypto misal 0.05, gram untuk emas misal 10).",
+        },
+        price_per_unit: {
+          type: Type.NUMBER,
+          description: "Harga per unit / per lembar / per koin / per gram.",
+        },
+        currency: {
+          type: Type.STRING,
+          enum: ["IDR", "USD"],
+          description: "Mata uang transaksi (IDR atau USD).",
+        },
+        notes: {
+          type: Type.STRING,
+          description: "Catatan opsional (misal: 'DCA mingguan', 'Dividen play', 'Take profit').",
+        },
+      },
+      required: ["symbol", "action", "quantity", "price_per_unit"],
+    },
+  },
+  {
     name: "log_stock_transaction",
-    description: "Catat transaksi pembelian (BUY) atau penjualan (SELL) saham ke portofolio pengguna.",
+    description: "Catat transaksi pembelian atau penjualan saham spesifik.",
     parameters: {
       type: Type.OBJECT,
       properties: {
@@ -18,15 +59,15 @@ export const geminiToolDeclarations: FunctionDeclaration[] = [
         },
         lots: {
           type: Type.NUMBER,
-          description: "Jumlah lot saham yang ditransaksikan (1 lot = 100 lembar untuk saham Indonesia).",
+          description: "Jumlah lot saham.",
         },
         price_per_share: {
           type: Type.NUMBER,
-          description: "Harga per lembar saham dalam Rupiah/mata uang bersangkutan.",
+          description: "Harga per lembar saham.",
         },
         notes: {
           type: Type.STRING,
-          description: "Catatan opsional (misal: 'TP target 1', 'Average down support').",
+          description: "Catatan opsional.",
         },
       },
       required: ["ticker", "action", "lots", "price_per_share"],
