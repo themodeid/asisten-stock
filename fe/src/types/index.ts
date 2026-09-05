@@ -18,8 +18,10 @@ export interface StockHolding {
   total_lots?: number;
   avg_buy_price: number;
   total_invested: number;
+  total_invested_idr?: number;
   current_price: number;
   market_value: number;
+  market_value_idr?: number;
   floating_pnl: number;
   floating_pnl_percent: number;
   weight_percent?: number;

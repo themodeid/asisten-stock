@@ -212,6 +212,14 @@ export default function PortfolioPage() {
                     const isUp = (h.floating_pnl || 0) >= 0;
                     const aType = h.asset_type || "STOCK";
                     const isStock = aType === "STOCK";
+                    const investedIdr =
+                      h.total_invested_idr ??
+                      (h.currency === "USD" ? h.total_invested * 15800 : h.total_invested);
+                    const marketValIdr =
+                      h.market_value_idr ??
+                      (h.currency === "USD"
+                        ? (h.market_value || h.total_invested) * 15800
+                        : h.market_value || h.total_invested);
 
                     return (
                       <tr
@@ -254,11 +262,27 @@ export default function PortfolioPage() {
                         <td className="py-3.5 px-4 font-semibold text-zinc-100">
                           {formatPriceVal(h.current_price || h.avg_buy_price, h.currency)}
                         </td>
-                        <td className="py-3.5 px-4 text-zinc-300">
-                          {formatPriceVal(h.total_invested, h.currency)}
+                        <td className="py-3.5 px-4 text-zinc-200 font-medium">
+                          {formatIDR(investedIdr)}
+                          {h.currency === "USD" && (
+                            <div className="text-[10px] text-zinc-500 font-normal">
+                              ${Number(h.total_invested).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </div>
+                          )}
                         </td>
                         <td className="py-3.5 px-4 font-semibold text-zinc-100">
-                          {formatPriceVal(h.market_value || h.total_invested, h.currency)}
+                          {formatIDR(marketValIdr)}
+                          {h.currency === "USD" && (
+                            <div className="text-[10px] text-zinc-500 font-normal">
+                              ${Number(h.market_value || h.total_invested).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </div>
+                          )}
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="flex flex-col">
@@ -267,7 +291,17 @@ export default function PortfolioPage() {
                               {h.floating_pnl_percent}%
                             </Badge>
                             <span className="text-[10px] text-zinc-400 mt-1">
-                              {formatPriceVal(h.floating_pnl, h.currency)}
+                              {formatIDR(
+                                h.currency === "USD" ? (h.floating_pnl || 0) * 15800 : h.floating_pnl || 0
+                              )}
+                              {h.currency === "USD" && (
+                                <span className="block text-[9px] text-zinc-500">
+                                  (${Number(h.floating_pnl || 0).toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  })})
+                                </span>
+                              )}
                             </span>
                           </div>
                         </td>

@@ -223,11 +223,111 @@ async function handleRuleBasedFallback(
   const executedTools: any[] = [];
   const portfolio = await portfolioService.getPrimaryPortfolioByUserId(userId);
 
-  // Check recent chat context if current message might be a continuation (e.g. "dicatat untuk btc")
+  // 0. Base parsing for current message
   let effectiveText = text;
   let detected = detectAssetSymbolFromText(effectiveText);
   let money = parseIndonesianMoneyString(effectiveText);
 
+  const pnlMatch =
+    text.match(/(?:rugi|loss|minus|floating\s*loss|turun|kerugian|negatif)\s*(?:sebesar|sekitar|sebanyak)?\s*(\d+(?:[\.,]\d+)?)\s*%/i) ||
+    text.match(/(\d+(?:[\.,]\d+)?)\s*%\s*(?:rugi|loss|minus|floating\s*loss|turun|kerugian)/i);
+
+  const profitMatch =
+    text.match(/(?:untung|cuan|profit|plus|floating\s*profit|naik|keuntungan|positif)\s*(?:sebesar|sekitar|sebanyak)?\s*(\d+(?:[\.,]\d+)?)\s*%/i) ||
+    text.match(/(\d+(?:[\.,]\d+)?)\s*%\s*(?:untung|cuan|profit|plus|floating\s*profit|naik|keuntungan)/i);
+
+  let historicalPnLPercent: number | undefined = undefined;
+  if (pnlMatch) {
+    historicalPnLPercent = -Math.abs(parseFloat(pnlMatch[1].replace(",", ".")));
+  } else if (profitMatch) {
+    historicalPnLPercent = Math.abs(parseFloat(profitMatch[1].replace(",", ".")));
+  }
+
+  // 1. Check if this is a correction or clarification message (e.g. "yang saya maksud diatas itu btc ya", "maksud saya btc", "revisi btc")
+  const isCorrectionIntent =
+    /(?:yang\s+saya\s+maksud|maksud\s+saya|maksudku|maksudnya|revisi|ralat|ganti|bukan\s+.*tapi)/i.test(
+      lower
+    ) || (text.split(/\s+/).length <= 6 && /(?:itu|untuk|jadi)\s+([a-zA-Z0-9_\.]{2,10})/i.test(lower));
+
+  if (isCorrectionIntent && detected) {
+    try {
+      // Find previous user message
+      const recentLogs = await pool.query(
+        "SELECT message FROM chat_logs WHERE user_id = $1 AND role = 'user' ORDER BY created_at DESC LIMIT 5;",
+        [userId]
+      );
+
+      let prevMoney = money;
+      let prevPnL = historicalPnLPercent;
+
+      if (recentLogs.rows.length > 1) {
+        for (let i = 1; i < recentLogs.rows.length; i++) {
+          const pastMsg = recentLogs.rows[i].message;
+          if (!prevMoney) prevMoney = parseIndonesianMoneyString(pastMsg);
+          if (prevPnL === undefined) {
+            const pMatch = pastMsg.match(/(?:rugi|loss|minus|floating\s*loss|turun|kerugian|negatif)\s*(\d+(?:[\.,]\d+)?)\s*%/i);
+            const prMatch = pastMsg.match(/(?:untung|cuan|profit|plus|floating\s*profit|naik|keuntungan|positif)\s*(\d+(?:[\.,]\d+)?)\s*%/i);
+            if (pMatch) prevPnL = -Math.abs(parseFloat(pMatch[1].replace(",", ".")));
+            if (prMatch) prevPnL = Math.abs(parseFloat(prMatch[1].replace(",", ".")));
+          }
+          if (prevMoney) break;
+        }
+      }
+
+      if (prevMoney && prevMoney.amount > 0) {
+        // Clean any erroneous holdings created recently (e.g. JUTA.JK)
+        await pool.query(
+          "DELETE FROM portfolio_holdings WHERE portfolio_id = $1 AND (ticker LIKE 'JUTA%' OR ticker LIKE 'RIBU%' OR ticker LIKE 'RUPI%');",
+          [portfolio.id]
+        );
+        await pool.query(
+          "DELETE FROM stock_transactions WHERE portfolio_id = $1 AND (ticker LIKE 'JUTA%' OR ticker LIKE 'RIBU%' OR ticker LIKE 'RUPI%');",
+          [portfolio.id]
+        );
+
+        const result = await transactionService.recordTransaction({
+          portfolio_id: portfolio.id,
+          ticker: detected.symbol,
+          asset_type: detected.assetType,
+          type: "BUY",
+          total_budget: prevMoney.amount,
+          currency: prevMoney.currency,
+          historical_pnl_percent: prevPnL,
+          notes: `Revisi Klarifikasi User: ${detected.symbol}`,
+        });
+
+        const tx = result.transaction;
+        const assetType = tx.asset_type;
+        const isStock = assetType === "STOCK";
+        const qtyText = isStock
+          ? `${tx.lots} Lot (${tx.shares} lbr)`
+          : `${tx.quantity} ${assetType === "GOLD" ? "gram" : assetType === "CRYPTO" ? detected.symbol : "unit"}`;
+        
+        const holding = result.holding;
+        const avgBuyPrice = Number(holding?.avg_buy_price || tx.price_per_share);
+        const isUSD = tx.currency === "USD";
+        const priceFormatted = isUSD ? `$${avgBuyPrice.toLocaleString()}` : formatRupiah(avgBuyPrice);
+        const nominalInputFormatted = prevMoney.currency === "USD" ? `$${prevMoney.amount}` : formatRupiah(prevMoney.amount);
+
+        executedTools.push({
+          toolName: "log_asset_transaction",
+          args: { symbol: detected.symbol, asset_type: assetType, total_budget: prevMoney.amount, historical_pnl_percent: prevPnL },
+          result,
+        });
+
+        const pnlText = prevPnL !== undefined ? `\n• Kondisi Posisi: **${prevPnL < 0 ? "🔴 Rugi" : "🟢 Untung"} ${prevPnL}%**\n• Rekonstruksi Modal Beli (Avg Price): **${priceFormatted}**` : "";
+
+        return {
+          replyText: `✅ **Revisi Berhasil Diterapkan!**\n\nData transaksi sebelumnya telah dikoreksi untuk aset **${tx.ticker} (${assetType})**:${pnlText}\n\n📌 **Aset:** ${tx.ticker}\n💰 **Nilai Aset:** ${nominalInputFormatted}\n📊 **Kuantitas Kepemilikan:** **${qtyText}**\n\nPortofolio Anda telah diperbarui dengan aset yang benar.`,
+          toolCallsExecuted: executedTools,
+        };
+      }
+    } catch (revErr) {
+      console.warn("Revision handling error:", revErr);
+    }
+  }
+
+  // 2. Context fallback for short continuations
   const isShortContinuation =
     text.split(/\s+/).length <= 4 &&
     /(?:untuk|itu|tadi|lanjut|catat|tolong|dong|ya|masukin)/i.test(lower);
@@ -251,22 +351,6 @@ async function handleRuleBasedFallback(
     } catch (dbErr) {
       console.warn("Context fetch error:", dbErr);
     }
-  }
-
-  // 0. Check Historical PnL / Floating Position Intent (e.g. "saya memiliki asset btc sebesar 4.325.000 rp disitu saya mengalami kerugian 20% tolong dicatat")
-  const pnlMatch =
-    text.match(/(?:rugi|loss|minus|floating\s*loss|turun|kerugian|negatif)\s*(?:sebesar|sekitar|sebanyak)?\s*(\d+(?:[\.,]\d+)?)\s*%/i) ||
-    text.match(/(\d+(?:[\.,]\d+)?)\s*%\s*(?:rugi|loss|minus|floating\s*loss|turun|kerugian)/i);
-
-  const profitMatch =
-    text.match(/(?:untung|cuan|profit|plus|floating\s*profit|naik|keuntungan|positif)\s*(?:sebesar|sekitar|sebanyak)?\s*(\d+(?:[\.,]\d+)?)\s*%/i) ||
-    text.match(/(\d+(?:[\.,]\d+)?)\s*%\s*(?:untung|cuan|profit|plus|floating\s*profit|naik|keuntungan)/i);
-
-  let historicalPnLPercent: number | undefined = undefined;
-  if (pnlMatch) {
-    historicalPnLPercent = -Math.abs(parseFloat(pnlMatch[1].replace(",", ".")));
-  } else if (profitMatch) {
-    historicalPnLPercent = Math.abs(parseFloat(profitMatch[1].replace(",", ".")));
   }
 
   // 1. Check BUY Intent or Historical Portfolio State
@@ -389,6 +473,16 @@ async function handleRuleBasedFallback(
         toolCallsExecuted: [],
       };
     }
+  }
+
+  // 1C. AMBIGUITY CHECK: Intent or amount given, but no asset symbol specified
+  if ((isBuyIntent || historicalPnLPercent !== undefined) && money && money.amount > 0 && !detected) {
+    const nominalDisplay = money.currency === "USD" ? `$${money.amount}` : formatRupiah(money.amount);
+    const pnlDisplay = historicalPnLPercent !== undefined ? ` dengan posisi **${historicalPnLPercent < 0 ? "Kerugian" : "Keuntungan"} ${historicalPnLPercent}%**` : "";
+    return {
+      replyText: `❓ **Mohon Klarifikasi Nama Aset:**\n\nSaya memahami Anda ingin mencatat portofolio senilai **${nominalDisplay}**${pnlDisplay}.\n\nNamun, **nama atau simbol aset** belum Anda sebutkan. Aset apa yang ingin dicatat?\n\n🔹 **Kripto**: Balas *"Untuk BTC"* atau *"Untuk ETH"*\n🔹 **Saham**: Balas *"Saham BBCA"* atau *"Saham BBRI"*\n🔹 **Emas**: Balas *"Emas Antam"*\n🔹 **Obligasi**: Balas *"SBN ORI024"*\n\n*(Cukup ketik nama asetnya, Jarvis akan langsung menyimpannya ke portofolio Anda).*`,
+      toolCallsExecuted: [],
+    };
   }
 
   // 2. SELL Pattern: e.g. "Jual BBCA 5 lot di 10000" or "Jual BTC 0.02 di 68000"

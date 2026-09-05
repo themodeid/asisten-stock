@@ -163,8 +163,8 @@ export default function PlaygroundPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-hidden">
-      <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950 px-6 py-4">
+    <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950 px-6 py-4 sticky top-0 z-20 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-100 font-bold shadow-sm">
             <Bot className="w-5 h-5 text-emerald-400" />
@@ -191,7 +191,7 @@ export default function PlaygroundPage() {
         </button>
       </div>
 
-      <main className="flex-1 p-4 md:p-6 max-w-5xl w-full mx-auto flex flex-col min-h-0">
+      <main className="flex-1 p-4 md:p-6 max-w-5xl w-full mx-auto flex flex-col min-h-0 overflow-hidden">
         {/* Quick Suggestion Chips */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 shrink-0">
           <span className="text-xs text-zinc-400 font-medium flex items-center gap-1 shrink-0">

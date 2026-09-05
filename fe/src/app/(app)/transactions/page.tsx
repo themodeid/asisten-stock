@@ -181,7 +181,15 @@ export default function TransactionsPage() {
                           {formatPriceVal(tx.price_per_share, tx.currency)}
                         </td>
                         <td className="py-3.5 px-4 font-semibold text-zinc-100">
-                          {formatPriceVal(tx.total_amount, tx.currency)}
+                          {formatIDR(tx.currency === "USD" ? tx.total_amount * 15800 : tx.total_amount)}
+                          {tx.currency === "USD" && (
+                            <div className="text-[10px] text-zinc-500 font-normal">
+                              ${Number(tx.total_amount).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </div>
+                          )}
                         </td>
                         <td className="py-3.5 px-4 text-xs text-zinc-400 max-w-[200px] truncate">
                           {tx.notes || "-"}

@@ -167,7 +167,7 @@ export function parseIndonesianMoneyString(raw: string): { amount: number; curre
 
   let numStr = match[0];
 
-  // If thousand separator with dots: "1.100.000" or "500.000"
+  // If thousand separator with dots: "1.100.000" or "4.325.000" or "500.000"
   if (/^\d{1,3}(\.\d{3})+$/.test(numStr)) {
     numStr = numStr.replace(/\./g, "");
   } else if (/^\d{1,3}(,\d{3})+$/.test(numStr)) {
@@ -179,11 +179,30 @@ export function parseIndonesianMoneyString(raw: string): { amount: number; curre
   const parsed = parseFloat(numStr);
   if (isNaN(parsed) || parsed <= 0) return null;
 
+  // If the number already has full digit representation (e.g. 4325000), do not multiply by juta
+  if (parsed >= 10000 && multiplier === 1_000_000) {
+    multiplier = 1;
+  }
+
   return {
     amount: parsed * multiplier,
     currency: isUSD ? "USD" : "IDR",
   };
 }
+
+/**
+ * Common Indonesian 4-letter words that should NOT be treated as stock tickers
+ */
+const INDONESIAN_IGNORE_WORDS = new Set([
+  "BELI", "JUAL", "DARI", "PADA", "SAYA", "ABIS", "YANG", "DENG", "DONG", 
+  "HARI", "INFO", "USER", "RUPI", "DICA", "KITA", "DULU", "SEBE", "SEHA",
+  "SELA", "KEMU", "LALU", "KARE", "DENG", "AKAN", "TIDA", "BISA", "BUAT",
+  "JUTA", "RIBU", "RUPI", "UANG", "DANA", "PORT", "ASET", "DUIT", "MODA",
+  "RUGI", "LOSS", "PLUS", "CUAN", "NAIK", "TURU", "KATA", "MAKS", "ATAS",
+  "BANT", "TOKO", "PUNY", "MILIK", "SAAT", "ITU", "YA", "DI", "KE", "DONG",
+  "KIRA", "SUDA", "KALA", "TAPI", "JUGA", "LAGI", "SEPE", "SEBE", "SETE",
+  "SINI", "SITU", "KAMU", "MERE", "KAMI", "ADAL", "BANY", "DIKE", "DIBE"
+]);
 
 /**
  * Extracts asset symbol from natural text
@@ -220,17 +239,11 @@ export function detectAssetSymbolFromText(text: string): { symbol: string; asset
   }
 
   // 5. Check IDX 4-letter Stocks (scan all 4-letter words, skip dictionary ignore words)
-  const ignoreWords = new Set([
-    "BELI", "JUAL", "DARI", "PADA", "SAYA", "ABIS", "YANG", "DENG", "DONG", 
-    "HARI", "INFO", "USER", "RUPI", "DICA", "KITA", "DULU", "SEBE", "SEHA",
-    "SELA", "KEMU", "LALU", "KARE", "DENG", "AKAN", "TIDA", "BISA", "BUAT"
-  ]);
-
   const allWords = text.match(/\b([A-Za-z]{4})\b/g);
   if (allWords) {
     for (const w of allWords) {
       const upperW = w.toUpperCase();
-      if (!ignoreWords.has(upperW)) {
+      if (!INDONESIAN_IGNORE_WORDS.has(upperW)) {
         return { symbol: upperW, assetType: "STOCK" };
       }
     }

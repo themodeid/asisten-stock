@@ -100,6 +100,7 @@ export const getPortfolioSummary = async (
         total_lots: lots,
         avg_buy_price: avgPrice,
         total_invested: invested,
+        total_invested_idr: investedIDR,
         updated_at: row.updated_at,
         current_price: currentPrice,
         market_value: marketVal,

@@ -20,10 +20,12 @@ export interface PortfolioHolding {
   total_lots?: number;
   avg_buy_price: number;
   total_invested: number;
+  total_invested_idr?: number;
   updated_at: Date;
   // Dynamic computed fields with live market data:
   current_price?: number;
   market_value?: number;
+  market_value_idr?: number;
   floating_pnl?: number;
   floating_pnl_percent?: number;
   weight_percent?: number;
