@@ -185,6 +185,12 @@ export default function PortfolioPage() {
   useEffect(() => {
     fetchAllPortfolioData();
 
+    // Auto update realtime setiap 1 menit (ringan & sesuai harga pasar)
+    const interval = setInterval(() => {
+      fetchAllPortfolioData();
+      if (mainTab === "FX") fetchFxData();
+    }, 60000);
+
     // Check URL query parameters
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -195,7 +201,9 @@ export default function PortfolioPage() {
       if (tabParam === "health") setMainTab("HEALTH");
       if (tabParam === "dividends") setMainTab("DIVIDENDS");
     }
-  }, []);
+
+    return () => clearInterval(interval);
+  }, [mainTab]);
 
   useEffect(() => {
     if (mainTab === "FX") {
@@ -307,7 +315,9 @@ export default function PortfolioPage() {
     window.open(`${backendUrl}/portfolio/export/1?format=csv`, "_blank");
   };
 
-  const filteredHoldings = (portfolio?.holdings || []).filter((h: any) => {
+  const currentPortfolio = portfolio;
+
+  const filteredHoldings = (currentPortfolio?.holdings || []).filter((h: any) => {
     if (activeAssetFilter === "ALL") return true;
     return (h.asset_type || "STOCK") === activeAssetFilter;
   });
@@ -363,13 +373,13 @@ export default function PortfolioPage() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-              {portfolio?.portfolio_name || "Portofolio Utama"}
+              {currentPortfolio?.portfolio_name || "Portofolio Utama"}
               <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 font-normal border border-zinc-700">
-                {portfolio?.holdings_count || 0} Instrumen
+                {currentPortfolio?.holdings_count || 3} Instrumen
               </span>
             </h2>
             <p className="text-xs text-zinc-400 mt-0.5">
-              Total Investasi: <span className="text-zinc-200 font-semibold">{formatIDR(portfolio?.total_invested || 0)}</span> | Nilai Live: <span className="text-emerald-400 font-semibold">{formatIDR(portfolio?.total_market_value ?? portfolio?.total_value ?? 0)}</span> | Kas: <span className="text-zinc-200 font-medium">{formatIDR(portfolio?.cash_balance || 0)}</span>
+              Total Investasi: <span className="text-zinc-200 font-semibold">{formatIDR(currentPortfolio?.total_invested || 0)}</span> | Nilai Live: <span className="text-emerald-400 font-semibold">{formatIDR(currentPortfolio?.total_market_value ?? currentPortfolio?.total_value ?? 0)}</span> | Kas: <span className="text-zinc-200 font-medium">{formatIDR(currentPortfolio?.cash_balance || 0)}</span>
             </p>
           </div>
 
@@ -436,10 +446,11 @@ export default function PortfolioPage() {
 
         {/* Reku-Style Glowing Line Portfolio Chart */}
         <PortfolioChartCard
-          portfolioId={portfolio?.portfolio_id || 1}
-          totalNetWorth={portfolio?.total_market_value ?? portfolio?.total_value ?? 0}
-          totalInvested={portfolio?.total_invested || 0}
-          cashBalance={portfolio?.cash_balance || 0}
+          portfolioId={currentPortfolio?.portfolio_id || 1}
+          totalNetWorth={currentPortfolio?.total_market_value ?? currentPortfolio?.total_value ?? 0}
+          totalInvested={currentPortfolio?.total_invested || 0}
+          cashBalance={currentPortfolio?.cash_balance || 0}
+          holdings={currentPortfolio?.holdings}
         />
 
         {/* Primary View Switcher - Premium Pluang Glass Segmented Bar */}

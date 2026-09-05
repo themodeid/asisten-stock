@@ -7,10 +7,12 @@ export interface DashboardMetrics {
   totalNetWorth: number;
   totalInvested: number;
   totalCash: number;
+  cashBalance?: number;
   totalFloatingPnl: number;
   totalFloatingPnlPercent: number;
   activeHoldingsCount: number;
   holdings: any[];
+  topHoldings?: any[];
   recentTransactions: any[];
   watchlist: any[];
   assetAllocations?: any[];
@@ -28,10 +30,12 @@ export const getDashboardMetrics = async (
     totalNetWorth: summary.total_net_worth,
     totalInvested: summary.total_invested,
     totalCash: summary.cash_balance,
+    cashBalance: summary.cash_balance,
     totalFloatingPnl: summary.total_floating_pnl,
     totalFloatingPnlPercent: summary.total_floating_pnl_percent,
     activeHoldingsCount: summary.holdings_count,
     holdings: summary.holdings,
+    topHoldings: summary.holdings,
     recentTransactions: transactions.slice(0, 5),
     watchlist: watchlist.slice(0, 5),
     assetAllocations: summary.asset_allocations || [],

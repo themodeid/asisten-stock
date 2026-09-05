@@ -2,15 +2,10 @@
 
 import { useEffect, useState, useMemo, useRef } from "react";
 import { api, formatIDR } from "@/services/api";
-import { ChevronUp, ChevronDown, Info, ArrowUpRight, ArrowDownRight, RefreshCw } from "lucide-react";
+import { ChevronUp, ChevronDown, Info, ArrowUpRight, ArrowDownRight, RefreshCw, Layers } from "lucide-react";
+import { calculatePortfolioHistoricalPoints, ChartPoint } from "@/services/portfolioHistoricalEngine";
 
 type TimeframeOption = "1W" | "1M" | "3M" | "YTD" | "1Y" | "ALL";
-
-interface ChartPoint {
-  date: string;
-  timestamp: number;
-  value: number;
-}
 
 interface AnchorPoint {
   x: number;
@@ -30,6 +25,7 @@ interface PortfolioChartCardProps {
   totalNetWorth?: number;
   totalInvested?: number;
   cashBalance?: number;
+  holdings?: any[];
 }
 
 export default function PortfolioChartCard({
@@ -37,12 +33,16 @@ export default function PortfolioChartCard({
   totalNetWorth,
   totalInvested,
   cashBalance,
+  holdings,
 }: PortfolioChartCardProps) {
   const [timeframe, setTimeframe] = useState<TimeframeOption>("ALL");
   const [chartData, setChartData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [hoveredPoint, setHoveredPoint] = useState<ChartPoint | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(true);
+  const [lastUpdated, setLastUpdated] = useState<string>(() => {
+    return new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+  });
 
   const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -57,15 +57,34 @@ export default function PortfolioChartCard({
       console.warn("Failed fetching chart data:", err);
     } finally {
       setLoading(false);
+      setLastUpdated(new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }));
     }
   };
 
   useEffect(() => {
     fetchChart(timeframe);
+
+    // Auto-refresh realtime setiap 1 menit (ringan & hemat CPU)
+    const interval = setInterval(() => {
+      fetchChart(timeframe);
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, [timeframe, portfolioId]);
 
-  // Points and calculations
-  const points: ChartPoint[] = chartData?.points || [];
+  // Mathematically computed portfolio history tied directly to actual owned assets
+  const computedHistory = useMemo(() => {
+    return calculatePortfolioHistoricalPoints(timeframe, holdings, cashBalance || 0);
+  }, [timeframe, holdings, cashBalance]);
+
+  const points: ChartPoint[] = (chartData?.points && chartData.points.length >= 2)
+    ? chartData.points
+    : computedHistory.points;
+
+  const activeStartVal = chartData?.start_value ?? (timeframe === "ALL" ? (totalInvested || 0) : computedHistory.start_value);
+  const activeCurrentVal = chartData?.current_value ?? (totalNetWorth || computedHistory.current_value || 0);
+  const activeChangeNominal = chartData?.change_nominal ?? (activeCurrentVal - activeStartVal);
+  const activeChangePercent = chartData?.change_percent ?? (activeStartVal > 0 ? (activeChangeNominal / activeStartVal) * 100 : 0);
 
   const {
     pathD,
@@ -165,15 +184,15 @@ export default function PortfolioChartCard({
   // Values display
   const displayValue = hoveredPoint
     ? hoveredPoint.value
-    : chartData?.current_value || totalNetWorth || 2651570;
+    : activeCurrentVal;
 
   const changeNominal = hoveredPoint
-    ? hoveredPoint.value - (chartData?.start_value || displayValue)
-    : chartData?.change_nominal ?? 61382;
+    ? hoveredPoint.value - activeStartVal
+    : activeChangeNominal;
 
   const changePercent = hoveredPoint
-    ? ((changeNominal / Math.max(1, chartData?.start_value || 1)) * 100).toFixed(2)
-    : chartData?.change_percent?.toFixed(2) ?? "2.37";
+    ? ((changeNominal / Math.max(1, activeStartVal)) * 100).toFixed(2)
+    : Number(activeChangePercent).toFixed(2);
 
   const isPositive = Number(changeNominal) >= 0;
 
@@ -195,9 +214,15 @@ export default function PortfolioChartCard({
     <div className="bg-black text-white rounded-2xl p-5 md:p-6 border border-zinc-850 shadow-2xl space-y-4 select-none">
       {/* 1. Header Label & Updated Clock */}
       <div className="flex items-center justify-between text-xs">
-        <span className="text-zinc-400 font-semibold tracking-wide">Nilai Portofolio</span>
+        <div className="flex items-center gap-2">
+          <span className="text-zinc-400 font-semibold tracking-wide">Nilai Portofolio</span>
+          <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            Live 1 mnt
+          </span>
+        </div>
         <span className="text-zinc-400 font-mono text-[11px]">
-          Diperbarui {chartData?.updated_at || "13:12"}
+          Diperbarui {chartData?.updated_at || lastUpdated}
         </span>
       </div>
 
@@ -219,6 +244,17 @@ export default function PortfolioChartCard({
             {hoveredPoint ? `• ${hoveredPoint.date}` : timeframe === "ALL" ? "Semua" : timeframe}
           </span>
         </div>
+
+        {/* Real asset breakdown indicator on hover */}
+        {hoveredPoint && hoveredPoint.btc_value !== undefined && (
+          <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono text-zinc-300 bg-zinc-900/90 border border-zinc-800 rounded-lg px-2.5 py-1 mt-1 w-fit shadow-md animate-in fade-in duration-150">
+            <span>BTC: <strong className="text-amber-400 font-semibold">{formatIDR(hoveredPoint.btc_value)}</strong></span>
+            <span className="text-zinc-600">•</span>
+            <span>VT: <strong className="text-emerald-400 font-semibold">{formatIDR(hoveredPoint.vt_value || 0)}</strong></span>
+            <span className="text-zinc-600">•</span>
+            <span>USDT: <strong className="text-cyan-400 font-semibold">{formatIDR(hoveredPoint.usdt_value || 0)}</strong></span>
+          </div>
+        )}
       </div>
 
       {/* 3. The Interactive SVG Chart */}

@@ -59,9 +59,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDashboard();
+
+    // Auto update realtime setiap 1 menit (ringan & hemat memori)
+    const interval = setInterval(() => {
+      fetchDashboard();
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  const pnlIsPositive = (data?.totalFloatingPnl || 0) >= 0;
+  const currentData = data;
+  const pnlIsPositive = (currentData?.totalFloatingPnl || 0) >= 0;
 
   return (
     <div className="flex-1 flex flex-col">
@@ -74,9 +82,10 @@ export default function DashboardPage() {
         {/* 2. Interactive Glowing Line Portfolio Hero Chart */}
         <PortfolioChartCard
           portfolioId={1}
-          totalNetWorth={data?.totalNetWorth}
-          totalInvested={data?.totalInvested}
-          cashBalance={data?.cashBalance}
+          totalNetWorth={currentData?.totalNetWorth}
+          totalInvested={currentData?.totalInvested}
+          cashBalance={currentData?.cashBalance}
+          holdings={currentData?.holdings}
         />
 
         {/* 3. Quick Action Hub (Pluang / Revolut Style Action Dock) */}
@@ -86,23 +95,23 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="Total Nilai Portofolio (Net Worth)"
-            value={formatIDR(data?.totalNetWorth || 0)}
+            value={formatIDR(currentData?.totalNetWorth || 0)}
             subtitle="Nilai Seluruh Aset + Saldo Kas"
             icon={Wallet}
             accentColor="emerald"
           />
           <StatCard
             title="Total Modal Ditanam"
-            value={formatIDR(data?.totalInvested || 0)}
+            value={formatIDR(currentData?.totalInvested || 0)}
             subtitle="Harga Beli Kumulatif"
             icon={Coins}
             accentColor="blue"
           />
           <StatCard
             title="Floating Profit / Loss"
-            value={formatIDR(data?.totalFloatingPnl || 0)}
+            value={formatIDR(currentData?.totalFloatingPnl || 0)}
             trend={{
-              value: formatPercent(data?.totalFloatingPnlPercent || 0),
+              value: formatPercent(currentData?.totalFloatingPnlPercent || 0),
               isPositive: pnlIsPositive,
             }}
             subtitle="Unrealized P/L Multi-Aset"
@@ -111,7 +120,7 @@ export default function DashboardPage() {
           />
           <StatCard
             title="Jumlah Posisi Aset"
-            value={`${data?.activeHoldingsCount || 0} Aset`}
+            value={`${currentData?.activeHoldingsCount || 0} Aset`}
             subtitle="Diversifikasi Multi-Aset"
             icon={Layers}
             accentColor="purple"
@@ -119,10 +128,10 @@ export default function DashboardPage() {
         </div>
 
         {/* 5. Asset Allocation Segmented Bar */}
-        {data?.assetAllocations && (
+        {currentData?.assetAllocations && (
           <AssetAllocationBar
-            allocations={data.assetAllocations}
-            totalValue={data.totalNetWorth}
+            allocations={currentData.assetAllocations}
+            totalValue={currentData.totalNetWorth}
           />
         )}
 
@@ -292,8 +301,8 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04]">
-                  {data?.topHoldings && data.topHoldings.length > 0 ? (
-                    data.topHoldings.map((item: any) => {
+                  {(currentData?.topHoldings || currentData?.holdings) && (currentData?.topHoldings || currentData?.holdings).length > 0 ? (
+                    (currentData.topHoldings || currentData.holdings).map((item: any) => {
                       const isProfit = (item.floating_pnl || 0) >= 0;
                       return (
                         <tr

@@ -72,10 +72,9 @@ export const getPortfolioSummary = async (
       const lots = Number(row.total_lots || (assetType === "STOCK" ? quantity / 100 : 0));
       const avgPrice = Number(row.avg_buy_price);
       const invested = Number(row.total_invested);
+      const usdToIdrRate = 16250;
       const isAssetUSD =
         row.currency === "USD" ||
-        assetType === "CRYPTO" ||
-        assetType === "ETF" ||
         row.ticker.endsWith("-USD") ||
         ["VT", "VOO", "SPY", "QQQ", "AAPL", "NVDA", "TSLA", "MSFT", "VTI"].includes(row.ticker);
 
@@ -92,10 +91,13 @@ export const getPortfolioSummary = async (
         // use avgPrice fallback
       }
 
-      const rateToIDR = currency === "USD" ? 15800 : 1;
-      const investedIDR = invested * rateToIDR;
-      const marketVal = quantity * currentPrice;
-      const marketValIDR = marketVal * rateToIDR;
+      // If currency in DB was already recorded in IDR, do NOT multiply by exchange rate
+      const rowCurrency = (row.currency || "IDR").toUpperCase();
+      const investedIDR = rowCurrency === "USD" ? invested * usdToIdrRate : invested;
+
+      // Current market valuation in IDR
+      const marketValIDR = isAssetUSD ? quantity * currentPrice * usdToIdrRate : quantity * currentPrice;
+      const marketVal = isAssetUSD ? quantity * currentPrice : marketValIDR;
 
       totalInvested += investedIDR;
       totalMarketValue += marketValIDR;
@@ -119,7 +121,7 @@ export const getPortfolioSummary = async (
         current_price: currentPrice,
         market_value: marketVal,
         market_value_idr: marketValIDR,
-        floating_pnl: currency === "USD" ? marketVal - invested : pnlIDR,
+        floating_pnl: pnlIDR,
         floating_pnl_percent: Number(pnlPercent.toFixed(2)),
         company_name: companyName,
       };
@@ -651,7 +653,8 @@ export const getPortfolioChart = async (
   timeframe: string = "ALL"
 ): Promise<PortfolioChartData> => {
   const summary = await getPortfolioSummary(portfolioId);
-  const currentTotalVal = summary.total_market_value || 2651570;
+  const currentTotalVal = summary.total_net_worth || summary.total_market_value || 0;
+  const cashBalance = Number(summary.cash_balance) || 0;
 
   const txResult = await pool.query(
     "SELECT * FROM stock_transactions WHERE portfolio_id = $1 ORDER BY transaction_date ASC;",
@@ -661,12 +664,12 @@ export const getPortfolioChart = async (
 
   const now = new Date();
   let startTime = new Date();
-  let stepCount = 35;
+  let stepCount = 30;
 
   switch (timeframe) {
     case "1W":
       startTime.setDate(now.getDate() - 7);
-      stepCount = 28;
+      stepCount = 14;
       break;
     case "1M":
       startTime.setMonth(now.getMonth() - 1);
@@ -688,93 +691,81 @@ export const getPortfolioChart = async (
     default:
       if (transactions.length > 0) {
         startTime = new Date(transactions[0].transaction_date);
-        startTime.setDate(startTime.getDate() - 2);
       } else {
         startTime.setDate(now.getDate() - 30);
       }
-      stepCount = 45;
+      stepCount = 35;
       break;
   }
 
   const startMs = startTime.getTime();
   const endMs = now.getTime();
-  const stepMs = Math.max(1000, (endMs - startMs) / (stepCount - 1));
+  const stepMs = Math.max(1000, (endMs - startMs) / Math.max(1, stepCount - 1));
+
+  const holdingMap = new Map<string, any>();
+  summary.holdings.forEach((h: any) => {
+    holdingMap.set(h.ticker, h);
+  });
 
   const points: PortfolioChartPoint[] = [];
 
   for (let i = 0; i < stepCount; i++) {
-    const tMs = startMs + i * stepMs;
+    const tMs = i === stepCount - 1 ? endMs : startMs + i * stepMs;
     const tDate = new Date(tMs);
 
-    let cumulativeInvested = 0;
+    let val = cashBalance;
+
     transactions.forEach((tx) => {
       const txMs = new Date(tx.transaction_date).getTime();
       if (txMs <= tMs) {
-        const amt = Number(tx.total_amount || 0);
-        const amtIdr = tx.currency === "USD" ? amt * 16250 : amt;
-        cumulativeInvested += amtIdr;
+        const initialAmount = Number(tx.total_amount || 0);
+        const holding = holdingMap.get(tx.ticker);
+
+        if (!holding || !holding.quantity || holding.quantity <= 0) {
+          val += initialAmount;
+          return;
+        }
+
+        const qty = Number(tx.quantity || tx.shares || 0);
+        const qtyRatio = Math.min(1, Math.max(0, qty / Number(holding.quantity)));
+        const finalHoldingVal = Number(holding.market_value_idr || holding.market_value || initialAmount);
+        const finalTxVal = finalHoldingVal * qtyRatio;
+
+        const duration = Math.max(1000, endMs - txMs);
+        const elapsed = Math.max(0, Math.min(duration, tMs - txMs));
+        const progress = elapsed / duration;
+
+        const txValAtT = initialAmount + (finalTxVal - initialAmount) * progress;
+        val += txValAtT;
       }
     });
 
-    const totalInvested = Number(summary?.total_invested || 8029876);
-    const progress = i / (stepCount - 1);
-    // Smooth deterministic harmonic wave for organic financial fluctuations
-    const wave = Math.sin(i * 0.65) * 0.035 + Math.cos(i * 1.2) * 0.02;
-
-    let periodStartVal = totalInvested;
-    if (timeframe === "1W") {
-      periodStartVal = currentTotalVal * 1.055; // 1W started higher (+5.5%) then pulled back
-    } else if (timeframe === "1M") {
-      periodStartVal = currentTotalVal * 1.165; // 1M started higher (+16.5%) then pulled back
-    } else if (timeframe === "3M" || timeframe === "YTD") {
-      periodStartVal = totalInvested * 1.04;
-    } else {
-      periodStartVal = totalInvested;
-    }
-
-    let val = 0;
     if (i === stepCount - 1) {
-      val = Math.round(currentTotalVal);
-    } else if (i === 0) {
-      val = Math.round(periodStartVal);
-    } else {
-      // Natural curve from periodStartVal to currentTotalVal with realistic peak in the middle for ALL
-      let interpolated = periodStartVal + (currentTotalVal - periodStartVal) * progress;
-      if (timeframe === "ALL") {
-        // Portfolio peaked in the middle (e.g. BTC around $108k ATH)
-        const peakBump = Math.sin(progress * Math.PI) * (totalInvested * 0.08);
-        interpolated = totalInvested + peakBump + (currentTotalVal - (totalInvested + peakBump)) * progress;
-      }
-      val = Math.round(interpolated * (1 + wave));
+      val = currentTotalVal;
     }
-
-    if (val < 10000 && transactions.length > 0) val = 14955;
 
     points.push({
       date: tDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
       timestamp: tMs,
-      value: val,
+      value: Math.round(val),
     });
   }
-
-  points[points.length - 1].value = Math.round(currentTotalVal);
 
   const values = points.map((p) => p.value);
   const minValue = Math.min(...values);
   const maxValue = Math.max(...values);
-  let startValue = points[0].value;
-  const endValue = points[points.length - 1].value;
+  let startValue = points[0]?.value || 0;
+  const endValue = points[points.length - 1]?.value || 0;
 
   let changeNominal = endValue - startValue;
-  let changePercent = Number(((changeNominal / Math.max(1, startValue)) * 100).toFixed(2));
+  let changePercent = startValue > 0 ? Number(((changeNominal / startValue) * 100).toFixed(2)) : 0;
 
-  // If ALL timeframe, ensure benchmark strictly aligns with cumulative invested capital
   if (timeframe === "ALL") {
     const totalInvested = Number(summary?.total_invested || 0);
     if (totalInvested > 0) {
       startValue = totalInvested;
       changeNominal = endValue - totalInvested;
-      changePercent = Number(((changeNominal / Math.max(1, totalInvested)) * 100).toFixed(2));
+      changePercent = Number(((changeNominal / totalInvested) * 100).toFixed(2));
     }
   }
 
