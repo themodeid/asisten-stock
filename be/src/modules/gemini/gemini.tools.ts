@@ -177,4 +177,76 @@ export const geminiToolDeclarations: FunctionDeclaration[] = [
       required: ["action"],
     },
   },
+  {
+    name: "rebalance_portfolio",
+    description: "Hitung saran alokasi modal baru (fresh cash) atau rebalancing aset agar portofolio seimbang sesuai profil risiko target.",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        fresh_capital: {
+          type: Type.NUMBER,
+          description: "Nominal uang baru yang ingin dimasukkan (misal 1000000 untuk 1 juta IDR).",
+        },
+        strategy: {
+          type: Type.STRING,
+          enum: ["ALL_WEATHER", "BALANCED_GROWTH", "CONSERVATIVE", "HIGH_ALPHA"],
+          description: "Pilihan strategi: ALL_WEATHER (50% ETF, 20% Saham, 20% Emas, 10% Kripto), BALANCED_GROWTH (40% ETF, 30% Saham, 20% Kripto, 10% Emas), CONSERVATIVE (40% Emas, 35% ETF, 20% Saham, 5% Kripto), HIGH_ALPHA (45% Kripto, 35% ETF, 15% Saham, 5% Emas).",
+        },
+      },
+    },
+  },
+  {
+    name: "simulate_indonesian_tax",
+    description: "Hitung simulasi potongan pajak resmi di Indonesia (PPh Final PMK 68 Kripto 0.1%, Saham BEI 0.1%, Emas PPh 22, US ETF Withholding Tax) dan keuntungan bersih yang masuk rekening saat menjual aset.",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        ticker: {
+          type: Type.STRING,
+          description: "Simbol aset (contoh: BTC, BBCA, VT, EMAS).",
+        },
+        asset_type: {
+          type: Type.STRING,
+          enum: ["CRYPTO", "STOCK", "ETF", "GOLD"],
+          description: "Jenis kelas aset.",
+        },
+        sell_amount_idr: {
+          type: Type.NUMBER,
+          description: "Total nilai rupiah yang ingin dijual (misal 5000000 untuk 5 juta rupiah).",
+        },
+        sell_quantity: {
+          type: Type.NUMBER,
+          description: "Jumlah kuantitas unit/koin/lembar yang ingin dijual.",
+        },
+      },
+      required: ["ticker"],
+    },
+  },
+  {
+    name: "scan_dip_radar",
+    description: "Pindai saham atau aset yang sedang terdiskon lebar / dekat 52-week low dengan fundamental kuat (Graham & Buffett screener).",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        asset_type: {
+          type: Type.STRING,
+          enum: ["ALL", "STOCK", "ETF", "CRYPTO"],
+          description: "Filter kelas aset yang ingin dipindai.",
+        },
+      },
+    },
+  },
+  {
+    name: "get_fx_gain_analytics",
+    description: "Dapatkan analisis keuntungan ganda kurs USD/IDR (Double Gain) dan efektivitas lindung nilai (hedging) pada aset berdenominasi dollar (VT, BTC, USDT).",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        portfolio_id: {
+          type: Type.NUMBER,
+          description: "ID portofolio (default: 1).",
+        },
+      },
+    },
+  },
 ];

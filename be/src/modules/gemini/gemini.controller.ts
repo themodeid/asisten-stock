@@ -45,6 +45,30 @@ export const getChatLogs = async (
   }
 };
 
+export const ocrTransactionReceipt = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const file = req.file;
+    if (!file) {
+      throw new AppError("No image file uploaded", 400);
+    }
+
+    const userId = Number(req.body.user_id || 1);
+    const result = await geminiService.parseReceiptAndRecordTransaction(
+      userId,
+      file.buffer,
+      file.mimetype || "image/jpeg"
+    );
+
+    return successResponse(res, result, "Struk transaksi berhasil diproses dan dicatat!");
+  } catch (error: any) {
+    next(new AppError(error.message, 500));
+  }
+};
+
 export const clearChatLogs = async (
   req: Request,
   res: Response,
@@ -58,3 +82,5 @@ export const clearChatLogs = async (
     next(new AppError(error.message, 500));
   }
 };
+
+

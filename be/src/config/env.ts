@@ -42,6 +42,8 @@ export const ENV = {
   RATE_LIMIT_MAX: getEnvInt("RATE_LIMIT_MAX", 200),
   GEMINI_API_KEY: getEnv("GEMINI_API_KEY", ""),
   GEMINI_MODEL: getEnv("GEMINI_MODEL", "gemini-2.5-flash"),
+  REDIS_URL: getEnv("REDIS_URL", "redis://localhost:6379"),
+  USE_REDIS: getEnvBool("USE_REDIS", false),
   TELEGRAM_BOT_TOKEN: getEnv("TELEGRAM_BOT_TOKEN", ""),
   TELEGRAM_WEBHOOK_URL: getEnv("TELEGRAM_WEBHOOK_URL", ""),
   TELEGRAM_USE_POLLING: getEnvBool("TELEGRAM_USE_POLLING", true),

@@ -76,3 +76,18 @@ export const createAlert = async (
     next(error);
   }
 };
+
+import * as screenerService from "./screener.service";
+
+export const getDipRadar = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const data = await screenerService.getDipRadarScan();
+    return successResponse(res, data, "Radar aset diskon & value screener berhasil dimuat");
+  } catch (error: any) {
+    next(new AppError(error.message, 500));
+  }
+};

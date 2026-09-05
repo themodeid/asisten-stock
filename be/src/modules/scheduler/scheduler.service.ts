@@ -1,13 +1,15 @@
 import cron from "node-cron";
 import * as alertService from "../watchlist-alert/alert.service";
 import * as marketService from "../market-data/market.service";
+import * as portfolioService from "../portfolio/portfolio.service";
 import { sendTelegramNotification } from "../telegram/telegram.bot";
 import { formatRupiah } from "../../utils/stockHelper";
+import { pool } from "../../config/database";
 
 export const initScheduler = () => {
   console.log("⏰ Initializing Automated Background Scheduler...");
 
-  // Run every 5 minutes (or 1 minute in dev) to check active price alerts
+  // 1. Run every 5 minutes: Check active price alerts & Take Profit / Stop Loss triggers
   cron.schedule("*/5 * * * *", async () => {
     try {
       await checkPriceAlerts();
@@ -16,7 +18,25 @@ export const initScheduler = () => {
     }
   });
 
-  console.log("✅ Scheduler active: Price alerts monitoring every 5 minutes.");
+  // 2. Morning Briefing: Every Monday-Friday at 08:30 WIB (01:30 UTC)
+  cron.schedule("30 1 * * 1-5", async () => {
+    try {
+      await sendMorningMarketDigest();
+    } catch (err) {
+      console.error("❌ Error in morning briefing cron job:", err);
+    }
+  });
+
+  // 3. Market Closing Report: Every Monday-Friday at 16:30 WIB (09:30 UTC)
+  cron.schedule("30 9 * * 1-5", async () => {
+    try {
+      await sendEveningPortfolioDigest();
+    } catch (err) {
+      console.error("❌ Error in evening portfolio digest cron job:", err);
+    }
+  });
+
+  console.log("✅ Scheduler active: Price alerts (every 5m), Morning Briefing (08:30 WIB), Closing Report (16:30 WIB).");
 };
 
 export const checkPriceAlerts = async () => {
@@ -60,3 +80,50 @@ export const checkPriceAlerts = async () => {
     }
   }
 };
+
+/**
+ * Morning Market Briefing (08:30 WIB)
+ */
+export const sendMorningMarketDigest = async () => {
+  const usersRes = await pool.query("SELECT id, telegram_id, first_name FROM users WHERE telegram_id IS NOT NULL;");
+  if (usersRes.rows.length === 0) return;
+
+  let btcPrice = "$79,500";
+  let bbcaPrice = "Rp 9.925";
+
+  try {
+    const btc = await marketService.getStockQuote("BTC");
+    btcPrice = `$${btc.regularMarketPrice.toLocaleString()}`;
+    const bbca = await marketService.getStockQuote("BBCA");
+    bbcaPrice = formatRupiah(bbca.regularMarketPrice);
+  } catch (e) {
+    //
+  }
+
+  const message = `🌅 **JARVIS MORNING MARKET BRIEFING (08:30 WIB)**\n\nSelamat pagi! Pasar akan segera dibuka.\n\n📊 **Sentimen Pasar Global & Lokal:**\n• **Bitcoin (BTC):** ${btcPrice}\n• **BBCA (Acuan IHSG):** ${bbcaPrice}\n• **Status:** Pasar bersiap untuk sesi perdagangan reguler.\n\n💡 *Gunakan AI Simulator atau ketik pesan kapan saja untuk mencatat transaksi baru.*`;
+
+  for (const user of usersRes.rows) {
+    await sendTelegramNotification(user.telegram_id, message);
+  }
+};
+
+/**
+ * Evening Portfolio Digest (16:30 WIB)
+ */
+export const sendEveningPortfolioDigest = async () => {
+  const usersRes = await pool.query("SELECT id, telegram_id, first_name FROM users WHERE telegram_id IS NOT NULL;");
+  if (usersRes.rows.length === 0) return;
+
+  for (const user of usersRes.rows) {
+    try {
+      const summary = await portfolioService.getPortfolioSummary(user.id);
+      const pnlEmoji = summary.total_floating_pnl >= 0 ? "🟢 +" : "🔴 ";
+      const message = `🌆 **JARVIS MARKET CLOSING REPORT (16:30 WIB)**\n\nHalo ${user.first_name || "Investor"},\nBerikut rekap penutupan portofolio Anda hari ini:\n\n💰 **Total Nilai Portofolio:** ${formatRupiah(summary.total_net_worth)}\n💵 **Total Modal Ditanam:** ${formatRupiah(summary.total_invested)}\n${pnlEmoji} **Floating P/L:** ${formatRupiah(summary.total_floating_pnl)} (${summary.total_floating_pnl_percent >= 0 ? "+" : ""}${summary.total_floating_pnl_percent}%)\n\n📌 **Posisi Aktif:** ${summary.holdings_count} Aset\n\nSemoga harimu produktif!`;
+
+      await sendTelegramNotification(user.telegram_id, message);
+    } catch (e) {
+      //
+    }
+  }
+};
+

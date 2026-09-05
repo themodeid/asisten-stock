@@ -3,6 +3,7 @@ import * as alertController from "./alert.controller";
 
 const router = Router();
 
+router.get("/screener/dip-radar", alertController.getDipRadar);
 router.get("/:userId?", alertController.getWatchlist);
 router.post("/", alertController.addWatchlist);
 router.delete("/:ticker", alertController.removeWatchlist);

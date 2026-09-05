@@ -4,8 +4,12 @@ const CRYPTO_LIST = new Set([
   "BTC", "ETH", "SOL", "BNB", "XRP", "DOGE", "ADA", "AVAX", "DOT", "LINK", "MATIC", "USDT", "USDC", "SUI", "NEAR", "PEPE"
 ]);
 
-const US_STOCKS_AND_ETFS = new Set([
-  "AAPL", "NVDA", "TSLA", "MSFT", "GOOGL", "AMZN", "META", "AMD", "NFLX", "INTC", "SPY", "QQQ", "VOO", "VTI", "IWM", "ARKK"
+const US_ETFS = new Set([
+  "VT", "VXUS", "VTI", "VOO", "SPY", "QQQ", "IVV", "SCHD", "VEA", "VWO", "BND", "AGG", "GLD", "SLV", "ARKK", "SMH", "SOXX", "XLE", "XLF", "XLK", "XLV", "XLY", "XLP", "XLU", "XLI", "XLB", "VNQ", "DIA", "IWM", "VIG", "VGT", "TQQQ", "SQQQ", "TLT"
+]);
+
+const US_STOCKS = new Set([
+  "AAPL", "NVDA", "TSLA", "MSFT", "GOOGL", "AMZN", "META", "AMD", "NFLX", "INTC", "PLTR", "COIN", "MSTR", "BABA", "TSM"
 ]);
 
 const GOLD_KEYWORDS = new Set(["EMAS", "GOLD", "ANTAM", "UBS", "XAU"]);
@@ -48,7 +52,7 @@ export function detectAssetType(rawSymbol: string): AssetType {
     return "BOND";
   }
 
-  if (["SPY", "QQQ", "VOO", "VTI", "IWM"].includes(clean)) {
+  if (US_ETFS.has(clean)) {
     return "ETF";
   }
 
@@ -89,8 +93,12 @@ export function formatTicker(ticker: string, assetType?: AssetType): string {
     return clean;
   }
 
+  if (type === "ETF") {
+    return clean;
+  }
+
   if (type === "STOCK") {
-    if (US_STOCKS_AND_ETFS.has(clean)) {
+    if (US_STOCKS.has(clean)) {
       return clean;
     }
     // Default Indonesian 4-letter ticker to .JK
@@ -143,77 +151,207 @@ export function formatRupiah(amount: number): string {
 }
 
 /**
+ * Indonesian number words mapping
+ */
+const INDO_MAP: Record<string, number> = {
+  nol: 0, kosong: 0,
+  satu: 1, se: 1,
+  dua: 2,
+  tiga: 3,
+  empat: 4,
+  lima: 5,
+  enam: 6,
+  tujuh: 7,
+  delapan: 8,
+  sembilan: 9,
+  sepuluh: 10,
+  sebelas: 11,
+  seratus: 100,
+  seribu: 1000,
+  sejuta: 1000000,
+  semiliar: 1000000000,
+  setengah: 0.5,
+};
+
+/**
  * Parses conversational Indonesian / English money strings
- * Examples: "1.100.000", "1.100.000 rupiah", "1.5jt", "500rb", "2 juta", "1000 usd", "$500"
+ * Examples: "1.100.000", "6 ratus 30 ribu", "1.5jt", "500rb", "2 juta", "1000 usd", "$500"
  */
 export function parseIndonesianMoneyString(raw: string): { amount: number; currency: "IDR" | "USD" } | null {
   if (!raw) return null;
   const clean = raw.trim().toLowerCase();
   const isUSD = clean.includes("usd") || clean.includes("$") || clean.includes("dollar");
 
-  // Determine multiplier (supports attached unit like 3jt, 500rb, 1.5juta, 100k)
-  let multiplier = 1;
-  if (/miliar|milyar/i.test(clean) || /\d+\s*m\b/i.test(clean)) {
-    multiplier = 1_000_000_000;
-  } else if (/juta|jt/i.test(clean)) {
-    multiplier = 1_000_000;
-  } else if (/ribu|rb/i.test(clean) || /\d+\s*k\b/i.test(clean)) {
-    multiplier = 1_000;
+  // 1. Direct numerical pattern with thousand dots: e.g. "4.325.000", "500.000", "10.000.000"
+  const dotPattern = clean.match(/(?:rp\.?|rp\s*)?\s*(\d{1,3}(?:\.\d{3})+)(?:\s*(?:rupiah|idr))?/i);
+  if (dotPattern) {
+    const val = parseFloat(dotPattern[1].replace(/\./g, ""));
+    if (!isNaN(val) && val > 0) {
+      return { amount: val, currency: isUSD ? "USD" : "IDR" };
+    }
   }
 
-  // Extract number part: digits, dots, commas
-  const match = clean.match(/[\d\.,]+/);
-  if (!match) return null;
+  // 2. Multi-word phrase parser for "6 ratus 30 ribu", "enam ratus tiga puluh ribu", "2 ratus 50 ribu", "1 juta 500 ribu"
+  const tokens = clean
+    .replace(/rp\.?/g, "")
+    .replace(/[^\w\s\.]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
 
-  let numStr = match[0];
+  let total = 0;
+  let currentGroup = 0;
 
-  // If thousand separator with dots: "1.100.000" or "4.325.000" or "500.000"
-  if (/^\d{1,3}(\.\d{3})+$/.test(numStr)) {
-    numStr = numStr.replace(/\./g, "");
-  } else if (/^\d{1,3}(,\d{3})+$/.test(numStr)) {
-    numStr = numStr.replace(/,/g, "");
-  } else if (/^\d+,\d+$/.test(numStr)) {
-    numStr = numStr.replace(",", ".");
+  for (let i = 0; i < tokens.length; i++) {
+    const tok = tokens[i];
+    let val = parseFloat(tok);
+    if (isNaN(val)) {
+      if (tok in INDO_MAP) {
+        val = INDO_MAP[tok];
+      }
+    }
+
+    if (!isNaN(val)) {
+      const next = tokens[i + 1];
+      if (next === "ratus") {
+        currentGroup += val * 100;
+        i++;
+      } else if (next === "puluh") {
+        currentGroup += val * 10;
+        i++;
+      } else if (next === "belas") {
+        currentGroup += val + 10;
+        i++;
+      } else if (next === "ribu" || next === "rb" || next === "k") {
+        currentGroup += val;
+        total += currentGroup * 1000;
+        currentGroup = 0;
+        i++;
+      } else if (next === "juta" || next === "jt") {
+        currentGroup += val;
+        total += currentGroup * 1000000;
+        currentGroup = 0;
+        i++;
+      } else if (next === "miliar" || next === "milyar") {
+        currentGroup += val;
+        total += currentGroup * 1000000000;
+        currentGroup = 0;
+        i++;
+      } else {
+        currentGroup += val;
+      }
+    } else if (tok === "seratus") {
+      currentGroup += 100;
+    } else if (tok === "seribu") {
+      total += (currentGroup || 1) * 1000;
+      currentGroup = 0;
+    } else if (tok === "sejuta") {
+      total += (currentGroup || 1) * 1000000;
+      currentGroup = 0;
+    } else if (tok === "ribu" || tok === "rb") {
+      if (currentGroup > 0) {
+        total += currentGroup * 1000;
+        currentGroup = 0;
+      }
+    } else if (tok === "juta" || tok === "jt") {
+      if (currentGroup > 0) {
+        total += currentGroup * 1000000;
+        currentGroup = 0;
+      }
+    }
   }
 
-  const parsed = parseFloat(numStr);
-  if (isNaN(parsed) || parsed <= 0) return null;
+  total += currentGroup;
 
-  // If the number already has full digit representation (e.g. 4325000), do not multiply by juta
-  if (parsed >= 10000 && multiplier === 1_000_000) {
-    multiplier = 1;
+  if (total > 0) {
+    return { amount: total, currency: isUSD ? "USD" : "IDR" };
   }
 
-  return {
-    amount: parsed * multiplier,
-    currency: isUSD ? "USD" : "IDR",
-  };
+  // 3. Direct simple digit with multiplier fallback e.g. "500rb", "100k", "1.5jt", "2.5 juta", "500 ribu"
+  const shortPattern = clean.match(/(?:rp\.?|rp\s*|\$)?\s*(\d+(?:[,\.]\d+)?)\s*(k|rb|ribu|jt|juta|miliar|milyar|m|b)\b/i);
+  if (shortPattern) {
+    const num = parseFloat(shortPattern[1].replace(",", "."));
+    const unit = shortPattern[2].toLowerCase();
+    let mult = 1;
+    if (unit === "k" || unit === "rb" || unit === "ribu") mult = 1000;
+    else if (unit === "jt" || unit === "juta" || unit === "m") mult = 1000000;
+    else if (unit === "miliar" || unit === "milyar" || unit === "b") mult = 1000000000;
+    if (!isNaN(num) && num > 0) {
+      return { amount: num * mult, currency: isUSD ? "USD" : "IDR" };
+    }
+  }
+
+  // 4. Raw number fallback: e.g. "4325000"
+  const rawNumMatch = clean.match(/\b\d{4,12}\b/);
+  if (rawNumMatch) {
+    return { amount: parseFloat(rawNumMatch[0]), currency: isUSD ? "USD" : "IDR" };
+  }
+
+  return null;
 }
 
 /**
- * Common Indonesian 4-letter words that should NOT be treated as stock tickers
+ * Common Indonesian words that should NOT be treated as stock tickers
  */
 const INDONESIAN_IGNORE_WORDS = new Set([
   "BELI", "JUAL", "DARI", "PADA", "SAYA", "ABIS", "YANG", "DENG", "DONG", 
   "HARI", "INFO", "USER", "RUPI", "DICA", "KITA", "DULU", "SEBE", "SEHA",
-  "SELA", "KEMU", "LALU", "KARE", "DENG", "AKAN", "TIDA", "BISA", "BUAT",
+  "SELA", "KEMU", "LALU", "KARE", "AKAN", "TIDA", "BISA", "BUAT", "TIDAK",
   "JUTA", "RIBU", "RUPI", "UANG", "DANA", "PORT", "ASET", "DUIT", "MODA",
   "RUGI", "LOSS", "PLUS", "CUAN", "NAIK", "TURU", "KATA", "MAKS", "ATAS",
-  "BANT", "TOKO", "PUNY", "MILIK", "SAAT", "ITU", "YA", "DI", "KE", "DONG",
-  "KIRA", "SUDA", "KALA", "TAPI", "JUGA", "LAGI", "SEPE", "SEBE", "SETE",
-  "SINI", "SITU", "KAMU", "MERE", "KAMI", "ADAL", "BANY", "DIKE", "DIBE"
+  "BANT", "TOKO", "PUNY", "MILIK", "SAAT", "ITU", "YA", "DI", "KE", "SAMA",
+  "KIRA", "SUDA", "KALA", "TAPI", "JUGA", "LAGI", "SEPE", "SETE", "PUNYA",
+  "SINI", "SITU", "KAMU", "MERE", "KAMI", "ADAL", "BANY", "DIKE", "DIBE",
+  "BANYAK", "SEMUA", "TOTAL", "SEBESAR", "SEBANYAK", "SENILAI", "TOLONG",
+  "CATAT", "KEMARIN", "SEKARANG", "BESOK", "RATUS", "PULUH", "BELAS",
+  "MILIAR", "MILYAR", "RUPIAH", "DOLLAR", "DENGAN", "UNTUK", "ADALAH",
+  "DALAM", "MEREKA", "MASUK", "KELUAR", "HABIS", "KINI", "BULAN", "TAHUN",
+  "BIAR", "BAGUS", "KEMANA", "MANA", "ALOKASI", "REBALANCE", "SEIMBANG",
+  "SARAN", "PAJAK", "KENA", "BAYAR", "POTONG", "BERSIH", "REALISASI", "LABA"
 ]);
 
 /**
  * Extracts asset symbol from natural text
  */
 export function detectAssetSymbolFromText(text: string): { symbol: string; assetType: AssetType } | null {
-  // 1. Check Gold
+  // 1. Explicit marker keywords (highest priority!)
+  // e.g. "etf vt", "etf spy", "saham bbca", "kripto btc", "koin sol", "token btc", "reksadana sucor", "obligasi ori024"
+  const etfExplicit = text.match(/\b(?:ETF)\s+([A-Za-z0-9\.\-]+)\b/i);
+  if (etfExplicit) {
+    return { symbol: etfExplicit[1].toUpperCase(), assetType: "ETF" };
+  }
+
+  const stockExplicit = text.match(/\b(?:saham|stock)\s+([A-Za-z0-9\.\-]+)\b/i);
+  if (stockExplicit) {
+    const sym = stockExplicit[1].toUpperCase();
+    if (!INDONESIAN_IGNORE_WORDS.has(sym)) {
+      return { symbol: sym, assetType: "STOCK" };
+    }
+  }
+
+  const cryptoExplicit = text.match(/\b(?:kripto|crypto|koin|token)\s+([A-Za-z0-9\.\-]+)\b/i);
+  if (cryptoExplicit) {
+    return { symbol: cryptoExplicit[1].toUpperCase(), assetType: "CRYPTO" };
+  }
+
+  const bondExplicit = text.match(/\b(?:obligasi|sbn|surat\s+berharga)\s+([A-Za-z0-9\.\-]+)\b/i);
+  if (bondExplicit) {
+    return { symbol: bondExplicit[1].toUpperCase(), assetType: "BOND" };
+  }
+
+  // 2. Gold
   if (/\b(EMAS|ANTAM|UBS|GOLD|XAU)\b/i.test(text)) {
     return { symbol: "EMAS", assetType: "GOLD" };
   }
 
-  // 2. Check Crypto
+  // 3. Known ETFs
+  for (const etf of US_ETFS) {
+    const regex = new RegExp(`\\b${etf}\\b`, "i");
+    if (regex.test(text)) {
+      return { symbol: etf, assetType: "ETF" };
+    }
+  }
+
+  // 4. Known Crypto
   for (const c of CRYPTO_LIST) {
     const regex = new RegExp(`\\b${c}\\b|\\b${c}-USD\\b`, "i");
     if (regex.test(text)) {
@@ -224,21 +362,21 @@ export function detectAssetSymbolFromText(text: string): { symbol: string; asset
   if (/\bETHEREUM\b/i.test(text)) return { symbol: "ETH", assetType: "CRYPTO" };
   if (/\bSOLANA\b/i.test(text)) return { symbol: "SOL", assetType: "CRYPTO" };
 
-  // 3. Check Bonds
+  // 5. Known US Stocks
+  for (const s of US_STOCKS) {
+    const regex = new RegExp(`\\b${s}\\b`, "i");
+    if (regex.test(text)) {
+      return { symbol: s, assetType: "STOCK" };
+    }
+  }
+
+  // 6. Bonds
   const bondMatch = text.match(/\b(ORI\d+|SR\d+|SBR\d+|PBS\d+|FR\d+|SBN|OBLIGASI)\b/i);
   if (bondMatch) {
     return { symbol: bondMatch[1].toUpperCase(), assetType: "BOND" };
   }
 
-  // 4. Check US Stocks / ETFs
-  for (const u of US_STOCKS_AND_ETFS) {
-    const regex = new RegExp(`\\b${u}\\b`, "i");
-    if (regex.test(text)) {
-      return { symbol: u, assetType: ["SPY", "QQQ", "VOO", "VTI", "IWM", "ARKK"].includes(u) ? "ETF" : "STOCK" };
-    }
-  }
-
-  // 5. Check IDX 4-letter Stocks (scan all 4-letter words, skip dictionary ignore words)
+  // 7. General 4-letter IDX Stocks
   const allWords = text.match(/\b([A-Za-z]{4})\b/g);
   if (allWords) {
     for (const w of allWords) {

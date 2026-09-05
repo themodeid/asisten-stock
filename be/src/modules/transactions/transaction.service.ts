@@ -37,10 +37,11 @@ export const recordTransaction = async (
   const isAssetUSD =
     liveQuote?.currency === "USD" ||
     assetType === "CRYPTO" ||
+    assetType === "ETF" ||
     ticker.endsWith("-USD") ||
-    ["SPY", "QQQ", "AAPL", "NVDA", "TSLA", "MSFT", "VOO", "VTI"].includes(ticker);
+    ["VT", "VOO", "SPY", "QQQ", "AAPL", "NVDA", "TSLA", "MSFT", "VTI"].includes(ticker);
 
-  let currency = input.currency || (isAssetUSD ? "USD" : "IDR");
+  let currency = isAssetUSD ? "USD" : (input.currency || "IDR");
 
   // 3. Determine quantity and lots (supports Budget / Nominal Uang Input)
   let quantity = 0;

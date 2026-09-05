@@ -10,11 +10,16 @@ export interface StockQuote {
   regularMarketVolume: number;
   marketCap?: number;
   trailingPE?: number;
+  forwardPE?: number;
   priceToBook?: number;
   dividendYield?: number;
   returnOnEquity?: number;
+  eps?: number;
+  valuationStatus?: "Undervalued" | "Fair Value" | "Overvalued" | "Growth Premium";
+  valuationSummary?: string;
   fiftyTwoWeekHigh?: number;
   fiftyTwoWeekLow?: number;
+  news?: { title: string; source: string; time: string; sentiment: "positive" | "neutral" | "cautious" }[];
   updatedAt: Date;
 }
 

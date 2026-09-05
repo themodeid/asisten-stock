@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import Badge from "@/components/ui/Badge";
 import { api } from "@/services/api";
-import { Send, Bot, User, Sparkles, Terminal, RefreshCw, Cpu, Trash2 } from "lucide-react";
+import { Send, Bot, User, Sparkles, Terminal, RefreshCw, Cpu, Trash2, ImagePlus, Copy, Check } from "lucide-react";
 
 interface Message {
   id: string;
@@ -18,29 +18,42 @@ const DEFAULT_WELCOME: Message = {
   id: "welcome",
   role: "assistant",
   text: "🤖 **Halo! Saya Jarvis Multi-Asset Assistant.**\n\nAnda dapat mencatat dan memantau berbagai aset:\n1. **Saham**: *\"Beli BBCA 5 juta\"* atau *\"Beli BBCA 10 lot di 9850\"*\n2. **Kripto (Crypto)**: *\"Beli BTC 1.100.000 rupiah\"* atau *\"Beli BTC 0.05 di 64500 USD\"*\n3. **Emas / Logam Mulia**: *\"Beli Emas Antam 2 juta\"*\n4. **Obligasi / SBN**: *\"Beli ORI024 10000000\"*\n5. **Cek Portofolio**: *\"Cek portofolio & alokasi aset saya\"*\n\nAda yang ingin dicatat atau dicek saat ini?",
-  timestamp: new Date(),
+  timestamp: new Date("2026-01-01T00:00:00Z"),
 };
 
 const SAMPLE_PROMPTS = [
+  "Analisa ETF VT (Vanguard Total World)",
+  "Beli VT 630 ribu rupiah",
   "Beli BTC 1.100.000 rupiah",
   "Beli Emas Antam 3 juta",
-  "Beli BBCA 5 juta",
   "Cek portofolio & alokasi aset",
-  "Analisa valuasi saham BBRI",
-  "Beli SPY 1000 USD",
+  "Beli BBCA 5 juta",
 ];
 
 const LOCAL_STORAGE_KEY = "jarvis_chat_history_v2";
 
 export default function PlaygroundPage() {
+  const [mounted, setMounted] = useState(false);
   const [messages, setMessages] = useState<Message[]>([DEFAULT_WELCOME]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  // 1. Initial Load: Load from localStorage first, then sync with backend
+  const handleCopyText = (id: string, text: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => {
+        setCopiedId(null);
+      }, 2000);
+    }
+  };
+
+  // 1. Initial Load: Load from localStorage only on client after mount, then sync with backend
   useEffect(() => {
+    setMounted(true);
     try {
       const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (saved) {
@@ -113,6 +126,66 @@ export default function PlaygroundPage() {
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       setMessages([DEFAULT_WELCOME]);
       setClearing(false);
+    }
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || loading) return;
+
+    const userMsg: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      text: `📷 *Mengunggah & menganalisis bukti transaksi:* **${file.name}**`,
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("user_id", "1");
+
+    try {
+      const res = await api.post("/gemini/ocr-transaction", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      const data = res.data?.data;
+      const tx = data?.transaction;
+      const holding = data?.holding;
+      const isStock = tx?.asset_type === "STOCK";
+      const qtyText = isStock ? `${tx?.lots} Lot (${tx?.shares} lbr)` : `${tx?.quantity} unit`;
+
+      const botMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        text: `🤖 **AI Vision OCR: Struk Transaksi Berhasil Diekstrak & Dicatat!**\n\n📋 **Data Hasil Scan AI:**\n• **Aset:** \`${tx?.ticker}\` (${tx?.asset_type})\n• **Jenis Transaksi:** **${tx?.type}**\n• **Kuantitas:** **${qtyText}**\n• **Harga Satuan:** **${tx?.currency === "USD" ? `$${tx?.price_per_share}` : `Rp ${Number(tx?.price_per_share).toLocaleString("id-ID")}`}**\n• **Total Realisasi:** **${tx?.currency === "USD" ? `$${tx?.total_amount}` : `Rp ${Number(tx?.total_amount).toLocaleString("id-ID")}`}**\n• **Catatan:** *${tx?.notes || "Struk Transaksi"}*\n\n✨ *Portofolio Anda telah diperbarui secara instan dari bukti gambar.*`,
+        toolCalls: [
+          {
+            toolName: "ocr_image_transaction",
+            args: { file_name: file.name },
+            result: data,
+          },
+        ],
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, botMsg]);
+    } catch (err: any) {
+      const errorMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        text: `❌ Gagal memproses gambar struk: ${err.response?.data?.message || err.message}`,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMsg]);
+    } finally {
+      setLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -260,14 +333,45 @@ export default function PlaygroundPage() {
                 </div>
 
                 <div
-                  className={`text-[10px] ${
+                  className={`flex items-center justify-between pt-1 border-t ${
+                    msg.role === "user" ? "border-zinc-200/40" : "border-zinc-800/80"
+                  } text-[10px] ${
                     msg.role === "user" ? "text-zinc-600" : "text-zinc-500"
-                  } text-right`}
+                  }`}
                 >
-                  {msg.timestamp.toLocaleTimeString("id-ID", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  <button
+                    type="button"
+                    onClick={() => handleCopyText(msg.id, msg.text)}
+                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded transition ${
+                      copiedId === msg.id
+                        ? "text-emerald-400 bg-emerald-950/40 font-semibold"
+                        : msg.role === "user"
+                        ? "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200"
+                        : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                    }`}
+                    title="Salin isi pesan"
+                  >
+                    {copiedId === msg.id ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span>Tersalin</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Salin</span>
+                      </>
+                    )}
+                  </button>
+
+                  <span suppressHydrationWarning>
+                    {mounted
+                      ? msg.timestamp.toLocaleTimeString("id-ID", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
+                      : ""}
+                  </span>
                 </div>
               </div>
 
@@ -300,20 +404,39 @@ export default function PlaygroundPage() {
             e.preventDefault();
             handleSend();
           }}
-          className="mt-3 flex gap-2 shrink-0"
+          className="mt-3 flex items-center gap-2 shrink-0"
         >
           <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+            accept="image/*"
+            className="hidden"
+          />
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={loading}
+            className="p-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-100 transition shadow-sm flex items-center justify-center shrink-0"
+            title="Upload Bukti / Struk Transaksi (AI OCR Scan)"
+          >
+            <ImagePlus className="w-4 h-4 text-emerald-400" />
+          </button>
+
+          <input
             type="text"
-            placeholder="Ketik instruksi (mis: Beli BBCA 10 lot di 9850, Portofolio saya gimana?)..."
+            placeholder="Ketik instruksi (mis: Beli BBCA 10 lot di 9850) atau upload struk transaksi..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={loading}
             className="flex-1 bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 text-xs sm:text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-zinc-400 transition"
           />
+
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="px-5 py-2.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-semibold text-xs shadow-sm transition disabled:opacity-50 flex items-center gap-1.5 active:scale-[0.98]"
+            className="px-5 py-2.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-semibold text-xs shadow-sm transition disabled:opacity-50 flex items-center gap-1.5 active:scale-[0.98] shrink-0"
           >
             <Send className="w-3.5 h-3.5" /> Kirim
           </button>

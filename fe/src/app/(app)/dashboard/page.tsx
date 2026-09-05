@@ -17,84 +17,35 @@ import {
   RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
+import PortfolioChartCard from "@/components/portfolio/PortfolioChartCard";
 
 export default function DashboardPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const [healthData, setHealthData] = useState<any>(null);
+  const [dividendData, setDividendData] = useState<any>(null);
+
   const fetchDashboard = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/dashboard/1");
-      if (res.data?.data) {
-        setData(res.data.data);
+      const [dashRes, healthRes, divRes] = await Promise.allSettled([
+        api.get("/dashboard/1"),
+        api.get("/portfolio/health/1"),
+        api.get("/portfolio/dividends/1"),
+      ]);
+
+      if (dashRes.status === "fulfilled" && dashRes.value.data?.data) {
+        setData(dashRes.value.data.data);
+      }
+      if (healthRes.status === "fulfilled" && healthRes.value.data?.data) {
+        setHealthData(healthRes.value.data.data);
+      }
+      if (divRes.status === "fulfilled" && divRes.value.data?.data) {
+        setDividendData(divRes.value.data.data);
       }
     } catch (err) {
       console.warn("Failed fetching dashboard metrics:", err);
-      // Mock data fallback for standalone UI demo
-      setData({
-        totalNetWorth: 48500000,
-        totalInvested: 42000000,
-        totalCash: 2500000,
-        totalFloatingPnl: 4000000,
-        totalFloatingPnlPercent: 9.52,
-        activeHoldingsCount: 3,
-        holdings: [
-          {
-            ticker: "BBCA.JK",
-            company_name: "Bank Central Asia Tbk",
-            total_lots: 20,
-            avg_buy_price: 9200,
-            current_price: 9925,
-            market_value: 19850000,
-            floating_pnl: 1450000,
-            floating_pnl_percent: 7.88,
-            weight_percent: 40.9,
-          },
-          {
-            ticker: "BBRI.JK",
-            company_name: "Bank Rakyat Indonesia Tbk",
-            total_lots: 35,
-            avg_buy_price: 4400,
-            current_price: 4750,
-            market_value: 16625000,
-            floating_pnl: 1225000,
-            floating_pnl_percent: 7.95,
-            weight_percent: 34.3,
-          },
-          {
-            ticker: "TLKM.JK",
-            company_name: "Telkom Indonesia Tbk",
-            total_lots: 34,
-            avg_buy_price: 2700,
-            current_price: 2820,
-            market_value: 9588000,
-            floating_pnl: 408000,
-            floating_pnl_percent: 4.44,
-            weight_percent: 19.8,
-          },
-        ],
-        recentTransactions: [
-          {
-            id: 1,
-            ticker: "BBCA.JK",
-            type: "BUY",
-            lots: 10,
-            price_per_share: 9200,
-            total_amount: 9200000,
-            transaction_date: new Date().toISOString(),
-          },
-          {
-            id: 2,
-            ticker: "BBRI.JK",
-            type: "BUY",
-            lots: 20,
-            price_per_share: 4400,
-            total_amount: 8800000,
-            transaction_date: new Date().toISOString(),
-          },
-        ],
-      });
     } finally {
       setLoading(false);
     }
@@ -123,9 +74,8 @@ export default function DashboardPage() {
                 Kelola & Analisis Saham Anda Secara Cerdas
               </h1>
               <p className="text-xs text-zinc-400 mt-1 max-w-2xl leading-relaxed">
-                Ketik secara natural lewat Telegram Bot atau AI Simulator untuk
-                mencatat beli/jual saham, memantau avg price, atau menganalisis
-                laporan emiten.
+                Ketik secara natural lewat Telegram Bot, unggah struk transaksi/screenshot,
+                atau gunakan AI Simulator untuk optimasi portofolio otomatis.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -177,6 +127,134 @@ export default function DashboardPage() {
             subtitle="Diversifikasi Multi-Aset"
             icon={Layers}
           />
+        </div>
+
+        {/* Reku-Style Glowing Line Portfolio Chart */}
+        <PortfolioChartCard
+          portfolioId={1}
+          totalNetWorth={data?.totalNetWorth}
+          totalInvested={data?.totalInvested}
+          cashBalance={data?.cashBalance}
+        />
+
+        {/* Smart AI Metrics Row: Health Score & Passive Income Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Health Score Card */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between shadow-sm">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <h3 className="text-sm font-semibold text-zinc-100">
+                    AI Portfolio Health Score
+                  </h3>
+                </div>
+                <Link
+                  href="/portfolio?tab=health"
+                  className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium"
+                >
+                  Analisis Detail <ArrowUpRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              <div className="flex items-center gap-4 my-2">
+                <div className="flex items-baseline gap-1.5">
+                  <span className={`text-3xl font-extrabold ${
+                    (healthData?.health_score || 0) >= 70
+                      ? "text-emerald-400"
+                      : (healthData?.health_score || 0) >= 50
+                      ? "text-amber-400"
+                      : "text-red-400"
+                  }`}>
+                    {healthData?.health_score ?? "--"}
+                  </span>
+                  <span className="text-xs text-zinc-500 font-semibold">/100</span>
+                </div>
+                <div className="space-y-0.5">
+                  <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${
+                    (healthData?.health_score || 0) >= 70
+                      ? "bg-emerald-950/60 text-emerald-300 border border-emerald-800/60"
+                      : (healthData?.health_score || 0) >= 50
+                      ? "bg-amber-950/60 text-amber-300 border border-amber-800/60"
+                      : "bg-red-950/60 text-red-300 border border-red-800/60"
+                  }`}>
+                    {healthData?.rating || "Evaluasi"}
+                  </span>
+                  <div className="text-[11px] text-zinc-400">
+                    Profil: <span className="text-zinc-200 font-medium">{healthData?.risk_profile || "Agresif"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-zinc-400 leading-relaxed mt-2 line-clamp-2">
+                {healthData?.summary || "Sistem AI memantau konsentrasi risiko, rasio diversifikasi, dan bantalan likuiditas Anda secara real-time."}
+              </p>
+            </div>
+
+            {healthData?.rebalancing_actions && healthData.rebalancing_actions.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-300">
+                <span className="text-zinc-400 text-[11px]">Saran Utama:</span>
+                <span className="font-medium text-amber-300 truncate max-w-[280px]">
+                  {healthData.rebalancing_actions[0]?.reason}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Dividend & Passive Income Card */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col justify-between shadow-sm">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Coins className="w-4 h-4 text-emerald-400" />
+                  <h3 className="text-sm font-semibold text-zinc-100">
+                    Proyeksi Passive Income & Dividen
+                  </h3>
+                </div>
+                <Link
+                  href="/portfolio?tab=dividends"
+                  className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-medium"
+                >
+                  Kalender Dividen <ArrowUpRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 my-2">
+                <div className="p-2.5 rounded-lg bg-zinc-850 border border-zinc-800">
+                  <div className="text-[10px] text-zinc-400 uppercase font-semibold">Estimasi Tahunan</div>
+                  <div className="text-base font-bold text-emerald-400 mt-0.5">
+                    {formatIDR(dividendData?.annual_passive_income_idr || 0)}
+                  </div>
+                  <div className="text-[10px] text-zinc-500 mt-0.5">
+                    Yield: {dividendData?.portfolio_dividend_yield_percent || 0}% / thn
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-zinc-850 border border-zinc-800">
+                  <div className="text-[10px] text-zinc-400 uppercase font-semibold">Rata-rata Bulanan</div>
+                  <div className="text-base font-bold text-zinc-100 mt-0.5">
+                    {formatIDR(dividendData?.average_monthly_income_idr || 0)}
+                  </div>
+                  <div className="text-[10px] text-zinc-500 mt-0.5">
+                    Cash flow pasif reguler
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-zinc-400 leading-relaxed mt-1">
+                {dividendData?.holdings?.length
+                  ? `Dihasilkan dari ${dividendData.holdings.length} aset penghasil dividen/bunga (misal: ${dividendData.holdings.map((h: any) => h.ticker).join(", ")})`
+                  : "Tambahkan saham berdividen (BBCA, BBRI) atau SBN untuk mengoptimalkan passive income tahunan Anda."}
+              </p>
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-zinc-800/80 flex items-center justify-between text-xs text-zinc-400">
+              <span className="text-[11px]">Bulan Pembagian Terdekat:</span>
+              <span className="text-zinc-200 font-medium">
+                {dividendData?.monthly_projections?.find((m: any) => m.estimated_income_idr > 0)?.month_name || "Maret / Juni"}
+              </span>
+            </div>
+          </div>
         </div>
 
         {/* Asset Class Allocation Breakdown */}
