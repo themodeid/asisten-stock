@@ -18,7 +18,7 @@ const navigation = [
   { name: "Riwayat Transaksi", href: "/transactions", icon: History },
   { name: "AI Analyst", href: "/analytics", icon: TrendingUp },
   { name: "Watchlist & Alerts", href: "/watchlist", icon: BookmarkCheck },
-  { name: "AI Simulator (Bot)", href: "/playground", icon: Bot },
+  { name: "Jarvis AI Chat", href: "/playground", icon: Bot },
 ];
 
 export default function Sidebar() {

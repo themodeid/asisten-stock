@@ -46,11 +46,22 @@ export const recordTransaction = async (
   let quantity = 0;
   let lots = 0;
   let shares = 0;
+  let buyPrice = price; // Historical entry price
+
+  // Calculate historical entry price if historical PnL% or explicit historical buy price is given
+  if (input.historical_buy_price && Number(input.historical_buy_price) > 0) {
+    buyPrice = Number(input.historical_buy_price);
+  } else if (input.historical_pnl_percent !== undefined && Number(input.historical_pnl_percent) !== 0) {
+    const pnlRatio = Number(input.historical_pnl_percent) / 100;
+    if (pnlRatio > -1) {
+      buyPrice = Number((price / (1 + pnlRatio)).toFixed(4));
+    }
+  }
 
   if (input.total_budget && Number(input.total_budget) > 0) {
     const budget = Number(input.total_budget);
 
-    // If asset is USD-denominated but budget is given in IDR (e.g. 1.100.000 IDR for BTC)
+    // If asset is USD-denominated but budget is given in IDR (e.g. 4.325.000 IDR for BTC)
     const effectiveBudget =
       isAssetUSD && (input.currency === "IDR" || budget > 10000)
         ? budget / 15800
@@ -77,6 +88,7 @@ export const recordTransaction = async (
     } else if (assetType === "BOND") {
       quantity = effectiveBudget;
       price = 1;
+      buyPrice = 1;
       shares = quantity;
       lots = 0;
     } else {
@@ -108,7 +120,8 @@ export const recordTransaction = async (
     }
   }
 
-  const totalAmount = quantity * price + (input.type === "BUY" ? fee : -fee);
+  // Use historical buyPrice for transaction cost basis
+  const totalAmount = quantity * buyPrice + (input.type === "BUY" ? fee : -fee);
 
   const client = await pool.connect();
   try {
@@ -128,7 +141,7 @@ export const recordTransaction = async (
         lots,
         shares,
         quantity,
-        price,
+        buyPrice,
         currency,
         totalAmount,
         fee,
@@ -162,8 +175,8 @@ export const recordTransaction = async (
             lots,
             quantity,
             currency,
-            price,
-            quantity * price,
+            buyPrice,
+            quantity * buyPrice,
           ]
         );
         holding = newHolding.rows[0];
@@ -172,7 +185,7 @@ export const recordTransaction = async (
         const current = hResult.rows[0];
         const curQuantity = Number(current.quantity || current.total_shares);
         const curAvg = Number(current.avg_buy_price);
-        const newAvg = calculateNewAveragePrice(curQuantity, curAvg, quantity, price);
+        const newAvg = calculateNewAveragePrice(curQuantity, curAvg, quantity, buyPrice);
         const newTotalQuantity = curQuantity + quantity;
         const newTotalShares = assetType === "STOCK" ? newTotalQuantity : 0;
         const newTotalLots = assetType === "STOCK" ? newTotalQuantity / 100 : 0;

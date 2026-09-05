@@ -34,8 +34,13 @@ export const processUserMessage = async (
     console.warn("Failed to write user chat log:", logErr);
   }
 
-  // If no Gemini API key configured, use intelligent rule-based agentic fallback
-  if (!ENV.GEMINI_API_KEY || ENV.GEMINI_API_KEY === "your_gemini_api_key_here") {
+  // If no valid Gemini API key configured, use intelligent rule-based multi-asset engine directly
+  const isGeminiConfigured =
+    ENV.GEMINI_API_KEY &&
+    ENV.GEMINI_API_KEY.startsWith("AIzaSy") &&
+    ENV.GEMINI_API_KEY.length > 25;
+
+  if (!isGeminiConfigured) {
     const fallbackResponse = await handleRuleBasedFallback(userId, userMessage);
     await pool.query(
       "INSERT INTO chat_logs (user_id, role, message, tool_calls) VALUES ($1, $2, $3, $4);",
@@ -97,17 +102,20 @@ export const processUserMessage = async (
         if (toolName === "log_asset_transaction" || toolName === "log_stock_transaction") {
           const portfolio = await portfolioService.getPrimaryPortfolioByUserId(userId);
           const rawSymbol = args.symbol || args.ticker;
-          const quantity = Number(args.quantity || (args.lots ? args.lots : 1));
-          const price = Number(args.price_per_unit || args.price_per_share);
+          const quantity = args.quantity ? Number(args.quantity) : undefined;
+          const price = (args.price_per_unit || args.price_per_share) ? Number(args.price_per_unit || args.price_per_share) : undefined;
 
           toolResult = await transactionService.recordTransaction({
             portfolio_id: portfolio.id,
             ticker: rawSymbol,
             asset_type: args.asset_type,
-            type: args.action,
+            type: args.action || "BUY",
             lots: args.lots ? Number(args.lots) : undefined,
             quantity: quantity,
             price_per_share: price,
+            total_budget: args.total_budget ? Number(args.total_budget) : undefined,
+            historical_pnl_percent: args.historical_pnl_percent !== undefined ? Number(args.historical_pnl_percent) : undefined,
+            historical_buy_price: args.historical_buy_price ? Number(args.historical_buy_price) : undefined,
             currency: args.currency,
             notes: args.notes,
           });
@@ -245,13 +253,29 @@ async function handleRuleBasedFallback(
     }
   }
 
-  // 1. Check BUY Intent (Explicit Quantity & Price OR Budget DCA)
-  const isBuyIntent =
-    /(?:beli|buy|serok|tambah|nabung|dca|masuk|abis|habis|barusan|pembelian|catat|dicatat)/i.test(
-      lower
-    ) && !/(?:jual|sell|lepas|tp|cuan)/i.test(lower);
+  // 0. Check Historical PnL / Floating Position Intent (e.g. "saya memiliki asset btc sebesar 4.325.000 rp disitu saya mengalami kerugian 20% tolong dicatat")
+  const pnlMatch =
+    text.match(/(?:rugi|loss|minus|floating\s*loss|turun|kerugian|negatif)\s*(?:sebesar|sekitar|sebanyak)?\s*(\d+(?:[\.,]\d+)?)\s*%/i) ||
+    text.match(/(\d+(?:[\.,]\d+)?)\s*%\s*(?:rugi|loss|minus|floating\s*loss|turun|kerugian)/i);
 
-  const isSellIntent = /(?:jual|sell|lepas|tp|take\s*profit|cuan|penjualan)/i.test(lower);
+  const profitMatch =
+    text.match(/(?:untung|cuan|profit|plus|floating\s*profit|naik|keuntungan|positif)\s*(?:sebesar|sekitar|sebanyak)?\s*(\d+(?:[\.,]\d+)?)\s*%/i) ||
+    text.match(/(\d+(?:[\.,]\d+)?)\s*%\s*(?:untung|cuan|profit|plus|floating\s*profit|naik|keuntungan)/i);
+
+  let historicalPnLPercent: number | undefined = undefined;
+  if (pnlMatch) {
+    historicalPnLPercent = -Math.abs(parseFloat(pnlMatch[1].replace(",", ".")));
+  } else if (profitMatch) {
+    historicalPnLPercent = Math.abs(parseFloat(profitMatch[1].replace(",", ".")));
+  }
+
+  // 1. Check BUY Intent or Historical Portfolio State
+  const isBuyIntent =
+    /(?:beli|buy|serok|tambah|nabung|dca|masuk|abis|habis|barusan|pembelian|catat|dicatat|memiliki|punya|saldo|posisi|floating)/i.test(
+      lower
+    ) && !/(?:jual|sell|lepas|tp|take\s*profit)/i.test(lower);
+
+  const isSellIntent = /(?:jual|sell|lepas|tp|take\s*profit|cuan|penjualan)/i.test(lower) && !/(?:beli|memiliki|punya)/i.test(lower);
 
   // 1A. EXPLICIT BUY: e.g. "Beli BTC 0.05 di 64500 USD" or "Beli BBCA 10 lot di 9850"
   const explicitBuyMatch = text.match(
@@ -302,7 +326,9 @@ async function handleRuleBasedFallback(
     };
   }
 
-  // 1B. BUDGET DCA BUY: e.g. "saya abis beli btc sebesar 1.100.000 rupiah tolong di catat", "beli bbca 5jt", "beli emas 3jt"
+  // 1B. BUDGET DCA / HISTORICAL POSITION ONBOARDING:
+  // e.g. "saya memiliki aseet btc sebesar 4.325.000 rp disitu saya mengalami kerugian 20% tolong dicatat"
+  // e.g. "beli bbca 5jt", "beli emas 3jt"
   if (isBuyIntent && detected && money && money.amount > 0) {
     try {
       const result = await transactionService.recordTransaction({
@@ -312,7 +338,10 @@ async function handleRuleBasedFallback(
         type: "BUY",
         total_budget: money.amount,
         currency: money.currency,
-        notes: `DCA Otomatis: ${money.currency === "USD" ? `$${money.amount}` : formatRupiah(money.amount)}`,
+        historical_pnl_percent: historicalPnLPercent,
+        notes: historicalPnLPercent !== undefined
+          ? `Rekonstruksi Historis: Posisi awal PnL ${historicalPnLPercent > 0 ? "+" : ""}${historicalPnLPercent}%`
+          : `DCA Otomatis: ${money.currency === "USD" ? `$${money.amount}` : formatRupiah(money.amount)}`,
       });
 
       const tx = result.transaction;
@@ -321,23 +350,36 @@ async function handleRuleBasedFallback(
       const qtyText = isStock
         ? `${tx.lots} Lot (${tx.shares} lbr)`
         : `${tx.quantity} ${assetType === "GOLD" ? "gram" : assetType === "CRYPTO" ? detected.symbol : "unit"}`;
-      const priceFormatted =
-        tx.currency === "USD"
-          ? `$${Number(tx.price_per_share).toLocaleString()}`
-          : formatRupiah(tx.price_per_share);
-      const totalFormatted =
-        tx.currency === "USD"
-          ? `$${Number(tx.total_amount).toLocaleString()}`
-          : formatRupiah(tx.total_amount);
+      
+      const holding = result.holding;
+      const avgBuyPrice = Number(holding?.avg_buy_price || tx.price_per_share);
+      const isUSD = tx.currency === "USD";
+      
+      const priceFormatted = isUSD ? `$${avgBuyPrice.toLocaleString()}` : formatRupiah(avgBuyPrice);
+      const totalFormatted = isUSD ? `$${Number(tx.total_amount).toLocaleString()}` : formatRupiah(tx.total_amount);
+      const nominalInputFormatted = money.currency === "USD" ? `$${money.amount}` : formatRupiah(money.amount);
 
       executedTools.push({
         toolName: "log_asset_transaction",
-        args: { symbol: detected.symbol, asset_type: assetType, total_budget: money.amount },
+        args: {
+          symbol: detected.symbol,
+          asset_type: assetType,
+          total_budget: money.amount,
+          historical_pnl_percent: historicalPnLPercent,
+        },
         result,
       });
 
+      if (historicalPnLPercent !== undefined) {
+        const pnlStatus = historicalPnLPercent >= 0 ? "🟢 Keuntungan (Floating Profit)" : "🔴 Kerugian (Floating Loss)";
+        return {
+          replyText: `🤖 **AI Smart Reconstruction: Posisi Aset Historis Berhasil Dicatat!**\n\n🔍 **Analisis Kondisi Sebelum Pencatatan:**\n• Kondisi Posisi Saat Masuk: **${pnlStatus} ${historicalPnLPercent > 0 ? "+" : ""}${historicalPnLPercent}%**\n• Rekonstruksi Harga Modal Beli (Avg Price): **${priceFormatted} / unit**\n\n📌 **Aset:** ${tx.ticker} (${assetType})\n💰 **Nilai Aset Terkini:** ${nominalInputFormatted}\n📊 **Kuantitas Kepemilikan:** **${qtyText}**\n💵 **Estimasi Total Modal Awal:** ${totalFormatted}\n\nPosisi portofolio dan floating P/L Anda kini telah mencerminkan kondisi riil (${historicalPnLPercent > 0 ? "+" : ""}${historicalPnLPercent}%).`,
+          toolCallsExecuted: executedTools,
+        };
+      }
+
       return {
-        replyText: `🤖 **AI Smart Calculation: Transaksi Beli Berhasil Dicatat!**\n\n💡 *Harga pasar terkini diambil otomatis:* **${priceFormatted} / unit**\n\n📌 **Aset:** ${tx.ticker} (${assetType})\n💰 **Nominal Belanja:** ${money.currency === "USD" ? `$${money.amount}` : formatRupiah(money.amount)}\n📊 **Kuantitas Didapat:** **${qtyText}**\n💵 **Total Realisasi:** ${totalFormatted}\n\nPosisi portofolio & alokasi aset Anda telah diperbarui otomatis dengan harga bursa hari ini.`,
+        replyText: `🤖 **AI Smart Calculation: Transaksi Beli Berhasil Dicatat!**\n\n💡 *Harga pasar terkini diambil otomatis:* **${priceFormatted} / unit**\n\n📌 **Aset:** ${tx.ticker} (${assetType})\n💰 **Nominal Belanja:** ${nominalInputFormatted}\n📊 **Kuantitas Didapat:** **${qtyText}**\n💵 **Total Realisasi:** ${totalFormatted}\n\nPosisi portofolio & alokasi aset Anda telah diperbarui otomatis dengan harga bursa hari ini.`,
         toolCallsExecuted: executedTools,
       };
     } catch (e: any) {

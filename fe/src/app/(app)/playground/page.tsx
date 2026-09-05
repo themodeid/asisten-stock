@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import Badge from "@/components/ui/Badge";
 import { api } from "@/services/api";
-import { Send, Bot, User, Sparkles, Terminal, RefreshCw, Cpu } from "lucide-react";
+import { Send, Bot, User, Sparkles, Terminal, RefreshCw, Cpu, Trash2 } from "lucide-react";
 
 interface Message {
   id: string;
@@ -14,30 +14,107 @@ interface Message {
   timestamp: Date;
 }
 
+const DEFAULT_WELCOME: Message = {
+  id: "welcome",
+  role: "assistant",
+  text: "🤖 **Halo! Saya Jarvis Multi-Asset Assistant.**\n\nAnda dapat mencatat dan memantau berbagai aset:\n1. **Saham**: *\"Beli BBCA 5 juta\"* atau *\"Beli BBCA 10 lot di 9850\"*\n2. **Kripto (Crypto)**: *\"Beli BTC 1.100.000 rupiah\"* atau *\"Beli BTC 0.05 di 64500 USD\"*\n3. **Emas / Logam Mulia**: *\"Beli Emas Antam 2 juta\"*\n4. **Obligasi / SBN**: *\"Beli ORI024 10000000\"*\n5. **Cek Portofolio**: *\"Cek portofolio & alokasi aset saya\"*\n\nAda yang ingin dicatat atau dicek saat ini?",
+  timestamp: new Date(),
+};
+
 const SAMPLE_PROMPTS = [
-  "Beli BBCA 10 lot di harga 9850",
-  "Portofolio saya gimana?",
+  "Beli BTC 1.100.000 rupiah",
+  "Beli Emas Antam 3 juta",
+  "Beli BBCA 5 juta",
+  "Cek portofolio & alokasi aset",
   "Analisa valuasi saham BBRI",
-  "Cek harga TLKM hari ini",
-  "Jual BBCA 5 lot di 10000",
+  "Beli SPY 1000 USD",
 ];
 
+const LOCAL_STORAGE_KEY = "jarvis_chat_history_v2";
+
 export default function PlaygroundPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "assistant",
-      text: "Halo! Saya **Jarvis Stock AI**, asisten portofolio saham pribadi Anda.\n\nAnda dapat mengetik perintah secara natural seperti mencatat transaksi, menanyakan ringkasan keuntungan portofolio, atau meminta analisis fundamental emiten.",
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([DEFAULT_WELCOME]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // 1. Initial Load: Load from localStorage first, then sync with backend
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages(
+            parsed.map((m: any) => ({
+              ...m,
+              timestamp: new Date(m.timestamp),
+            }))
+          );
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load local chat storage", e);
+    }
+
+    // Sync from database
+    const syncBackendLogs = async () => {
+      try {
+        const res = await api.get("/gemini/logs/1");
+        const logs = res.data?.data;
+        if (Array.isArray(logs) && logs.length > 0) {
+          const mapped: Message[] = logs.map((log: any) => {
+            let tools = [];
+            if (log.tool_calls) {
+              try {
+                tools = typeof log.tool_calls === "string" ? JSON.parse(log.tool_calls) : log.tool_calls;
+              } catch (_) {}
+            }
+            return {
+              id: log.id?.toString() || Math.random().toString(),
+              role: log.role as "user" | "assistant",
+              text: log.message,
+              toolCalls: Array.isArray(tools) ? tools : [],
+              timestamp: new Date(log.created_at),
+            };
+          });
+          setMessages(mapped);
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(mapped));
+        }
+      } catch (err) {
+        console.warn("Could not sync chat logs from backend:", err);
+      }
+    };
+
+    syncBackendLogs();
+  }, []);
+
+  // 2. Save messages to localStorage whenever messages update
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messages.length > 0) {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(messages));
+      } catch (e) {
+        console.warn("Failed to save to localStorage:", e);
+      }
+    }
   }, [messages]);
+
+  const handleClearChat = async () => {
+    if (confirm("Apakah Anda yakin ingin membersihkan riwayat chat?")) {
+      setClearing(true);
+      try {
+        await api.delete("/gemini/logs/1");
+      } catch (err) {
+        console.warn("Failed to delete remote logs", err);
+      }
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      setMessages([DEFAULT_WELCOME]);
+      setClearing(false);
+    }
+  };
 
   const handleSend = async (textToSend?: string) => {
     const text = textToSend || input;
@@ -87,7 +164,32 @@ export default function PlaygroundPage() {
 
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden">
-      <Header title="AI Simulator (Telegram Bot Emulator)" />
+      <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950 px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-100 font-bold shadow-sm">
+            <Bot className="w-5 h-5 text-emerald-400" />
+          </div>
+          <div>
+            <h1 className="text-base font-semibold text-zinc-100 flex items-center gap-2">
+              Jarvis Multi-Asset Assistant
+              <Badge variant="success" size="sm">Online</Badge>
+            </h1>
+            <p className="text-xs text-zinc-400">
+              Asisten pribadi otomatis untuk Saham, Kripto, Emas, Obligasi, dan ETF
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleClearChat}
+          disabled={clearing || messages.length <= 1}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs transition disabled:opacity-40"
+          title="Bersihkan riwayat chat"
+        >
+          <Trash2 className="w-3.5 h-3.5 text-zinc-500" />
+          <span>Bersihkan Chat</span>
+        </button>
+      </div>
 
       <main className="flex-1 p-4 md:p-6 max-w-5xl w-full mx-auto flex flex-col min-h-0">
         {/* Quick Suggestion Chips */}

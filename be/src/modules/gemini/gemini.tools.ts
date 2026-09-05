@@ -27,7 +27,19 @@ export const geminiToolDeclarations: FunctionDeclaration[] = [
         },
         price_per_unit: {
           type: Type.NUMBER,
-          description: "Harga per unit / per lembar / per koin / per gram.",
+          description: "Harga per unit / per lembar / per koin / per gram (opsional jika total_budget atau harga pasar realtime digunakan).",
+        },
+        total_budget: {
+          type: Type.NUMBER,
+          description: "Nominal uang total modal atau nilai aset saat ini (misal: 4325000 untuk 4.325.000 IDR).",
+        },
+        historical_pnl_percent: {
+          type: Type.NUMBER,
+          description: "Persentase keuntungan/kerugian historis sebelum dicatat (misal: -20 untuk rugi 20%, 15 untuk untung 15%).",
+        },
+        historical_buy_price: {
+          type: Type.NUMBER,
+          description: "Harga beli modal historis di masa lalu jika diketahui spesifik.",
         },
         currency: {
           type: Type.STRING,
@@ -36,10 +48,10 @@ export const geminiToolDeclarations: FunctionDeclaration[] = [
         },
         notes: {
           type: Type.STRING,
-          description: "Catatan opsional (misal: 'DCA mingguan', 'Dividen play', 'Take profit').",
+          description: "Catatan opsional (misal: 'DCA mingguan', 'Portofolio lama rugi 20%').",
         },
       },
-      required: ["symbol", "action", "quantity", "price_per_unit"],
+      required: ["symbol", "action"],
     },
   },
   {

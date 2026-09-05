@@ -67,8 +67,6 @@ export const getPortfolioSummary = async (
       const invested = Number(row.total_invested);
       const currency = row.currency || (assetType === "CRYPTO" ? "USD" : "IDR");
 
-      totalInvested += invested;
-
       let currentPrice = avgPrice;
       let companyName = row.ticker;
 
@@ -80,8 +78,13 @@ export const getPortfolioSummary = async (
         // use avgPrice fallback
       }
 
+      const rateToIDR = currency === "USD" ? 15800 : 1;
+      const investedIDR = invested * rateToIDR;
       const marketVal = quantity * currentPrice;
-      totalMarketValue += marketVal;
+      const marketValIDR = marketVal * rateToIDR;
+
+      totalInvested += investedIDR;
+      totalMarketValue += marketValIDR;
 
       const pnl = marketVal - invested;
       const pnlPercent = invested > 0 ? (pnl / invested) * 100 : 0;
@@ -100,6 +103,7 @@ export const getPortfolioSummary = async (
         updated_at: row.updated_at,
         current_price: currentPrice,
         market_value: marketVal,
+        market_value_idr: marketValIDR,
         floating_pnl: pnl,
         floating_pnl_percent: Number(pnlPercent.toFixed(2)),
         company_name: companyName,
@@ -108,12 +112,12 @@ export const getPortfolioSummary = async (
   );
 
   // 4. Calculate weight percentages
-  const grandTotal = totalMarketValue + Number(portfolio.cash_balance);
-  const holdingsWithWeights = enrichedHoldings.map((h) => ({
+  const grandTotalIDR = totalMarketValue + Number(portfolio.cash_balance);
+  const holdingsWithWeights = enrichedHoldings.map((h: any) => ({
     ...h,
     weight_percent:
-      grandTotal > 0
-        ? Number((((h.market_value || 0) / grandTotal) * 100).toFixed(2))
+      grandTotalIDR > 0
+        ? Number((((h.market_value_idr || 0) / grandTotalIDR) * 100).toFixed(2))
         : 0,
   }));
 
@@ -137,7 +141,7 @@ export const getPortfolioSummary = async (
       total_value: 0,
       count: 0,
     };
-    existing.total_value += h.market_value || 0;
+    existing.total_value += (h as any).market_value_idr || 0;
     existing.count += 1;
     allocationMap.set(type, existing);
   }
@@ -155,7 +159,7 @@ export const getPortfolioSummary = async (
       asset_type: type as any,
       label: data.label,
       total_value: data.total_value,
-      percentage: grandTotal > 0 ? Number(((data.total_value / grandTotal) * 100).toFixed(1)) : 0,
+      percentage: grandTotalIDR > 0 ? Number(((data.total_value / grandTotalIDR) * 100).toFixed(1)) : 0,
       count: data.count,
     })
   );
@@ -170,7 +174,7 @@ export const getPortfolioSummary = async (
     cash_balance: Number(portfolio.cash_balance),
     total_invested: totalInvested,
     total_market_value: totalMarketValue,
-    total_net_worth: grandTotal,
+    total_net_worth: grandTotalIDR,
     total_floating_pnl: totalFloatingPnl,
     total_floating_pnl_percent: Number(totalFloatingPnlPercent.toFixed(2)),
     holdings_count: holdingsWithWeights.length,

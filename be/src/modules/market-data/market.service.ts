@@ -217,7 +217,7 @@ export const getStockQuote = async (
       return data;
     }
   } catch (err) {
-    console.warn(`[MarketData] Yahoo Finance lookup error for ${ticker}:`, (err as any).message);
+    // Silently fall back to cached or predefined market database
   }
 
   // Use fallback if available

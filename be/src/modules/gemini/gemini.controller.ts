@@ -36,10 +36,24 @@ export const getChatLogs = async (
   try {
     const userId = Number(req.params.userId || req.query.userId || 1);
     const { rows } = await pool.query(
-      "SELECT * FROM chat_logs WHERE user_id = $1 ORDER BY created_at ASC LIMIT 50;",
+      "SELECT * FROM chat_logs WHERE user_id = $1 ORDER BY created_at ASC LIMIT 100;",
       [userId]
     );
     return successResponse(res, rows, "Chat logs retrieved");
+  } catch (error: any) {
+    next(new AppError(error.message, 500));
+  }
+};
+
+export const clearChatLogs = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = Number(req.params.userId || req.query.userId || 1);
+    await pool.query("DELETE FROM chat_logs WHERE user_id = $1;", [userId]);
+    return successResponse(res, null, "Chat logs cleared");
   } catch (error: any) {
     next(new AppError(error.message, 500));
   }
