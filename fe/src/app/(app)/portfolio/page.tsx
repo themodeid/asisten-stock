@@ -442,95 +442,111 @@ export default function PortfolioPage() {
           cashBalance={portfolio?.cash_balance || 0}
         />
 
-        {/* Primary View Switcher */}
-        <div className="flex border-b border-zinc-800 gap-2 sm:gap-6 text-xs sm:text-sm font-medium overflow-x-auto pb-0.5">
-          <button
-            onClick={() => setMainTab("HOLDINGS")}
-            className={`pb-3 flex items-center gap-1.5 sm:gap-2 border-b-2 transition whitespace-nowrap ${
-              mainTab === "HOLDINGS"
-                ? "border-zinc-100 text-zinc-100 font-semibold"
-                : "border-transparent text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            Daftar Aset & Alokasi
-          </button>
+        {/* Primary View Switcher - Premium Pluang Glass Segmented Bar */}
+        <div className="relative">
+          <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#0c0e14]/90 backdrop-blur-md border border-white/5 overflow-x-auto no-scrollbar scroll-smooth shadow-lg shadow-black/40">
+            <button
+              onClick={() => setMainTab("HOLDINGS")}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
+                mainTab === "HOLDINGS"
+                  ? "bg-zinc-800 text-zinc-100 border border-white/10 shadow-sm font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
+              }`}
+            >
+              <Layers className={`w-4 h-4 ${mainTab === "HOLDINGS" ? "text-white" : "text-zinc-400"}`} />
+              Portofolio & Aset
+            </button>
 
-          <button
-            onClick={() => setMainTab("FX")}
-            className={`pb-3 flex items-center gap-1.5 sm:gap-2 border-b-2 transition whitespace-nowrap ${
-              mainTab === "FX"
-                ? "border-zinc-100 text-zinc-100 font-semibold"
-                : "border-transparent text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            <Globe className="w-4 h-4 text-blue-400" />
-            Analisis Kurs USD/IDR
-            <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-950 text-blue-300 font-bold border border-blue-800/60">
-              Double Gain
-            </span>
-          </button>
-
-          <button
-            onClick={() => setMainTab("REBALANCE")}
-            className={`pb-3 flex items-center gap-1.5 sm:gap-2 border-b-2 transition whitespace-nowrap ${
-              mainTab === "REBALANCE"
-                ? "border-zinc-100 text-zinc-100 font-semibold"
-                : "border-transparent text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            <Scale className="w-4 h-4 text-emerald-400" />
-            Kalkulator Rebalancing & Modal Baru
-            <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 font-bold border border-emerald-800/60">
-              Inflow AI
-            </span>
-          </button>
-
-          <button
-            onClick={() => setMainTab("TAX")}
-            className={`pb-3 flex items-center gap-1.5 sm:gap-2 border-b-2 transition whitespace-nowrap ${
-              mainTab === "TAX"
-                ? "border-zinc-100 text-zinc-100 font-semibold"
-                : "border-transparent text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            <Receipt className="w-4 h-4 text-amber-400" />
-            Kalkulator Pajak Indonesia
-            <span className="text-[10px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 font-bold border border-amber-800/60">
-              PPh Final & SPT
-            </span>
-          </button>
-
-          <button
-            onClick={() => setMainTab("HEALTH")}
-            className={`pb-3 flex items-center gap-1.5 sm:gap-2 border-b-2 transition whitespace-nowrap ${
-              mainTab === "HEALTH"
-                ? "border-zinc-100 text-zinc-100 font-semibold"
-                : "border-transparent text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            <Activity className="w-4 h-4 text-emerald-400" />
-            Health Score
-            {healthData?.health_score !== undefined && (
-              <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold ${
-                healthData.health_score >= 70 ? "bg-emerald-950 text-emerald-300" : "bg-amber-950 text-amber-300"
+            <button
+              onClick={() => setMainTab("REBALANCE")}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
+                mainTab === "REBALANCE"
+                  ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
+              }`}
+            >
+              <Scale className={`w-4 h-4 ${mainTab === "REBALANCE" ? "text-emerald-400" : "text-emerald-500/70"}`} />
+              AI Rebalancing
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold border ${
+                mainTab === "REBALANCE" 
+                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" 
+                  : "bg-emerald-950/60 text-emerald-400 border-emerald-800/50"
               }`}>
-                {healthData.health_score}
+                Inflow AI
               </span>
-            )}
-          </button>
+            </button>
 
-          <button
-            onClick={() => setMainTab("DIVIDENDS")}
-            className={`pb-3 flex items-center gap-1.5 sm:gap-2 border-b-2 transition whitespace-nowrap ${
-              mainTab === "DIVIDENDS"
-                ? "border-zinc-100 text-zinc-100 font-semibold"
-                : "border-transparent text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            <Calendar className="w-4 h-4 text-amber-400" />
-            Kalender Dividen
-          </button>
+            <button
+              onClick={() => setMainTab("FX")}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
+                mainTab === "FX"
+                  ? "bg-blue-500/15 text-blue-300 border border-blue-500/30 shadow-sm font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
+              }`}
+            >
+              <Globe className={`w-4 h-4 ${mainTab === "FX" ? "text-blue-400" : "text-blue-500/70"}`} />
+              Analisis Kurs
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold border ${
+                mainTab === "FX" 
+                  ? "bg-blue-500/20 text-blue-300 border-blue-500/40" 
+                  : "bg-blue-950/60 text-blue-400 border-blue-800/50"
+              }`}>
+                USD/IDR
+              </span>
+            </button>
+
+            <button
+              onClick={() => setMainTab("TAX")}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
+                mainTab === "TAX"
+                  ? "bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
+              }`}
+            >
+              <Receipt className={`w-4 h-4 ${mainTab === "TAX" ? "text-amber-400" : "text-amber-500/70"}`} />
+              Pajak & SPT
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold border ${
+                mainTab === "TAX" 
+                  ? "bg-amber-500/20 text-amber-300 border-amber-500/40" 
+                  : "bg-amber-950/60 text-amber-400 border-amber-800/50"
+              }`}>
+                PPh Final
+              </span>
+            </button>
+
+            <button
+              onClick={() => setMainTab("HEALTH")}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
+                mainTab === "HEALTH"
+                  ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
+              }`}
+            >
+              <Activity className={`w-4 h-4 ${mainTab === "HEALTH" ? "text-emerald-400" : "text-emerald-500/70"}`} />
+              Health Score
+              {healthData?.health_score !== undefined && (
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold border ${
+                  healthData.health_score >= 70 
+                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" 
+                    : "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                }`}>
+                  {healthData.health_score}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setMainTab("DIVIDENDS")}
+              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
+                mainTab === "DIVIDENDS"
+                  ? "bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
+              }`}
+            >
+              <Calendar className={`w-4 h-4 ${mainTab === "DIVIDENDS" ? "text-amber-400" : "text-amber-500/70"}`} />
+              Kalender Dividen
+            </button>
+          </div>
         </div>
 
         {/* TAB 1: HOLDINGS & ALLOCATION */}

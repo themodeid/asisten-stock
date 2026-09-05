@@ -126,9 +126,15 @@ export const getRebalancePlan = async (
   next: NextFunction
 ) => {
   try {
-    const portfolioId = Number(req.body.portfolioId || req.query.portfolioId || 1);
-    const freshCapital = Number(req.body.freshCapital ?? 1000000);
-    const strategy = String(req.body.strategy || "ALL_WEATHER");
+    const portfolioId = Number(
+      req.params.portfolioId || req.body.portfolioId || req.body.portfolio_id || req.query.portfolioId || 1
+    );
+    const freshCapital = Number(
+      req.body.freshCapital ?? req.body.fresh_capital_idr ?? req.query.freshCapital ?? 1000000
+    );
+    const strategy = String(
+      req.body.strategy ?? req.body.strategy_name ?? "ALL_WEATHER"
+    );
     const customTargets = req.body.customTargets;
 
     const plan = await portfolioService.calculateRebalancePlan(

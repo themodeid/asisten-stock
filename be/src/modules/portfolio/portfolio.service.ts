@@ -1,5 +1,12 @@
 import { pool } from "../../config/database";
-import { Portfolio, PortfolioHolding, PortfolioSummary, AssetAllocation } from "./portfolio.type";
+import {
+  Portfolio,
+  PortfolioHolding,
+  PortfolioSummary,
+  AssetAllocation,
+  PortfolioFxSummary,
+  FxHoldingItem,
+} from "./portfolio.type";
 import * as marketService from "../market-data/market.service";
 
 export const getPrimaryPortfolioByUserId = async (

@@ -1,11 +1,12 @@
 import { getGeminiClient } from "../../config/gemini";
 import { ENV } from "../../config/env";
-import { SYSTEM_PROMPT } from "./gemini.prompts";
+import { SYSTEM_PROMPT, buildSystemPrompt } from "./gemini.prompts";
 import { geminiToolDeclarations } from "./gemini.tools";
 import * as transactionService from "../transactions/transaction.service";
 import * as marketService from "../market-data/market.service";
 import * as portfolioService from "../portfolio/portfolio.service";
 import * as alertService from "../watchlist-alert/alert.service";
+import * as authService from "../auth/auth.service";
 import { formatRupiah, parseIndonesianMoneyString, detectAssetSymbolFromText } from "../../utils/stockHelper";
 import { pool } from "../../config/database";
 
@@ -72,12 +73,16 @@ export const processUserMessage = async (
       });
     }
 
+    // Retrieve full financial identity profile for contextual intelligence
+    const userProfile = await authService.getUserFinancialProfile(userId);
+    const activeSystemPrompt = buildSystemPrompt(userProfile);
+
     // Call Gemini with tools
     const response = await ai.models.generateContent({
       model: ENV.GEMINI_MODEL,
       contents,
       config: {
-        systemInstruction: SYSTEM_PROMPT,
+        systemInstruction: activeSystemPrompt,
         tools: [{ functionDeclarations: geminiToolDeclarations }],
         temperature: 0.2,
       },
@@ -499,6 +504,47 @@ ${plan.summary_advice}`,
 • Petunjuk: ${taxResult.spt_reporting_guide}`,
       toolCallsExecuted: executedTools,
     };
+  }
+
+  // 2B. Check Jati Diri & Profil Finansial Intent
+  if (
+    lower.includes("jati diri") ||
+    lower.includes("profil saya") ||
+    lower.includes("profil finansial") ||
+    lower.includes("profil risiko") ||
+    lower.includes("gaji saya") ||
+    lower.includes("pemasukan saya") ||
+    lower.includes("pengeluaran saya") ||
+    lower.includes("surplus") ||
+    lower.includes("siapa saya")
+  ) {
+    const userProfile = await authService.getUserFinancialProfile(userId);
+    if (userProfile) {
+      return {
+        replyText: `Berikut adalah Jati Diri & Profil Finansial Investor Anda yang tersimpan di sistem Jarvis:
+
+👤 Profil Investor Utama
+• Nama: ${userProfile.full_name} (@${userProfile.username})
+• Usia: ${userProfile.age} tahun (${userProfile.age < 35 ? "Fase Keemasan Akumulasi & Pertumbuhan Majemuk" : "Fase Konsolidasi"})
+• Profesi: ${userProfile.occupation}
+
+💵 Kondisi Arus Kas Bulanan
+• Pemasukan Bulanan: ${formatRupiah(userProfile.monthly_income)}
+• Pengeluaran Pokok: ${formatRupiah(userProfile.monthly_expenses)}
+• Surplus Kas (Kapasitas Investasi DCA): ${formatRupiah(userProfile.monthly_surplus)} per bulan
+• Cadangan Dana Darurat: ${userProfile.emergency_fund_months} bulan pengeluaran
+
+🎯 Strategi & Sasaran Jangka Panjang
+• Toleransi Risiko: ${userProfile.risk_profile.toUpperCase()}
+• Visi Finansial: ${userProfile.investment_goals}
+• Horizon Waktu: ${userProfile.time_horizon_years} tahun ke depan
+• Gaya Alokasi: ${userProfile.strategy_preference}
+
+💡 Catatan Analisa AI Jarvis:
+Dengan usia muda ${userProfile.age} tahun dan surplus kas bulanan ${formatRupiah(userProfile.monthly_surplus)}, Anda memiliki daya ungkit *compound interest* yang sangat kuat. Setiap ada alokasi modal baru (seperti injeksi 2 juta rupiah), AI Jarvis akan selalu memperhitungkan agar portofolio tumbuh optimal tanpa mengganggu bantalan dana darurat Anda.`,
+        toolCallsExecuted: [],
+      };
+    }
   }
 
   // 3. Check BUY Intent or Historical Portfolio State

@@ -7,9 +7,11 @@ import marketRoutes from "../modules/market-data/market.routes";
 import watchlistRoutes from "../modules/watchlist-alert/alert.routes";
 import geminiRoutes from "../modules/gemini/gemini.routes";
 import telegramRoutes from "../modules/telegram/telegram.routes";
+import authRoutes from "../modules/auth/auth.routes";
 
 const router = Router();
 
+router.use("/auth", authRoutes);
 router.use("/dashboard", dashboardRoutes);
 router.use("/users", userRoutes);
 router.use("/portfolio", portfolioRoutes);

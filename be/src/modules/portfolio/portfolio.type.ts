@@ -46,6 +46,7 @@ export interface PortfolioSummary {
   cash_balance: number;
   total_invested: number;
   total_market_value: number;
+  total_value?: number;
   total_net_worth: number;
   total_floating_pnl: number;
   total_floating_pnl_percent: number;
