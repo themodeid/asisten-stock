@@ -203,10 +203,10 @@ export default function PortfolioChartCard({
 
       {/* 2. Big Live Amount & Profit/Loss Subtitle */}
       <div className="space-y-1">
-        <div className="text-3xl sm:text-4xl font-black tracking-tight text-white">
+        <div className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white break-words">
           {formatIDR(displayValue)}
         </div>
-        <div className="flex items-center gap-1.5 text-xs font-semibold">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
           <span className={`flex items-center gap-0.5 font-bold ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
             {isPositive ? (
               <ArrowUpRight className="w-3.5 h-3.5" />
@@ -226,11 +226,28 @@ export default function PortfolioChartCard({
         <svg
           ref={svgRef}
           viewBox="0 0 620 220"
-          className="w-full h-48 sm:h-56 overflow-visible cursor-crosshair"
+          className="w-full h-44 sm:h-52 md:h-56 overflow-visible cursor-crosshair touch-pan-y"
+          style={{ touchAction: "manipulation" }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
+          onTouchStart={(e) => {
+            if (e.touches[0] && svgRef.current && renderedPoints.length > 0) {
+              const rect = svgRef.current.getBoundingClientRect();
+              const mouseX = ((e.touches[0].clientX - rect.left) / rect.width) * 620;
+              let closest = renderedPoints[0];
+              let minDist = Math.abs(renderedPoints[0]?.x - mouseX);
+              for (let i = 1; i < renderedPoints.length; i++) {
+                const dist = Math.abs(renderedPoints[i].x - mouseX);
+                if (dist < minDist) {
+                  minDist = dist;
+                  closest = renderedPoints[i];
+                }
+              }
+              if (closest) setHoveredPoint(closest.point);
+            }
+          }}
           onTouchMove={(e) => {
-            if (e.touches[0] && svgRef.current) {
+            if (e.touches[0] && svgRef.current && renderedPoints.length > 0) {
               const rect = svgRef.current.getBoundingClientRect();
               const mouseX = ((e.touches[0].clientX - rect.left) / rect.width) * 620;
               let closest = renderedPoints[0];

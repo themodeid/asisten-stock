@@ -358,7 +358,7 @@ export default function PortfolioPage() {
     <div className="flex-1 flex flex-col">
       <Header title="Pusat Portofolio & Wealth Management" />
 
-      <main className="p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto">
+      <main className="p-3.5 sm:p-5 md:p-8 space-y-5 sm:space-y-6 max-w-7xl w-full mx-auto">
         {/* Top Header Controls */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>

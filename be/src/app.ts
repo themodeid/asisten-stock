@@ -25,7 +25,16 @@ const allowedOrigins = ENV.CORS_ORIGIN
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        allowedOrigins.includes("*") ||
+        origin.includes("localhost") ||
+        origin.includes("127.0.0.1") ||
+        origin.startsWith("http://192.168.") ||
+        origin.startsWith("http://10.") ||
+        origin.startsWith("http://172.")
+      ) {
         callback(null, true);
       } else {
         callback(new Error(`Blocked by CORS: ${origin} is not allowed`));
@@ -126,10 +135,11 @@ async function startServer(): Promise<void> {
     initScheduler();
 
     // 5. START HTTP SERVER
-    app.listen(ENV.PORT, () => {
+    app.listen(ENV.PORT, "0.0.0.0", () => {
       console.log("===================================");
       console.log("🚀 Jarvis Backend is up and running!");
       console.log(`🌐 Base API URL : http://localhost:${ENV.PORT}/api`);
+      console.log(`📡 LAN API URL  : http://192.168.1.2:${ENV.PORT}/api`);
       console.log(`🕒 System Time  : ${new Date().toLocaleString()}`);
       console.log("===================================");
     });
