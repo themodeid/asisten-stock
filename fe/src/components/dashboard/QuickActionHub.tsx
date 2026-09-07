@@ -63,7 +63,7 @@ const actions: QuickActionItem[] = [
     bgGradient: "from-indigo-500/20 to-indigo-700/5 border-indigo-500/30",
   },
   {
-    name: "Tanya Jarvis AI",
+    name: "Tanya Asisten+Stock",
     desc: "Konsultasi Finansial",
     href: "/playground",
     icon: Bot,
@@ -77,12 +77,12 @@ export default function QuickActionHub() {
     <div className="space-y-2.5">
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-300">
+          <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
             Aksi Cepat Portofolio
           </h3>
         </div>
-        <span className="text-[11px] text-zinc-500">Pintasan Fitur Unggulan</span>
+        <span className="text-[11px] text-zinc-500 dark:text-zinc-400">Pintasan Fitur Unggulan</span>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
@@ -92,21 +92,21 @@ export default function QuickActionHub() {
             <Link
               key={act.name}
               href={act.href}
-              className="group p-3 rounded-2xl bg-zinc-900/70 hover:bg-zinc-850/90 border border-white/[0.06] hover:border-white/[0.15] transition-all duration-200 shadow-sm flex flex-col justify-between active:scale-[0.98] glass-card-hover"
+              className="group p-3.5 rounded-2xl bg-white/90 dark:bg-zinc-900/70 hover:bg-zinc-50 dark:hover:bg-zinc-850/90 border border-zinc-200/80 dark:border-white/[0.06] hover:border-zinc-300 dark:hover:border-white/[0.15] transition-all duration-200 shadow-sm flex flex-col justify-between active:scale-[0.98] glass-card-hover"
             >
-              <div className="flex items-start justify-between mb-2">
+              <div className="flex items-start justify-between mb-2.5">
                 <div
                   className={`w-9 h-9 rounded-xl bg-gradient-to-br ${act.bgGradient} border flex items-center justify-center ${act.color} transition-transform group-hover:scale-110`}
                 >
                   <Icon className="w-4 h-4" />
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-300 group-hover:translate-x-0.5 transition-all opacity-0 group-hover:opacity-100" />
+                <ArrowRight className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-600 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 group-hover:translate-x-0.5 transition-all opacity-0 group-hover:opacity-100" />
               </div>
               <div>
-                <p className="text-xs font-bold text-zinc-100 group-hover:text-white transition-colors leading-snug">
+                <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-600 dark:group-hover:text-white transition-colors leading-snug">
                   {act.name}
                 </p>
-                <p className="text-[10px] text-zinc-400 mt-0.5 leading-tight line-clamp-1">
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 leading-tight line-clamp-1">
                   {act.desc}
                 </p>
               </div>

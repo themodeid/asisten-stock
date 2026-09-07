@@ -62,7 +62,7 @@ export default function AppLayout({
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100">
+    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground transition-colors duration-200">
       {/* Sidebar (handles both desktop fixed sidebar & mobile slide-over drawer) */}
       <Sidebar
         isOpen={isMobileMenuOpen}

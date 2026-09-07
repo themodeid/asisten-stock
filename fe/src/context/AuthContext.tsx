@@ -36,8 +36,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const TOKEN_KEY = "jarvis_auth_token";
-const USER_KEY = "jarvis_auth_user";
+const TOKEN_KEY = "asisten_stock_auth_token";
+const USER_KEY = "asisten_stock_auth_user";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);

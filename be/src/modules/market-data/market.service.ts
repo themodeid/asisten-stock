@@ -2,6 +2,7 @@ import yahooFinance from "yahoo-finance2";
 import { formatTicker } from "../../utils/stockHelper";
 import { StockQuote, StockFundamentalAnalysis } from "./market.type";
 import { cache } from "../../utils/cacheManager";
+import { AppError } from "../../utils/appError";
 
 const CACHE_TTL_SECONDS = 60; // 1 minute cache
 
@@ -440,6 +441,127 @@ const FALLBACK_DATABASE: Record<string, Partial<StockQuote>> = {
     valuationStatus: "Fair Value",
     valuationSummary: "Stablecoin terpatok $1.00 dengan cadangan US Treasury Bills.",
   },
+  "GOOGL": {
+    name: "Alphabet Inc. (Google Class A)",
+    currency: "USD",
+    regularMarketPrice: 172.5,
+    regularMarketChange: 1.8,
+    regularMarketChangePercent: 1.05,
+    regularMarketDayHigh: 174.2,
+    regularMarketDayLow: 171.1,
+    regularMarketVolume: 24500000,
+    marketCap: 2150000000000,
+    trailingPE: 24.8,
+    forwardPE: 20.5,
+    priceToBook: 6.8,
+    dividendYield: 0.45,
+    returnOnEquity: 31.5,
+    eps: 6.95,
+    fiftyTwoWeekHigh: 191.75,
+    fiftyTwoWeekLow: 120.21,
+    valuationStatus: "Fair Value",
+    valuationSummary: "Dominasi monetisasi pencarian global (Google Search & YouTube) dan akselerasi Google Cloud berkat Gemini AI. Valuasi PE 24.8x sangat proporsional dengan proyeksi pertumbuhan EPS.",
+    news: [
+      { title: "Google Cloud Catat Lonjakan Permintaan Infrastruktur AI Model Gemini", source: "Bloomberg", time: "2 jam yang lalu", sentiment: "positive" },
+      { title: "Ekosistem Android & Integrasi AI Generatif Pertahankan Daya Saing Iklan Digital", source: "Reuters", time: "5 jam yang lalu", sentiment: "positive" }
+    ]
+  },
+  "GOOG": {
+    name: "Alphabet Inc. (Google Class C)",
+    currency: "USD",
+    regularMarketPrice: 174.0,
+    regularMarketChange: 1.7,
+    regularMarketChangePercent: 0.99,
+    regularMarketDayHigh: 175.5,
+    regularMarketDayLow: 172.5,
+    regularMarketVolume: 18000000,
+    marketCap: 2150000000000,
+    trailingPE: 24.8,
+    forwardPE: 20.5,
+    priceToBook: 6.8,
+    dividendYield: 0.45,
+    returnOnEquity: 31.5,
+    eps: 6.95,
+    fiftyTwoWeekHigh: 191.75,
+    fiftyTwoWeekLow: 120.21,
+    valuationStatus: "Fair Value",
+    valuationSummary: "Saham non-voting Alphabet Class C. Metrik keuangan identik dengan GOOGL dengan likuiditas tinggi.",
+    news: [
+      { title: "Inovasi DeepMind dan Gemini API Mempercepat Solusi Enterprise AI Google", source: "CNBC", time: "4 jam yang lalu", sentiment: "positive" }
+    ]
+  },
+  "MSFT": {
+    name: "Microsoft Corporation",
+    currency: "USD",
+    regularMarketPrice: 420.0,
+    regularMarketChange: 2.5,
+    regularMarketChangePercent: 0.6,
+    regularMarketDayHigh: 423.5,
+    regularMarketDayLow: 418.0,
+    regularMarketVolume: 21000000,
+    marketCap: 3120000000000,
+    trailingPE: 34.2,
+    forwardPE: 28.5,
+    priceToBook: 12.0,
+    dividendYield: 0.75,
+    returnOnEquity: 38.0,
+    eps: 11.80,
+    fiftyTwoWeekHigh: 468.35,
+    fiftyTwoWeekLow: 309.45,
+    valuationStatus: "Growth Premium",
+    valuationSummary: "Pemimpin software enterprise B2B dan Azure Cloud dengan monetisasi Copilot AI berskala global.",
+    news: [
+      { title: "Azure Cloud Bukukan Pertumbuhan Kuat Didukung Kemitraan OpenAI", source: "Wall Street Journal", time: "3 jam yang lalu", sentiment: "positive" }
+    ]
+  },
+  "AMZN": {
+    name: "Amazon.com, Inc.",
+    currency: "USD",
+    regularMarketPrice: 185.0,
+    regularMarketChange: 1.2,
+    regularMarketChangePercent: 0.65,
+    regularMarketDayHigh: 187.0,
+    regularMarketDayLow: 183.5,
+    regularMarketVolume: 35000000,
+    marketCap: 1920000000000,
+    trailingPE: 41.5,
+    forwardPE: 31.0,
+    priceToBook: 8.2,
+    dividendYield: 0.0,
+    returnOnEquity: 22.0,
+    eps: 4.45,
+    fiftyTwoWeekHigh: 201.20,
+    fiftyTwoWeekLow: 118.35,
+    valuationStatus: "Growth Premium",
+    valuationSummary: "Profit margin AWS Cloud terus ekspansif didukung efisiensi operasional jaringan logistik ritel.",
+    news: [
+      { title: "Efisiensi Logistik dan Periklanan Ritel Amazon Lampaui Ekspektasi Kuartal", source: "Barron's", time: "5 jam yang lalu", sentiment: "positive" }
+    ]
+  },
+  "META": {
+    name: "Meta Platforms, Inc.",
+    currency: "USD",
+    regularMarketPrice: 510.0,
+    regularMarketChange: 4.8,
+    regularMarketChangePercent: 0.95,
+    regularMarketDayHigh: 515.0,
+    regularMarketDayLow: 504.0,
+    regularMarketVolume: 14000000,
+    marketCap: 1290000000000,
+    trailingPE: 27.5,
+    forwardPE: 23.0,
+    priceToBook: 8.5,
+    dividendYield: 0.4,
+    returnOnEquity: 35.0,
+    eps: 18.25,
+    fiftyTwoWeekHigh: 542.80,
+    fiftyTwoWeekLow: 279.40,
+    valuationStatus: "Fair Value",
+    valuationSummary: "Monetisasi Reels & AI recommendation engine di Instagram dan WhatsApp memacu margin laba operasional rekor.",
+    news: [
+      { title: "Meta AI Catat 500 Juta Pengguna Aktif Bulanan Lintas Aplikasi Keluarga", source: "Bloomberg", time: "6 jam yang lalu", sentiment: "positive" }
+    ]
+  },
 };
 
 async function fetchLiveCryptoQuote(symbol: string): Promise<StockQuote | null> {
@@ -530,6 +652,42 @@ async function fetchLiveCryptoQuote(symbol: string): Promise<StockQuote | null> 
   return null;
 }
 
+async function fetchLiveMarketChart(symbol: string): Promise<Partial<StockQuote> | null> {
+  try {
+    const res = await fetch(`https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      },
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return null;
+    const json: any = await res.json();
+    const meta = json?.chart?.result?.[0]?.meta;
+    if (!meta || !meta.regularMarketPrice) return null;
+
+    const currentPrice = meta.regularMarketPrice;
+    const prevClose = meta.chartPreviousClose || currentPrice;
+    const change = currentPrice - prevClose;
+    const changePercent = prevClose > 0 ? (change / prevClose) * 100 : 0;
+
+    return {
+      ticker: symbol,
+      name: meta.shortName || meta.symbol || symbol,
+      currency: meta.currency || "USD",
+      regularMarketPrice: Number(currentPrice.toFixed(2)),
+      regularMarketChange: Number(change.toFixed(2)),
+      regularMarketChangePercent: Number(changePercent.toFixed(2)),
+      regularMarketDayHigh: meta.regularMarketDayHigh || currentPrice,
+      regularMarketDayLow: meta.regularMarketDayLow || currentPrice,
+      regularMarketVolume: meta.regularMarketVolume || 0,
+      fiftyTwoWeekHigh: meta.fiftyTwoWeekHigh || currentPrice * 1.2,
+      fiftyTwoWeekLow: meta.fiftyTwoWeekLow || currentPrice * 0.8,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export const getStockQuote = async (
   rawTicker: string,
   assetType?: string
@@ -564,83 +722,52 @@ export const getStockQuote = async (
     }
   }
 
+  // 2. Fetch live quote via high-reliability query2 Yahoo Finance chart endpoint
+  let liveQuote: Partial<StockQuote> | null = null;
   try {
-    const quote: any = await yahooFinance.quote(ticker);
-    const fallback = FALLBACK_DATABASE[ticker] || {};
-    if (quote && quote.regularMarketPrice) {
-      const data: StockQuote = {
-        ticker,
-        name: quote.longName || quote.shortName || fallback.name || ticker,
-        currency: quote.currency || fallback.currency || "IDR",
-        regularMarketPrice: quote.regularMarketPrice,
-        regularMarketChange: quote.regularMarketChange || 0,
-        regularMarketChangePercent: quote.regularMarketChangePercent || 0,
-        regularMarketDayHigh: quote.regularMarketDayHigh || quote.regularMarketPrice,
-        regularMarketDayLow: quote.regularMarketDayLow || quote.regularMarketPrice,
-        regularMarketVolume: quote.regularMarketVolume || fallback.regularMarketVolume || 0,
-        marketCap: quote.marketCap || fallback.marketCap,
-        trailingPE: quote.trailingPE || fallback.trailingPE,
-        forwardPE: quote.forwardPE || fallback.forwardPE,
-        priceToBook: quote.priceToBook || fallback.priceToBook,
-        dividendYield: quote.dividendYield ? quote.dividendYield * 100 : fallback.dividendYield,
-        returnOnEquity: quote.returnOnEquity ? quote.returnOnEquity * 100 : fallback.returnOnEquity,
-        eps: quote.epsTrailingTwelveMonths || fallback.eps,
-        fiftyTwoWeekHigh: quote.fiftyTwoWeekHigh || fallback.fiftyTwoWeekHigh,
-        fiftyTwoWeekLow: quote.fiftyTwoWeekLow || fallback.fiftyTwoWeekLow,
-        valuationStatus: fallback.valuationStatus || (quote.trailingPE && quote.trailingPE < 15 ? "Undervalued" : "Fair Value"),
-        valuationSummary: fallback.valuationSummary,
-        news: fallback.news,
-        updatedAt: new Date(),
-      };
-
-      await cache.set(`quote:${ticker}`, data, CACHE_TTL_SECONDS);
-      return data;
-    }
+    liveQuote = await fetchLiveMarketChart(ticker);
   } catch (err) {
-    // Silently fall back to cached or predefined market database
+    //
   }
 
-  // Use fallback if available
-  const fallback = FALLBACK_DATABASE[ticker] || {
-    name: ticker.replace(".JK", ""),
-    currency: "IDR",
-    regularMarketPrice: 1000,
-    regularMarketChange: 0,
-    regularMarketChangePercent: 0,
-    regularMarketDayHigh: 1020,
-    regularMarketDayLow: 980,
-    regularMarketVolume: 1000000,
-    trailingPE: 15.0,
-    forwardPE: 14.0,
-    priceToBook: 1.5,
-    dividendYield: 4.0,
-    returnOnEquity: 12.0,
-    valuationStatus: "Fair Value" as const,
-    valuationSummary: "Valuasi berada di rata-rata industri.",
-  };
+  // 3. Check fallback database
+  const fallback = FALLBACK_DATABASE[ticker];
+
+  // If both live quote and fallback database failed, check whether ticker exists at all
+  if (!liveQuote && !fallback) {
+    throw new AppError(
+      `Simbol atau ticker "${rawTicker}" tidak ditemukan di bursa saham IDX, US Market, Kripto, maupun Komoditas. Pastikan kode ticker sudah benar (contoh: BBCA, BBRI, GOOGL, AAPL, BTC, VT).`,
+      404
+    );
+  }
+
+  const fallbackData = fallback || {};
+  const currentPrice = liveQuote?.regularMarketPrice || fallbackData.regularMarketPrice || 0;
+  const change = liveQuote?.regularMarketChange ?? fallbackData.regularMarketChange ?? 0;
+  const changePercent = liveQuote?.regularMarketChangePercent ?? fallbackData.regularMarketChangePercent ?? 0;
 
   const data: StockQuote = {
     ticker,
-    name: fallback.name || ticker,
-    currency: fallback.currency || "IDR",
-    regularMarketPrice: fallback.regularMarketPrice || 1000,
-    regularMarketChange: fallback.regularMarketChange || 0,
-    regularMarketChangePercent: fallback.regularMarketChangePercent || 0,
-    regularMarketDayHigh: fallback.regularMarketDayHigh || fallback.regularMarketPrice || 1000,
-    regularMarketDayLow: fallback.regularMarketDayLow || fallback.regularMarketPrice || 1000,
-    regularMarketVolume: fallback.regularMarketVolume || 0,
-    marketCap: fallback.marketCap,
-    trailingPE: fallback.trailingPE,
-    forwardPE: fallback.forwardPE,
-    priceToBook: fallback.priceToBook,
-    dividendYield: fallback.dividendYield,
-    returnOnEquity: fallback.returnOnEquity,
-    eps: fallback.eps,
-    fiftyTwoWeekHigh: fallback.fiftyTwoWeekHigh,
-    fiftyTwoWeekLow: fallback.fiftyTwoWeekLow,
-    valuationStatus: fallback.valuationStatus,
-    valuationSummary: fallback.valuationSummary,
-    news: fallback.news,
+    name: fallbackData.name || liveQuote?.name || ticker,
+    currency: liveQuote?.currency || fallbackData.currency || (ticker.includes(".JK") ? "IDR" : "USD"),
+    regularMarketPrice: currentPrice,
+    regularMarketChange: change,
+    regularMarketChangePercent: changePercent,
+    regularMarketDayHigh: liveQuote?.regularMarketDayHigh || fallbackData.regularMarketDayHigh || currentPrice,
+    regularMarketDayLow: liveQuote?.regularMarketDayLow || fallbackData.regularMarketDayLow || currentPrice,
+    regularMarketVolume: liveQuote?.regularMarketVolume || fallbackData.regularMarketVolume || 0,
+    marketCap: fallbackData.marketCap,
+    trailingPE: fallbackData.trailingPE,
+    forwardPE: fallbackData.forwardPE,
+    priceToBook: fallbackData.priceToBook,
+    dividendYield: fallbackData.dividendYield,
+    returnOnEquity: fallbackData.returnOnEquity,
+    eps: fallbackData.eps,
+    fiftyTwoWeekHigh: liveQuote?.fiftyTwoWeekHigh || fallbackData.fiftyTwoWeekHigh,
+    fiftyTwoWeekLow: liveQuote?.fiftyTwoWeekLow || fallbackData.fiftyTwoWeekLow,
+    valuationStatus: fallbackData.valuationStatus || "Fair Value",
+    valuationSummary: fallbackData.valuationSummary || "Valuasi pasar terefleksi dari kapitalisasi dan likuiditas perdagangan aktif di bursa.",
+    news: fallbackData.news,
     updatedAt: new Date(),
   };
 

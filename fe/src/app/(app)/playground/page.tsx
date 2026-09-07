@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/layout/Header";
 import Badge from "@/components/ui/Badge";
 import { api } from "@/services/api";
@@ -17,7 +18,7 @@ interface Message {
 const DEFAULT_WELCOME: Message = {
   id: "welcome",
   role: "assistant",
-  text: "🤖 **Halo! Saya Jarvis Multi-Asset Assistant.**\n\nAnda dapat mencatat dan memantau berbagai aset:\n1. **Saham**: *\"Beli BBCA 5 juta\"* atau *\"Beli BBCA 10 lot di 9850\"*\n2. **Kripto (Crypto)**: *\"Beli BTC 1.100.000 rupiah\"* atau *\"Beli BTC 0.05 di 64500 USD\"*\n3. **Emas / Logam Mulia**: *\"Beli Emas Antam 2 juta\"*\n4. **Obligasi / SBN**: *\"Beli ORI024 10000000\"*\n5. **Cek Portofolio**: *\"Cek portofolio & alokasi aset saya\"*\n\nAda yang ingin dicatat atau dicek saat ini?",
+  text: "🤖 **Halo! Saya Asisten+Stock Multi-Asset Assistant.**\n\nAnda dapat mencatat dan memantau berbagai aset:\n1. **Saham**: *\"Beli BBCA 5 juta\"* atau *\"Beli BBCA 10 lot di 9850\"*\n2. **Kripto (Crypto)**: *\"Beli BTC 1.100.000 rupiah\"* atau *\"Beli BTC 0.05 di 64500 USD\"*\n3. **Emas / Logam Mulia**: *\"Beli Emas Antam 2 juta\"*\n4. **Obligasi / SBN**: *\"Beli ORI024 10000000\"*\n5. **Cek Portofolio**: *\"Cek portofolio & alokasi aset saya\"*\n\nAda yang ingin dicatat atau dicek saat ini?",
   timestamp: new Date("2026-01-01T00:00:00Z"),
 };
 
@@ -30,9 +31,10 @@ const SAMPLE_PROMPTS = [
   "Beli BBCA 5 juta",
 ];
 
-const LOCAL_STORAGE_KEY = "jarvis_chat_history_v2";
+const LOCAL_STORAGE_KEY = "asisten_stock_chat_history_v2";
 
 export default function PlaygroundPage() {
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [messages, setMessages] = useState<Message[]>([DEFAULT_WELCOME]);
   const [input, setInput] = useState("");
@@ -74,7 +76,7 @@ export default function PlaygroundPage() {
     // Sync from database
     const syncBackendLogs = async () => {
       try {
-        const res = await api.get("/gemini/logs/1");
+        const res = await api.get(`/gemini/logs/${user?.id || 1}`);
         const logs = res.data?.data;
         if (Array.isArray(logs) && logs.length > 0) {
           const mapped: Message[] = logs.map((log: any) => {
@@ -119,7 +121,7 @@ export default function PlaygroundPage() {
     if (confirm("Apakah Anda yakin ingin membersihkan riwayat chat?")) {
       setClearing(true);
       try {
-        await api.delete("/gemini/logs/1");
+        await api.delete(`/gemini/logs/${user?.id || 1}`);
       } catch (err) {
         console.warn("Failed to delete remote logs", err);
       }
@@ -147,7 +149,7 @@ export default function PlaygroundPage() {
 
     const formData = new FormData();
     formData.append("image", file);
-    formData.append("user_id", "1");
+    formData.append("user_id", String(user?.id || 1));
 
     try {
       const res = await api.post("/gemini/ocr-transaction", formData, {
@@ -206,7 +208,7 @@ export default function PlaygroundPage() {
 
     try {
       const res = await api.post("/gemini/chat", {
-        user_id: 1,
+        user_id: user?.id || 1,
         message: text.trim(),
       });
 
@@ -244,7 +246,7 @@ export default function PlaygroundPage() {
           </div>
           <div>
             <h1 className="text-base font-semibold text-zinc-100 flex items-center gap-2">
-              Jarvis Multi-Asset Assistant
+              Asisten+Stock Multi-Asset Assistant
               <Badge variant="success" size="sm">Online</Badge>
             </h1>
             <p className="text-xs text-zinc-400">
@@ -390,7 +392,7 @@ export default function PlaygroundPage() {
               </div>
               <div className="bg-zinc-850 border border-zinc-800 rounded-lg px-3.5 py-2 text-xs text-zinc-400 flex items-center gap-2">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin text-zinc-300" />
-                Jarvis AI sedang memproses dan mengeksekusi tools...
+                Asisten+Stock AI sedang memproses dan mengeksekusi tools...
               </div>
             </div>
           )}

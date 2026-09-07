@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useFxRate } from "@/services/fxRate";
 import Header from "@/components/layout/Header";
 import Badge from "@/components/ui/Badge";
 import { api, formatIDR } from "@/services/api";
@@ -23,6 +25,8 @@ import {
   Check,
   Newspaper,
   Scale,
+  AlertCircle,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { AssetType } from "@/types";
@@ -63,17 +67,31 @@ const POPULAR_CATEGORIES: AssetCategory[] = [
     ],
   },
   {
+    category: "Saham US (Tech)",
+    items: [
+      { ticker: "GOOGL", label: "GOOGL (Google)", type: "STOCK" },
+      { ticker: "AAPL", label: "AAPL (Apple)", type: "STOCK" },
+      { ticker: "NVDA", label: "NVDA (Nvidia)", type: "STOCK" },
+      { ticker: "MSFT", label: "MSFT (Microsoft)", type: "STOCK" },
+      { ticker: "TSLA", label: "TSLA (Tesla)", type: "STOCK" },
+    ],
+  },
+  {
     category: "Logam Mulia",
     items: [{ ticker: "EMAS", label: "EMAS (Antam/UBS)", type: "GOLD" }],
   },
 ];
 
 export default function AnalyticsPage() {
+  const { user } = useAuth();
+  const { rate: fxRate } = useFxRate();
   const [ticker, setTicker] = useState("VT");
   const [activeCategory, setActiveCategory] = useState<string>("ETF Global");
   const [quote, setQuote] = useState<any>(null);
   const [aiReport, setAiReport] = useState<string | null>(null);
+  const [tickerNews, setTickerNews] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [copiedReport, setCopiedReport] = useState(false);
 
@@ -88,13 +106,30 @@ export default function AnalyticsPage() {
   const fetchQuote = async (searchTicker: string) => {
     try {
       setLoading(true);
+      setErrorMsg(null);
       setAiReport(null);
-      const res = await api.get(`/market/quote/${searchTicker}`);
+      const cleanTicker = searchTicker.trim();
+      const res = await api.get(`/market/quote/${encodeURIComponent(cleanTicker)}`);
       if (res.data?.data) {
         setQuote(res.data.data);
       }
-    } catch (err) {
+      // Fetch related live news for this ticker
+      try {
+        const newsRes = await api.get(`/news/ticker/${encodeURIComponent(cleanTicker)}`);
+        if (newsRes.data?.data) {
+          setTickerNews(newsRes.data.data);
+        } else {
+          setTickerNews([]);
+        }
+      } catch {
+        setTickerNews([]);
+      }
+    } catch (err: any) {
       console.warn("Failed fetching quote:", err);
+      setQuote(null);
+      setTickerNews([]);
+      const msg = err.response?.data?.message || `Simbol "${searchTicker}" tidak ditemukan di bursa. Pastikan kode ticker sudah benar (contoh: BBCA, BBRI, GOOGL, AAPL, BTC, VT).`;
+      setErrorMsg(msg);
     } finally {
       setLoading(false);
     }
@@ -115,7 +150,7 @@ export default function AnalyticsPage() {
     try {
       setAnalyzing(true);
       const res = await api.post("/gemini/chat", {
-        user_id: 1,
+        user_id: user?.id || 1,
         message: `Tolong berikan analisis riset fundamental, laporan keuangan, dan valuasi komprehensif tingkat analis profesional untuk aset ${quote.ticker} (${quote.name}).
 Sertakan struktur berikut secara rapi dan profesional:
 1. Ringkasan Profil & Posisi Pasar
@@ -164,16 +199,32 @@ Sertakan struktur berikut secara rapi dan profesional:
     if (t.includes("ETH")) return "BITSTAMP:ETHUSD";
     if (t.includes("SOL")) return "BITSTAMP:SOLUSD";
     if (t.includes("USDT")) return "COINBASE:USDTUSD";
+    if (t.includes("DOGE")) return "BINANCE:DOGEUSDT";
     if (t === "VT") return "AMEX:VT";
     if (t === "VOO") return "AMEX:VOO";
     if (t === "SPY") return "AMEX:SPY";
     if (t === "QQQ") return "NASDAQ:QQQ";
+    if (t === "VTI") return "AMEX:VTI";
+    if (t === "VXUS") return "NASDAQ:VXUS";
+    if (t === "GOOGL" || t === "GOOG" || t === "GOOGLE" || t === "ALPHABET") return "NASDAQ:GOOGL";
+    if (t === "AAPL" || t === "APPLE") return "NASDAQ:AAPL";
+    if (t === "TSLA" || t === "TESLA") return "NASDAQ:TSLA";
+    if (t === "NVDA" || t === "NVIDIA") return "NASDAQ:NVDA";
+    if (t === "MSFT" || t === "MICROSOFT") return "NASDAQ:MSFT";
+    if (t === "AMZN" || t === "AMAZON") return "NASDAQ:AMZN";
+    if (t === "META" || t === "FACEBOOK") return "NASDAQ:META";
+    if (t === "NFLX" || t === "NETFLIX") return "NASDAQ:NFLX";
     if (t.includes("BBCA")) return "IDX:BBCA";
     if (t.includes("BBRI")) return "IDX:BBRI";
     if (t.includes("BMRI")) return "IDX:BMRI";
     if (t.includes("TLKM")) return "IDX:TLKM";
     if (t.includes("ASII")) return "IDX:ASII";
     if (t.includes("GOTO")) return "IDX:GOTO";
+    if (t.includes("BBNI")) return "IDX:BBNI";
+    if (t.includes("ANTM")) return "IDX:ANTM";
+    if (t.includes("INDF")) return "IDX:INDF";
+    if (t.includes("ICBP")) return "IDX:ICBP";
+    if (t.includes("UNVR")) return "IDX:UNVR";
     if (t.includes("EMAS") || t.includes("GOLD")) return "TVC:GOLD";
     if (t.includes(".JK")) return `IDX:${t.replace(".JK", "")}`;
     return `NASDAQ:${t}`;
@@ -194,7 +245,7 @@ Sertakan struktur berikut secara rapi dan profesional:
 
   const assetType = quote ? getAssetType(quote) : "STOCK";
   const isUSD = quote?.currency === "USD";
-  const rateToIDR = 15800;
+  const rateToIDR = fxRate;
   const tvSymbol = quote ? getTradingViewSymbol(quote.ticker) : "BITSTAMP:BTCUSD";
 
   // Calculate 52-week position percentage
@@ -268,6 +319,38 @@ Sertakan struktur berikut secara rapi dan profesional:
             </div>
           </div>
         </div>
+
+        {/* Error Not Found Alert Banner */}
+        {!loading && errorMsg && (
+          <div className="bg-rose-950/30 border border-rose-800/60 rounded-2xl p-6 shadow-lg text-center space-y-3 animate-fadeIn">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <div className="max-w-md mx-auto">
+              <h3 className="text-base font-bold text-zinc-100">
+                Simbol Tidak Ditemukan di Bursa
+              </h3>
+              <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                {errorMsg}
+              </p>
+            </div>
+            <div className="pt-2 text-xs text-zinc-500 flex flex-wrap items-center justify-center gap-2">
+              <span className="font-semibold text-zinc-400">Pilihan populer:</span>
+              {["BBCA", "BBRI", "GOOGL", "AAPL", "NVDA", "BTC", "VT"].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => {
+                    setTicker(s);
+                    fetchQuote(s);
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-zinc-200 font-mono text-[11px] font-bold border border-zinc-700/80 transition"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Loading Indicator */}
         {loading && (
@@ -648,7 +731,7 @@ Sertakan struktur berikut secara rapi dan profesional:
                 <div className="flex items-center justify-between gap-2 text-zinc-200 font-semibold text-xs mb-3 pb-3 border-b border-zinc-800">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-zinc-300" />
-                    <span>Laporan Riset & Valuasi Jarvis AI Analyst</span>
+                    <span>Laporan Riset & Valuasi Asisten+Stock AI Analyst</span>
                   </div>
                   <button
                     type="button"
@@ -675,6 +758,65 @@ Sertakan struktur berikut secara rapi dan profesional:
                 </div>
                 <div className="text-zinc-300 text-xs leading-relaxed whitespace-pre-wrap font-sans">
                   {aiReport}
+                </div>
+              </div>
+            )}
+
+            {/* Related Real-Time News & Market Catalysts with Safe Direct Links */}
+            {tickerNews && tickerNews.length > 0 && (
+              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between gap-2 border-b border-zinc-800/80 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Newspaper className="w-4 h-4 text-emerald-400" />
+                    <h3 className="text-xs font-bold text-zinc-100 uppercase tracking-wider">
+                      Berita Terkini & Katalis Pasar: {quote.ticker}
+                    </h3>
+                  </div>
+                  <span className="text-[11px] text-zinc-400 font-medium">
+                    Sumber Tepercaya • Tautan Langsung
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {tickerNews.map((newsItem) => (
+                    <a
+                      key={newsItem.id}
+                      href={newsItem.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group p-3.5 rounded-lg bg-zinc-950/60 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/40 transition-all flex flex-col justify-between space-y-2"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-[10px] text-zinc-400">
+                          <span className="font-semibold text-emerald-400 bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-800/40">
+                            {newsItem.source}
+                          </span>
+                          <span>
+                            {new Date(newsItem.published_at).toLocaleDateString("id-ID", {
+                              day: "numeric",
+                              month: "short",
+                            })}
+                          </span>
+                        </div>
+                        <h4 className="text-xs font-bold text-zinc-200 group-hover:text-emerald-400 transition-colors line-clamp-2 leading-snug">
+                          {newsItem.title}
+                        </h4>
+                        <p className="text-[11px] text-zinc-400 line-clamp-2 leading-relaxed">
+                          {newsItem.summary}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-zinc-800/40 text-[10px]">
+                        <span className="text-zinc-500 font-medium">
+                          {newsItem.impact_summary || "Katalis sentimen pasar"}
+                        </span>
+                        <span className="inline-flex items-center gap-1 font-semibold text-emerald-400 group-hover:underline">
+                          <span>Baca Artikel</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </span>
+                      </div>
+                    </a>
+                  ))}
                 </div>
               </div>
             )}

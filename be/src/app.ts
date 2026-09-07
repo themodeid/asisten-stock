@@ -1,4 +1,5 @@
 import express from "express";
+import http from "http";
 import cors from "cors";
 import morgan from "morgan";
 import path from "path";
@@ -8,11 +9,17 @@ import { pool } from "./config/database";
 import { runMigrations } from "./database/migrationRunner";
 import routes from "./routes/index";
 import { errorHandler } from "./middlewares/errorHandler";
+import { sanitizeBody } from "./middlewares/sanitize";
 import { ENV } from "./config/env";
 import { initTelegramBot } from "./modules/telegram/telegram.bot";
 import { initScheduler } from "./modules/scheduler/scheduler.service";
+import { initSocketIO } from "./modules/websocket/socket.service";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
+import { logger } from "./config/logger";
 
 export const app = express();
+export const server = http.createServer(app);
 
 // ======================================================
 // 🛠️ MIDDLEWARES
@@ -63,8 +70,40 @@ const stockApiLimiter = rateLimit({
 });
 app.use("/api", stockApiLimiter);
 
+// Per-user rate limiter for Gemini AI endpoints (expensive API calls)
+const geminiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // 30 AI requests per 15 minutes per user
+  keyGenerator: (req) => (req as any).user?.userId?.toString() || req.ip || "unknown",
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: "error",
+    statusCode: 429,
+    message: "Kuota AI tercapai. Maksimal 30 request per 15 menit. Silakan tunggu sebentar.",
+  },
+});
+app.use("/api/gemini", geminiLimiter);
+
+// Brute-force protection for login endpoint
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 login attempts per 15 minutes per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: "error",
+    statusCode: 429,
+    message: "Terlalu banyak percobaan login. Silakan coba lagi dalam 15 menit.",
+  },
+});
+app.use("/api/auth/login", loginLimiter);
+
 app.use(express.urlencoded({ extended: true, limit: ENV.JSON_BODY_LIMIT }));
 app.use(express.json({ limit: ENV.JSON_BODY_LIMIT }));
+
+// Sanitize all request bodies (strip HTML tags)
+app.use(sanitizeBody);
 
 // Syntax Error Handler for Invalid JSON
 app.use(
@@ -89,10 +128,19 @@ app.use(
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "ok",
-    message: "Jarvis Stock Assistant Backend is healthy",
+    message: "Asisten+Stock Backend is healthy",
     timestamp: new Date().toISOString(),
     env: ENV.NODE_ENV,
   });
+});
+
+// ======================================================
+// 📖 SWAGGER API DOCUMENTATION
+// ======================================================
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get("/api/docs.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
 });
 
 // ======================================================
@@ -117,13 +165,12 @@ app.use(errorHandler);
 // 🚀 SERVER STARTUP
 // ======================================================
 async function startServer(): Promise<void> {
-  console.log("===================================");
-  console.log("🤖 Starting Jarvis Stock Backend Server...");
+  logger.info("🤖 Starting Asisten+Stock Backend Server...");
 
   try {
     // 1. TEST DATABASE CONNECTION
     await pool.query("SELECT 1;");
-    console.log("✅ PostgreSQL Database connected successfully");
+    logger.info("✅ PostgreSQL Database connected successfully");
 
     // 2. RUN AUTO-MIGRATIONS
     await runMigrations();
@@ -134,21 +181,21 @@ async function startServer(): Promise<void> {
     // 4. INITIALIZE SCHEDULER
     initScheduler();
 
-    // 5. START HTTP SERVER
-    app.listen(ENV.PORT, "0.0.0.0", () => {
-      console.log("===================================");
-      console.log("🚀 Jarvis Backend is up and running!");
-      console.log(`🌐 Base API URL : http://localhost:${ENV.PORT}/api`);
-      console.log(`📡 LAN API URL  : http://192.168.1.2:${ENV.PORT}/api`);
-      console.log(`🕒 System Time  : ${new Date().toLocaleString()}`);
-      console.log("===================================");
+    // 5. INITIALIZE WEBSOCKET (Socket.IO)
+    initSocketIO(server);
+
+    // 6. START HTTP SERVER (with Socket.IO attached)
+    server.listen(ENV.PORT, "0.0.0.0", () => {
+      logger.info({
+        port: ENV.PORT,
+        baseUrl: `http://localhost:${ENV.PORT}/api`,
+        docsUrl: `http://localhost:${ENV.PORT}/api/docs`,
+        websocket: `ws://localhost:${ENV.PORT}`,
+      }, "🚀 Asisten+Stock Backend is up and running!");
     });
   } catch (error) {
-    console.error("===================================");
-    console.error("❌ Server failed to start:", error);
-    console.error("===================================");
-    // Don't exit immediately in local dev mode if DB is not up yet
-    console.log("💡 Tip: Start PostgreSQL using 'npm run docker:db' or check your DATABASE_URL in .env");
+    logger.error({ err: error }, "❌ Server failed to start");
+    logger.info("💡 Tip: Start PostgreSQL using 'npm run docker:db' or check your DATABASE_URL in .env");
   }
 }
 

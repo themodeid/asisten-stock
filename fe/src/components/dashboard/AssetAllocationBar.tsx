@@ -57,24 +57,24 @@ export default function AssetAllocationBar({
   const safeTotal = totalValue > 0 ? totalValue : 1;
 
   return (
-    <div className="rounded-2xl bg-zinc-900/70 border border-white/[0.06] p-5 shadow-lg backdrop-blur-xl space-y-4 glass-card">
+    <div className="rounded-2xl bg-white/90 dark:bg-zinc-900/70 border border-zinc-200/80 dark:border-white/[0.06] p-5 shadow-sm dark:shadow-lg backdrop-blur-xl space-y-4 glass-card">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-600/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-600/10 border border-indigo-500/30 flex items-center justify-center text-indigo-500 dark:text-indigo-400">
             <PieChart className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-zinc-100 tracking-tight">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
               Alokasi & Diversifikasi Aset
             </h3>
-            <p className="text-[11px] text-zinc-400">
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
               Sebaran kelas aset dalam portofolio Anda
             </p>
           </div>
         </div>
         <Link
           href="/portfolio"
-          className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition"
+          className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 flex items-center gap-1 transition"
         >
           Lihat Aset
           <ArrowUpRight className="w-3.5 h-3.5" />
@@ -82,7 +82,7 @@ export default function AssetAllocationBar({
       </div>
 
       {/* Segmented Multi-Color Progress Bar (Pluang Style) */}
-      <div className="w-full h-3 rounded-full bg-zinc-800 overflow-hidden flex p-0.5 gap-0.5">
+      <div className="w-full h-3 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/[0.04] overflow-hidden flex p-0.5 gap-0.5">
         {allocations.map((alloc) => {
           const cfg = colorMap[alloc.asset_type] || colorMap.STOCK;
           const widthPct = Math.max(2, alloc.percentage);
@@ -104,12 +104,12 @@ export default function AssetAllocationBar({
           return (
             <div
               key={alloc.asset_type}
-              className="p-2.5 rounded-xl bg-zinc-850/60 border border-white/[0.04] flex flex-col justify-between hover:bg-zinc-850/90 transition"
+              className="p-3 rounded-xl bg-zinc-100/90 dark:bg-zinc-850/80 border border-zinc-200/80 dark:border-white/[0.06] flex flex-col justify-between hover:bg-zinc-200/80 dark:hover:bg-zinc-800/90 transition shadow-sm"
             >
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-1.5">
                   <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
-                  <span className="text-xs font-semibold text-zinc-200">
+                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
                     {alloc.label}
                   </span>
                 </div>
@@ -117,10 +117,10 @@ export default function AssetAllocationBar({
                   {alloc.percentage.toFixed(1)}%
                 </span>
               </div>
-              <p className="text-xs font-mono font-medium text-zinc-300">
+              <p className="text-xs font-mono font-bold text-zinc-900 dark:text-zinc-100">
                 {formatIDR(alloc.total_value)}
               </p>
-              <span className="text-[10px] text-zinc-500 mt-0.5">
+              <span className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
                 {alloc.count} instrumen
               </span>
             </div>

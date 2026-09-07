@@ -1,4 +1,4 @@
-# 🤖 Jarvis Stock: AI Personal Portfolio & Stock Analysis Assistant
+# 🤖 Asisten+Stock: AI Personal Portfolio & Stock Analysis Assistant
 
 Asisten AI Pengelola Portofolio & Analisa Saham multi-channel (Telegram Bot & Web Dashboard) berbasis **Node.js, Express, TypeScript, PostgreSQL, Next.js, Google Gemini AI (Function Calling & Vision), dan node-cron**.
 

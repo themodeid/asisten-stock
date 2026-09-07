@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -12,13 +13,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Jarvis Stock - AI Personal Stock Portfolio & Analyst",
+  title: "Asisten+Stock - AI Personal Stock Portfolio & Analyst",
   description: "Asisten AI Pengelola Portofolio & Analisa Saham Multi-Channel",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Jarvis Stock",
+    title: "Asisten+Stock",
   },
 };
 
@@ -28,11 +29,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className="dark">
-      <body className="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-blue-600 selection:text-white">
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+    <html lang="id" className="dark" suppressHydrationWarning>
+      <body className="bg-background text-foreground min-h-screen antialiased selection:bg-emerald-500 selection:text-white transition-colors duration-200">
+        <ThemeProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

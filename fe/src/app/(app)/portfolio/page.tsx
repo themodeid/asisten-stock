@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useFxRate } from "@/services/fxRate";
 import Header from "@/components/layout/Header";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
@@ -39,6 +41,8 @@ import { AssetType } from "@/types";
 import PortfolioChartCard from "@/components/portfolio/PortfolioChartCard";
 
 export default function PortfolioPage() {
+  const { user } = useAuth();
+  const { rate: fxRate } = useFxRate();
   const [mainTab, setMainTab] = useState<"HOLDINGS" | "FX" | "REBALANCE" | "TAX" | "HEALTH" | "DIVIDENDS">("HOLDINGS");
   const [portfolio, setPortfolio] = useState<any>(null);
   const [healthData, setHealthData] = useState<any>(null);
@@ -96,9 +100,9 @@ export default function PortfolioPage() {
     try {
       setLoading(true);
       const [sumRes, healthRes, divRes] = await Promise.allSettled([
-        api.get("/portfolio/summary/1"),
-        api.get("/portfolio/health/1"),
-        api.get("/portfolio/dividends/1"),
+        api.get(`/portfolio/summary/${user?.id || 1}`),
+        api.get(`/portfolio/health/${user?.id || 1}`),
+        api.get(`/portfolio/dividends/${user?.id || 1}`),
       ]);
 
       if (sumRes.status === "fulfilled" && sumRes.value.data?.data) {
@@ -224,7 +228,7 @@ export default function PortfolioPage() {
       setTaxSellPrice(String(h.current_price || h.avg_buy_price || 9500));
     } else {
       setTaxQuantity(String(h.quantity || 0.001));
-      const priceIdr = h.currency === "USD" ? (h.current_price || h.avg_buy_price || 85000) * 15800 : (h.current_price || h.avg_buy_price || 1400000);
+      const priceIdr = h.currency === "USD" ? (h.current_price || h.avg_buy_price || 85000) * fxRate : (h.current_price || h.avg_buy_price || 1400000);
       setTaxSellPrice(String(priceIdr));
     }
   };
@@ -612,11 +616,11 @@ export default function PortfolioPage() {
                         const isStock = aType === "STOCK";
                         const investedIdr =
                           h.total_invested_idr ??
-                          (h.currency === "USD" ? h.total_invested * 15800 : h.total_invested);
+                          (h.currency === "USD" ? h.total_invested * fxRate : h.total_invested);
                         const marketValIdr =
                           h.market_value_idr ??
                           (h.currency === "USD"
-                            ? (h.market_value || h.total_invested) * 15800
+                            ? (h.market_value || h.total_invested) * fxRate
                             : h.market_value || h.total_invested);
 
                         return (
@@ -690,7 +694,7 @@ export default function PortfolioPage() {
                                 </Badge>
                                 <span className="text-[10px] text-zinc-400 mt-1">
                                   {formatIDR(
-                                    h.currency === "USD" ? (h.floating_pnl || 0) * 15800 : h.floating_pnl || 0
+                                    h.currency === "USD" ? (h.floating_pnl || 0) * fxRate : h.floating_pnl || 0
                                   )}
                                 </span>
                               </div>
@@ -736,7 +740,7 @@ export default function PortfolioPage() {
                 <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center gap-3 shrink-0">
                   <div>
                     <div className="text-[10px] text-zinc-400 uppercase font-semibold">Kurs Acuan Pasar</div>
-                    <div className="text-sm font-bold text-emerald-400">1 USD = Rp 16.250</div>
+                    <div className="text-sm font-bold text-emerald-400">1 USD = Rp {fxRate.toLocaleString('id-ID')}</div>
                   </div>
                   <div className="h-6 w-px bg-zinc-800" />
                   <div>
@@ -1824,13 +1828,13 @@ export default function PortfolioPage() {
               <div className="border-b-2 border-emerald-500 pb-4 flex items-start justify-between">
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 print:text-emerald-700">
-                    JARVIS WEALTH & FAMILY OFFICE
+                    ASISTEN+STOCK WEALTH & FAMILY OFFICE
                   </span>
                   <h2 className="text-xl font-black text-zinc-100 print:text-black mt-0.5">
                     EXECUTIVE PORTFOLIO FACTSHEET
                   </h2>
                   <div className="text-[11px] text-zinc-400 print:text-zinc-600 mt-1">
-                    Pemilik Portofolio: <strong className="text-zinc-200 print:text-black">Adam (Jarvis User)</strong> | Per Tanggal: <strong className="text-zinc-200 print:text-black">{new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</strong>
+                    Pemilik Portofolio: <strong className="text-zinc-200 print:text-black">Adam (Asisten+Stock User)</strong> | Per Tanggal: <strong className="text-zinc-200 print:text-black">{new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</strong>
                   </div>
                 </div>
 
@@ -1896,7 +1900,7 @@ export default function PortfolioPage() {
                   <tbody className="divide-y divide-zinc-800 print:divide-zinc-300">
                     {(portfolio?.holdings || []).map((h: any, idx: number) => {
                       const isUp = (h.floating_pnl || 0) >= 0;
-                      const marketVal = h.currency === "USD" ? (h.market_value || h.total_invested) * 16250 : h.market_value || h.total_invested;
+                      const marketVal = h.currency === "USD" ? (h.market_value || h.total_invested) * fxRate : h.market_value || h.total_invested;
 
                       return (
                         <tr key={idx} className="py-2">
@@ -1958,7 +1962,7 @@ export default function PortfolioPage() {
 
               {/* Factsheet Footer */}
               <div className="border-t border-zinc-800 print:border-black pt-3 flex items-center justify-between text-[10px] text-zinc-500 print:text-zinc-600">
-                <span>Dihasilkan secara otomatis oleh Jarvis AI Wealth Advisory System</span>
+                <span>Dihasilkan secara otomatis oleh Asisten+Stock AI Wealth Advisory System</span>
                 <span>Kerahasiaan Dokumen: Sangat Rahasia (Private)</span>
               </div>
             </div>

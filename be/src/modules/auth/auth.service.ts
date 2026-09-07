@@ -41,8 +41,7 @@ export const authenticateUser = async (username: string, password: string): Prom
             risk_profile, investment_goals, time_horizon_years, strategy_preference,
             currency, timezone, password_hash, password_salt
      FROM users 
-     WHERE LOWER(username) = $1 OR id = 1
-     ORDER BY (LOWER(username) = $1) DESC
+     WHERE LOWER(username) = $1
      LIMIT 1;`,
     [cleanUsername]
   );
@@ -50,14 +49,14 @@ export const authenticateUser = async (username: string, password: string): Prom
   if (rows.length === 0) return null;
   const user = rows[0];
 
-  // If user has no password yet (legacy), allow setup or verify default
+  // If user has no password set yet, auto-hash the provided password for first-time setup
   if (!user.password_hash || !user.password_salt) {
-    if (password === "adamwahyu" || password === "admin123") {
-      const { salt, hash } = hashPassword(password);
-      await pool.query("UPDATE users SET password_salt = $1, password_hash = $2 WHERE id = $3;", [salt, hash, user.id]);
-      return formatProfileResponse(user);
+    if (!password || password.length < 6) {
+      return null; // Reject weak passwords on first setup
     }
-    return null;
+    const { salt, hash } = hashPassword(password);
+    await pool.query("UPDATE users SET password_salt = $1, password_hash = $2 WHERE id = $3;", [salt, hash, user.id]);
+    return formatProfileResponse(user);
   }
 
   const isValid = verifyPassword(password, user.password_salt, user.password_hash);

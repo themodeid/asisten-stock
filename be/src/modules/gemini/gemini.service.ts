@@ -183,6 +183,28 @@ export const processUserMessage = async (
         } else if (toolName === "get_fx_gain_analytics") {
           const portfolio = await portfolioService.getPrimaryPortfolioByUserId(userId);
           toolResult = await portfolioService.getFxAnalytics(portfolio.id);
+        } else if (toolName === "get_technical_analysis") {
+          const technicalService = await import("../market-data/technical.service");
+          toolResult = await technicalService.getTechnicalAnalysis(
+            args.ticker,
+            args.timeframe || "3M"
+          );
+        } else if (toolName === "plan_financial_goal") {
+          const goalService = await import("../portfolio/goal.service");
+          toolResult = goalService.calculateGoalPlan({
+            goal_name: args.goal_name,
+            target_amount: Number(args.target_amount),
+            time_horizon_years: Number(args.time_horizon_years),
+            initial_capital: args.initial_capital ? Number(args.initial_capital) : undefined,
+            expected_annual_return_percent: args.expected_annual_return_percent ? Number(args.expected_annual_return_percent) : undefined,
+          });
+        } else if (toolName === "stress_test_portfolio") {
+          const stressService = await import("../portfolio/stress-test.service");
+          const portfolio = await portfolioService.getPrimaryPortfolioByUserId(userId);
+          toolResult = await stressService.runPortfolioStressTest(
+            args.portfolio_id ? Number(args.portfolio_id) : portfolio.id,
+            args.scenario_key || "market_crash_30"
+          );
         }
 
         executedTools.push({ toolName, args, result: toolResult });
@@ -211,7 +233,7 @@ export const processUserMessage = async (
       });
 
       const replyText =
-        finalRes.text || "Operasi portofolio telah berhasil diselesaikan oleh Jarvis.";
+        finalRes.text || "Operasi portofolio telah berhasil diselesaikan oleh Asisten+Stock.";
 
       // Log assistant message
       await pool.query(
@@ -224,7 +246,7 @@ export const processUserMessage = async (
 
     const replyText =
       response.text ||
-      "Halo! Saya Jarvis AI, asisten portofolio pribadi multi-aset Anda. Ada yang bisa saya bantu?";
+      "Halo! Saya Asisten+Stock AI, asisten portofolio pribadi multi-aset Anda. Ada yang bisa saya bantu?";
 
     await pool.query(
       "INSERT INTO chat_logs (user_id, role, message) VALUES ($1, $2, $3);",
@@ -521,7 +543,7 @@ ${plan.summary_advice}`,
     const userProfile = await authService.getUserFinancialProfile(userId);
     if (userProfile) {
       return {
-        replyText: `Berikut adalah Jati Diri & Profil Finansial Investor Anda yang tersimpan di sistem Jarvis:
+        replyText: `Berikut adalah Jati Diri & Profil Finansial Investor Anda yang tersimpan di sistem Asisten+Stock:
 
 👤 Profil Investor Utama
 • Nama: ${userProfile.full_name} (@${userProfile.username})
@@ -540,8 +562,8 @@ ${plan.summary_advice}`,
 • Horizon Waktu: ${userProfile.time_horizon_years} tahun ke depan
 • Gaya Alokasi: ${userProfile.strategy_preference}
 
-💡 Catatan Analisa AI Jarvis:
-Dengan usia muda ${userProfile.age} tahun dan surplus kas bulanan ${formatRupiah(userProfile.monthly_surplus)}, Anda memiliki daya ungkit *compound interest* yang sangat kuat. Setiap ada alokasi modal baru (seperti injeksi 2 juta rupiah), AI Jarvis akan selalu memperhitungkan agar portofolio tumbuh optimal tanpa mengganggu bantalan dana darurat Anda.`,
+💡 Catatan Analisa AI Asisten+Stock:
+Dengan usia muda ${userProfile.age} tahun dan surplus kas bulanan ${formatRupiah(userProfile.monthly_surplus)}, Anda memiliki daya ungkit *compound interest* yang sangat kuat. Setiap ada alokasi modal baru (seperti injeksi 2 juta rupiah), AI Asisten+Stock akan selalu memperhitungkan agar portofolio tumbuh optimal tanpa mengganggu bantalan dana darurat Anda.`,
         toolCallsExecuted: [],
       };
     }
@@ -579,7 +601,7 @@ Dengan usia muda ${userProfile.age} tahun dan surplus kas bulanan ${formatRupiah
       quantity: isLot ? undefined : qty,
       price_per_share: price,
       currency,
-      notes: "Dicatat via Jarvis Multi-Asset Chat",
+      notes: "Dicatat via Asisten+Stock Multi-Asset Chat",
     });
 
     const assetType = result.transaction.asset_type;
@@ -679,7 +701,7 @@ Dengan usia muda ${userProfile.age} tahun dan surplus kas bulanan ${formatRupiah
     const nominalDisplay = money.currency === "USD" ? `$${money.amount}` : formatRupiah(money.amount);
     const pnlDisplay = historicalPnLPercent !== undefined ? ` dengan posisi **${historicalPnLPercent < 0 ? "Kerugian" : "Keuntungan"} ${historicalPnLPercent}%**` : "";
     return {
-      replyText: `❓ **Mohon Klarifikasi Nama Aset:**\n\nSaya memahami Anda ingin mencatat portofolio senilai **${nominalDisplay}**${pnlDisplay}.\n\nNamun, **nama atau simbol aset** belum Anda sebutkan. Aset apa yang ingin dicatat?\n\n🔹 **Kripto**: Balas *"Untuk BTC"* atau *"Untuk ETH"*\n🔹 **Saham**: Balas *"Saham BBCA"* atau *"Saham BBRI"*\n🔹 **Emas**: Balas *"Emas Antam"*\n🔹 **Obligasi**: Balas *"SBN ORI024"*\n\n*(Cukup ketik nama asetnya, Jarvis akan langsung menyimpannya ke portofolio Anda).*`,
+      replyText: `❓ **Mohon Klarifikasi Nama Aset:**\n\nSaya memahami Anda ingin mencatat portofolio senilai **${nominalDisplay}**${pnlDisplay}.\n\nNamun, **nama atau simbol aset** belum Anda sebutkan. Aset apa yang ingin dicatat?\n\n🔹 **Kripto**: Balas *"Untuk BTC"* atau *"Untuk ETH"*\n🔹 **Saham**: Balas *"Saham BBCA"* atau *"Saham BBRI"*\n🔹 **Emas**: Balas *"Emas Antam"*\n🔹 **Obligasi**: Balas *"SBN ORI024"*\n\n*(Cukup ketik nama asetnya, Asisten+Stock akan langsung menyimpannya ke portofolio Anda).*`,
       toolCallsExecuted: [],
     };
   }
@@ -710,7 +732,7 @@ Dengan usia muda ${userProfile.age} tahun dan surplus kas bulanan ${formatRupiah
           quantity: isLot ? undefined : qty,
           price_per_share: price,
           currency,
-          notes: "Penjualan via Jarvis Multi-Asset Chat",
+          notes: "Penjualan via Asisten+Stock Multi-Asset Chat",
         });
 
         const assetType = result.transaction.asset_type;
@@ -1004,7 +1026,7 @@ ${quote.valuationSummary ? `Diagnostik: ${quote.valuationSummary}` : ""}`,
 
   // General default message
   return {
-    replyText: `🤖 **Halo! Saya Jarvis Multi-Asset Assistant.**\n\nAnda dapat mencatat dan memantau berbagai aset:\n1. **Saham**: *"Beli BBCA 10 lot di 9850"* atau *"Beli BBCA 5 juta"*\n2. **Kripto (Crypto)**: *"Beli BTC 1.100.000 rupiah"* atau *"Beli BTC 0.05 di 64500 USD"*\n3. **Emas / Logam Mulia**: *"Beli Emas Antam 2 juta"* atau *"Beli Emas 10 gram di 1410000"*\n4. **Obligasi / SBN**: *"Beli ORI024 10000000"*\n5. **ETF**: *"Beli SPY 2 unit di 550 USD"*\n6. **Cek Portofolio**: *"Cek portofolio & alokasi aset saya"*\n\nAda yang ingin dicatat atau dicek saat ini?`,
+    replyText: `🤖 **Halo! Saya Asisten+Stock Multi-Asset Assistant.**\n\nAnda dapat mencatat dan memantau berbagai aset:\n1. **Saham**: *"Beli BBCA 10 lot di 9850"* atau *"Beli BBCA 5 juta"*\n2. **Kripto (Crypto)**: *"Beli BTC 1.100.000 rupiah"* atau *"Beli BTC 0.05 di 64500 USD"*\n3. **Emas / Logam Mulia**: *"Beli Emas Antam 2 juta"* atau *"Beli Emas 10 gram di 1410000"*\n4. **Obligasi / SBN**: *"Beli ORI024 10000000"*\n5. **ETF**: *"Beli SPY 2 unit di 550 USD"*\n6. **Cek Portofolio**: *"Cek portofolio & alokasi aset saya"*\n\nAda yang ingin dicatat atau dicek saat ini?`,
     toolCallsExecuted: [],
   };
 }

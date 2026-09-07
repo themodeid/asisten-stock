@@ -5,6 +5,7 @@ import * as portfolioService from "../portfolio/portfolio.service";
 import { sendTelegramNotification } from "../telegram/telegram.bot";
 import { formatRupiah } from "../../utils/stockHelper";
 import { pool } from "../../config/database";
+import { emitAlertTriggered, emitMarketBriefing } from "../websocket/socket.service";
 
 export const initScheduler = () => {
   console.log("⏰ Initializing Automated Background Scheduler...");
@@ -74,6 +75,15 @@ export const checkPriceAlerts = async () => {
 
           await sendTelegramNotification(alert.telegram_id, message);
         }
+
+        // Push real-time alert to web dashboard via WebSocket
+        emitAlertTriggered({
+          ticker: alert.ticker,
+          currentPrice,
+          targetPrice: alert.target_price,
+          condition: alert.condition,
+          telegramId: alert.telegram_id,
+        });
       }
     } catch (error: any) {
       console.warn(`Failed checking alert ${alert.id} for ${alert.ticker}:`, error.message);
@@ -100,7 +110,7 @@ export const sendMorningMarketDigest = async () => {
     //
   }
 
-  const message = `🌅 **JARVIS MORNING MARKET BRIEFING (08:30 WIB)**\n\nSelamat pagi! Pasar akan segera dibuka.\n\n📊 **Sentimen Pasar Global & Lokal:**\n• **Bitcoin (BTC):** ${btcPrice}\n• **BBCA (Acuan IHSG):** ${bbcaPrice}\n• **Status:** Pasar bersiap untuk sesi perdagangan reguler.\n\n💡 *Gunakan AI Simulator atau ketik pesan kapan saja untuk mencatat transaksi baru.*`;
+  const message = `🌅 **ASISTEN+STOCK MORNING MARKET BRIEFING (08:30 WIB)**\n\nSelamat pagi! Pasar akan segera dibuka.\n\n📊 **Sentimen Pasar Global & Lokal:**\n• **Bitcoin (BTC):** ${btcPrice}\n• **BBCA (Acuan IHSG):** ${bbcaPrice}\n• **Status:** Pasar bersiap untuk sesi perdagangan reguler.\n\n💡 *Gunakan AI Simulator atau ketik pesan kapan saja untuk mencatat transaksi baru.*`;
 
   for (const user of usersRes.rows) {
     await sendTelegramNotification(user.telegram_id, message);
@@ -118,7 +128,7 @@ export const sendEveningPortfolioDigest = async () => {
     try {
       const summary = await portfolioService.getPortfolioSummary(user.id);
       const pnlEmoji = summary.total_floating_pnl >= 0 ? "🟢 +" : "🔴 ";
-      const message = `🌆 **JARVIS MARKET CLOSING REPORT (16:30 WIB)**\n\nHalo ${user.first_name || "Investor"},\nBerikut rekap penutupan portofolio Anda hari ini:\n\n💰 **Total Nilai Portofolio:** ${formatRupiah(summary.total_net_worth)}\n💵 **Total Modal Ditanam:** ${formatRupiah(summary.total_invested)}\n${pnlEmoji} **Floating P/L:** ${formatRupiah(summary.total_floating_pnl)} (${summary.total_floating_pnl_percent >= 0 ? "+" : ""}${summary.total_floating_pnl_percent}%)\n\n📌 **Posisi Aktif:** ${summary.holdings_count} Aset\n\nSemoga harimu produktif!`;
+      const message = `🌆 **ASISTEN+STOCK MARKET CLOSING REPORT (16:30 WIB)**\n\nHalo ${user.first_name || "Investor"},\nBerikut rekap penutupan portofolio Anda hari ini:\n\n💰 **Total Nilai Portofolio:** ${formatRupiah(summary.total_net_worth)}\n💵 **Total Modal Ditanam:** ${formatRupiah(summary.total_invested)}\n${pnlEmoji} **Floating P/L:** ${formatRupiah(summary.total_floating_pnl)} (${summary.total_floating_pnl_percent >= 0 ? "+" : ""}${summary.total_floating_pnl_percent}%)\n\n📌 **Posisi Aktif:** ${summary.holdings_count} Aset\n\nSemoga harimu produktif!`;
 
       await sendTelegramNotification(user.telegram_id, message);
     } catch (e) {

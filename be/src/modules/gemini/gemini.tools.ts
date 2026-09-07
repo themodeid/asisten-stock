@@ -249,4 +249,46 @@ export const geminiToolDeclarations: FunctionDeclaration[] = [
       },
     },
   },
+  {
+    name: "get_technical_analysis",
+    description: "Dapatkan analisis teknikal saham/aset (RSI, MACD, Moving Average, Bollinger Bands, Support/Resistance) untuk membantu timing entry/exit.",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        ticker: { type: Type.STRING, description: "Kode ticker aset (contoh: BBCA, BTC, VT)." },
+        timeframe: { type: Type.STRING, enum: ["1M", "3M", "6M", "1Y"], description: "Periode data historis untuk analisis." },
+      },
+      required: ["ticker"],
+    },
+  },
+  {
+    name: "plan_financial_goal",
+    description: "Hitung simulasi dan rancang rencana pencapaian target keuangan (Dana Pensiun, Beli Rumah, Tabungan Anak, Financial Freedom). Memberikan perhitungan investasi bulanan, proyeksi majemuk, dan rekomendasi alokasi aset.",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        goal_name: { type: Type.STRING, description: "Nama atau tujuan target finansial (contoh: Pensiun Dini di Umur 45, Beli Rumah)." },
+        target_amount: { type: Type.NUMBER, description: "Target nominal dana dalam Rupiah (contoh: 1000000000 untuk 1 Milyar)." },
+        time_horizon_years: { type: Type.NUMBER, description: "Jangka waktu pencapaian dalam tahun (contoh: 10)." },
+        initial_capital: { type: Type.NUMBER, description: "Modal awal tabungan saat ini jika ada (dalam Rupiah)." },
+        expected_annual_return_percent: { type: Type.NUMBER, description: "Ekspektasi imbal hasil tahunan persen (default: 11%)." },
+      },
+      required: ["target_amount", "time_horizon_years"],
+    },
+  },
+  {
+    name: "stress_test_portfolio",
+    description: "Simulasikan uji ketahanan (stress test) portofolio terhadap skenario krisis/kejatuhan pasar (Crash -30%, Crypto Winter -60%, Stagflasi, Rupiah Anjlok).",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        portfolio_id: { type: Type.NUMBER, description: "ID portofolio pengguna (default: 1)." },
+        scenario_key: {
+          type: Type.STRING,
+          enum: ["market_crash_30", "crypto_winter_60", "stagflation_recession", "idr_depreciation_20"],
+          description: "Pilihan skenario krisis pasar (default: market_crash_30)."
+        },
+      },
+    },
+  },
 ];

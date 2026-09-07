@@ -1,18 +1,18 @@
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: ${POSTGRES_CONTAINER_NAME:-jarvis-postgres}
+    container_name: ${POSTGRES_CONTAINER_NAME:-asisten-postgres}
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-jarvis_stock_db}
+      POSTGRES_DB: ${POSTGRES_DB:-asisten_stock_db}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password_dev}
     ports:
       - "${POSTGRES_PORT:-5450}:5432"
     volumes:
-      - jarvis_postgres_data:/var/lib/postgresql/data
+      - asisten_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -26,7 +26,7 @@ services:
       dockerfile: Dockerfile
       args:
         - BACKEND_PORT=${BACKEND_PORT:-3050}
-    container_name: ${BACKEND_CONTAINER_NAME:-jarvis-backend}
+    container_name: ${BACKEND_CONTAINER_NAME:-asisten-backend}
     ports:
       - "${BACKEND_PORT:-3050}:${BACKEND_PORT:-3050}"
     restart: unless-stopped
@@ -49,7 +49,7 @@ services:
     build:
       context: ./fe
       dockerfile: dockerfile
-    container_name: ${FRONTEND_CONTAINER_NAME:-jarvis-frontend}
+    container_name: ${FRONTEND_CONTAINER_NAME:-asisten-frontend}
     ports:
       - "${FRONTEND_PORT:-3051}:${FRONTEND_PORT:-3051}"
     restart: unless-stopped
@@ -65,4 +65,4 @@ services:
       INTERNAL_API_URL: http://backend:${BACKEND_PORT:-3050}/api
 
 volumes:
-  jarvis_postgres_data:
+  asisten_postgres_data:

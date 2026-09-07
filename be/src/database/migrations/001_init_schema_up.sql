@@ -1,5 +1,5 @@
 -- =============================================================================
--- JARVIS STOCK AI ASSISTANT - UNIFIED INITIAL DATABASE SCHEMA
+-- ASISTEN+STOCK - UNIFIED INITIAL DATABASE SCHEMA
 -- =============================================================================
 
 -- 1. TABEL: users (Menyimpan data pengguna dan akun Telegram)

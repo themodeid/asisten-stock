@@ -1,5 +1,5 @@
 {
-  "name": "jarvis-stock-assistant",
+  "name": "asisten-stock-assistant",
   "private": true,
   "scripts": {
     "env:init": "node scripts/init-env.js",

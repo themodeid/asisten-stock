@@ -9,16 +9,62 @@ const US_ETFS = new Set([
 ]);
 
 const US_STOCKS = new Set([
-  "AAPL", "NVDA", "TSLA", "MSFT", "GOOGL", "AMZN", "META", "AMD", "NFLX", "INTC", "PLTR", "COIN", "MSTR", "BABA", "TSM"
+  "AAPL", "NVDA", "TSLA", "MSFT", "GOOGL", "GOOG", "AMZN", "META", "AMD", "NFLX", "INTC", "PLTR", "COIN", "MSTR", "BABA", "TSM"
 ]);
 
 const GOLD_KEYWORDS = new Set(["EMAS", "GOLD", "ANTAM", "UBS", "XAU"]);
+
+export const COMMON_ALIASES: Record<string, string> = {
+  GOOGLE: "GOOGL",
+  ALPHABET: "GOOGL",
+  GOOG: "GOOGL",
+  APPLE: "AAPL",
+  TESLA: "TSLA",
+  MICROSOFT: "MSFT",
+  AMAZON: "AMZN",
+  META: "META",
+  FACEBOOK: "META",
+  NVIDIA: "NVDA",
+  NETFLIX: "NFLX",
+  BITCOIN: "BTC-USD",
+  ETHEREUM: "ETH-USD",
+  SOLANA: "SOL-USD",
+  TETHER: "USDT-USD",
+  DOGECOIN: "DOGE-USD",
+  BCA: "BBCA.JK",
+  BRI: "BBRI.JK",
+  MANDIRI: "BMRI.JK",
+  BNI: "BBNI.JK",
+  TELKOM: "TLKM.JK",
+  ASTRA: "ASII.JK",
+  GOJEK: "GOTO.JK",
+  GOTO: "GOTO.JK",
+  TOKPED: "GOTO.JK",
+  ANTAM: "ANTM.JK",
+  INDOFOOD: "INDF.JK",
+  ICBP: "ICBP.JK",
+  UNILEVER: "UNVR.JK",
+  BUMI: "BUMI.JK",
+  ADRO: "ADRO.JK",
+  PGAS: "PGAS.JK",
+  BRIS: "BRIS.JK",
+  EMAS: "GOLD.IDR",
+  GOLD: "GOLD.IDR",
+};
 
 /**
  * Detects asset type automatically from symbol name or ticker
  */
 export function detectAssetType(rawSymbol: string): AssetType {
   const clean = rawSymbol.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+  if (COMMON_ALIASES[clean]) {
+    const aliased = COMMON_ALIASES[clean];
+    if (aliased.includes("-USD") || CRYPTO_LIST.has(aliased)) return "CRYPTO";
+    if (aliased.includes("GOLD")) return "GOLD";
+    if (US_ETFS.has(aliased)) return "ETF";
+    return "STOCK";
+  }
 
   if (
     clean.includes("EMAS") ||
@@ -69,10 +115,14 @@ export function detectAssetType(rawSymbol: string): AssetType {
 }
 
 /**
- * Formats symbol to standard market ticker (e.g. BBCA -> BBCA.JK, BTC -> BTC-USD)
+ * Formats symbol to standard market ticker (e.g. BBCA -> BBCA.JK, BTC -> BTC-USD, GOOGLE -> GOOGL)
  */
 export function formatTicker(ticker: string, assetType?: AssetType): string {
   const clean = ticker.trim().toUpperCase();
+
+  if (COMMON_ALIASES[clean]) {
+    return COMMON_ALIASES[clean];
+  }
 
   if (clean.includes(".")) return clean;
 

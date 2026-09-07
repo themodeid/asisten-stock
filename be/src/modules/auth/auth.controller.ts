@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as authService from "./auth.service";
+import { signToken } from "../../config/jwt";
 
 export const handleLogin = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -23,8 +24,8 @@ export const handleLogin = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    // Generate lightweight bearer token / session signature
-    const sessionToken = Buffer.from(`${userProfile.id}:${userProfile.username}:${Date.now()}`).toString("base64");
+    // Generate cryptographically signed JWT token
+    const sessionToken = signToken(userProfile.id, userProfile.username);
 
     res.status(200).json({
       success: true,
@@ -46,7 +47,8 @@ export const handleLogin = async (req: Request, res: Response): Promise<void> =>
 
 export const handleGetMe = async (req: Request, res: Response): Promise<void> => {
   try {
-    const userProfile = await authService.getUserFinancialProfile(1);
+    const userId = req.user?.userId || 1;
+    const userProfile = await authService.getUserFinancialProfile(userId);
     if (!userProfile) {
       res.status(404).json({ success: false, message: "Pengguna tidak ditemukan." });
       return;
@@ -64,7 +66,8 @@ export const handleGetMe = async (req: Request, res: Response): Promise<void> =>
 
 export const handleUpdateProfile = async (req: Request, res: Response): Promise<void> => {
   try {
-    const updated = await authService.updateFinancialProfile(1, req.body);
+    const userId = req.user?.userId || 1;
+    const updated = await authService.updateFinancialProfile(userId, req.body);
     res.status(200).json({
       success: true,
       message: "Jati diri finansial dan profil risiko berhasil disimpan!",
@@ -78,13 +81,14 @@ export const handleUpdateProfile = async (req: Request, res: Response): Promise<
 
 export const handleUpdatePassword = async (req: Request, res: Response): Promise<void> => {
   try {
+    const userId = req.user?.userId || 1;
     const { old_password, new_password } = req.body;
     if (!new_password) {
       res.status(400).json({ success: false, message: "Password baru wajib diisi." });
       return;
     }
 
-    const result = await authService.updatePassword(1, old_password || "", new_password);
+    const result = await authService.updatePassword(userId, old_password || "", new_password);
     if (!result.success) {
       res.status(400).json(result);
       return;

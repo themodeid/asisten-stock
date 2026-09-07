@@ -8,6 +8,7 @@ import {
   FxHoldingItem,
 } from "./portfolio.type";
 import * as marketService from "../market-data/market.service";
+import * as fxService from "../market-data/fx.service";
 
 export const getPrimaryPortfolioByUserId = async (
   userId: number
@@ -24,7 +25,7 @@ export const getPrimaryPortfolioByUserId = async (
   if (userCheck.rows.length === 0) {
     await pool.query(
       `INSERT INTO users (id, telegram_id, first_name, username) 
-       VALUES ($1, $2, 'Adam (Jarvis User)', 'jarvis_user') 
+       VALUES ($1, $2, 'Adam (Asisten+Stock User)', 'asisten_stock_user') 
        ON CONFLICT (id) DO NOTHING;`,
       [userId, userId === 1 ? 123456789 : userId]
     );
@@ -72,7 +73,7 @@ export const getPortfolioSummary = async (
       const lots = Number(row.total_lots || (assetType === "STOCK" ? quantity / 100 : 0));
       const avgPrice = Number(row.avg_buy_price);
       const invested = Number(row.total_invested);
-      const usdToIdrRate = 16250;
+      const usdToIdrRate = await fxService.getUsdIdrRate();
       const isAssetUSD =
         row.currency === "USD" ||
         row.ticker.endsWith("-USD") ||
@@ -376,7 +377,7 @@ export const calculateTaxSimulation = async (params: {
   }
 
   const isUSD = quote.currency === "USD";
-  const rateToIDR = isUSD ? 15800 : 1;
+  const rateToIDR = isUSD ? await fxService.getUsdIdrRate() : 1;
   const currentPriceIDR = Number(quote.regularMarketPrice) * rateToIDR;
 
   let grossSellAmountIDR = params.sell_amount_idr || 5000000;
@@ -533,7 +534,7 @@ export const getFxAnalytics = async (
   portfolioId: number
 ): Promise<PortfolioFxSummary> => {
   const summary = await getPortfolioSummary(portfolioId);
-  const currentUsdRate = 16250; // Live USD/IDR benchmark
+  const currentUsdRate = await fxService.getUsdIdrRate(); // Live USD/IDR benchmark
   const entryBaselineRate = 15650; // Historical purchase baseline
 
   const foreignHoldings = (summary.holdings || []).filter(

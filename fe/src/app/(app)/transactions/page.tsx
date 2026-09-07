@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useFxRate } from "@/services/fxRate";
 import Header from "@/components/layout/Header";
 import Badge from "@/components/ui/Badge";
 import { api, formatIDR } from "@/services/api";
@@ -21,6 +22,7 @@ import { AssetType } from "@/types";
 type TimeRangeFilter = "ALL" | "TODAY" | "7D" | "30D" | "THIS_MONTH" | "YTD" | "CUSTOM";
 
 export default function TransactionsPage() {
+  const { rate: fxRate } = useFxRate();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterTicker, setFilterTicker] = useState("");
@@ -122,7 +124,7 @@ export default function TransactionsPage() {
     let totalBuy = 0;
     let totalSell = 0;
     filtered.forEach((tx) => {
-      const val = tx.currency === "USD" ? Number(tx.total_amount || 0) * 15800 : Number(tx.total_amount || 0);
+      const val = tx.currency === "USD" ? Number(tx.total_amount || 0) * fxRate : Number(tx.total_amount || 0);
       if (tx.type === "BUY") totalBuy += val;
       if (tx.type === "SELL") totalSell += val;
     });
@@ -391,7 +393,7 @@ export default function TransactionsPage() {
                           {formatPriceVal(tx.price_per_share, tx.currency)}
                         </td>
                         <td className="py-3.5 px-4 font-semibold text-zinc-100">
-                          {formatIDR(tx.currency === "USD" ? tx.total_amount * 15800 : tx.total_amount)}
+                          {formatIDR(tx.currency === "USD" ? tx.total_amount * fxRate : tx.total_amount)}
                           {tx.currency === "USD" && (
                             <div className="text-[10px] text-zinc-500 font-normal">
                               ${Number(tx.total_amount).toLocaleString(undefined, {

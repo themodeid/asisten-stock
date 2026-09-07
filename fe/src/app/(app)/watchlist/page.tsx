@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useAuth } from "@/context/AuthContext";
 import Header from "@/components/layout/Header";
 import Badge from "@/components/ui/Badge";
 import Modal from "@/components/ui/Modal";
@@ -25,6 +26,7 @@ import {
 import { AssetType } from "@/types";
 
 export default function WatchlistPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"WATCHLIST" | "DIP_RADAR">("WATCHLIST");
 
   // Watchlist state
@@ -53,7 +55,7 @@ export default function WatchlistPage() {
   const fetchWatchlist = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/watchlist/1");
+      const res = await api.get(`/watchlist/${user?.id || 1}`);
       if (res.data?.data) {
         setWatchlist(res.data.data);
       }
@@ -93,7 +95,7 @@ export default function WatchlistPage() {
     if (!ticker) return;
     try {
       await api.post("/watchlist", {
-        user_id: 1,
+        user_id: user?.id || 1,
         ticker,
         target_buy_price: targetBuy ? Number(targetBuy) : undefined,
         target_sell_price: targetSell ? Number(targetSell) : undefined,
@@ -115,7 +117,7 @@ export default function WatchlistPage() {
     if (!alertTicker || !alertTargetPrice) return;
     try {
       await api.post("/watchlist/alert", {
-        user_id: 1,
+        user_id: user?.id || 1,
         ticker: alertTicker,
         target_price: Number(alertTargetPrice),
         condition: alertCondition,
@@ -130,7 +132,7 @@ export default function WatchlistPage() {
   const handleDelete = async (t: string) => {
     if (!confirm(`Hapus ${t} dari watchlist?`)) return;
     try {
-      await api.delete(`/watchlist/${t}?userId=1`);
+      await api.delete(`/watchlist/${t}?userId=${user?.id || 1}`);
       fetchWatchlist();
     } catch (err) {
       alert("Gagal menghapus dari watchlist");
@@ -645,7 +647,7 @@ export default function WatchlistPage() {
             <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 text-xs text-zinc-400 flex items-start gap-2">
               <Bell className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               <span>
-                Notifikasi instan akan dikirimkan langsung oleh bot Telegram Jarvis saat harga pasar menyentuh target ini.
+                Notifikasi instan akan dikirimkan langsung oleh bot Telegram Asisten+Stock saat harga pasar menyentuh target ini.
               </span>
             </div>
 

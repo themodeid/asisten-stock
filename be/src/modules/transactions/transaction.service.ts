@@ -7,6 +7,7 @@ import {
 } from "../../utils/stockHelper";
 import { StockTransaction, CreateTransactionInput, AssetType } from "./transaction.type";
 import * as marketService from "../market-data/market.service";
+import { emitPortfolioUpdate } from "../websocket/socket.service";
 
 export const recordTransaction = async (
   input: CreateTransactionInput
@@ -255,6 +256,14 @@ export const recordTransaction = async (
     }
 
     await client.query("COMMIT");
+
+    // Push real-time update to connected dashboard clients via WebSocket
+    emitPortfolioUpdate(input.portfolio_id, {
+      event: "transaction_recorded",
+      ticker: transaction.ticker,
+      type: transaction.type,
+    });
+
     return { transaction, holding };
   } catch (error) {
     await client.query("ROLLBACK");

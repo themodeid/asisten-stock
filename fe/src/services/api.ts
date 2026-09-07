@@ -15,15 +15,34 @@ export const api = axios.create({
   },
 });
 
+// Request interceptor: attach JWT token to all requests
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("jarvis_auth_token");
+    const token = localStorage.getItem("asisten_stock_auth_token");
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
   }
   return config;
 });
+
+// Response interceptor: auto-logout on 401 (expired/invalid token)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      error.response?.status === 401 &&
+      typeof window !== "undefined" &&
+      !window.location.pathname.includes("/login")
+    ) {
+      // Clear auth data and redirect to login
+      localStorage.removeItem("asisten_stock_auth_token");
+      localStorage.removeItem("asisten_stock_auth_user");
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const formatIDR = (val: number): string => {
   return new Intl.NumberFormat("id-ID", {

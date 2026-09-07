@@ -70,7 +70,8 @@ const VT_TRAJECTORY_120D: number[] = [
 export const calculatePortfolioHistoricalPoints = (
   timeframe: string = "ALL",
   holdings?: HoldingItem[],
-  cash: number = 0
+  cash: number = 0,
+  fxRate: number = 16250
 ): CalculatedPortfolioHistory => {
   if (!holdings || holdings.length === 0) {
     return {
@@ -89,7 +90,7 @@ export const calculatePortfolioHistoricalPoints = (
   let usdtQty = 0;
   let currentBtcPriceIdr = 1400000000;
   let currentVtPriceIdr = 1950000;
-  let currentUsdtPriceIdr = 16250;
+  let currentUsdtPriceIdr = fxRate;
 
   holdings.forEach((h: any) => {
     const sym = (h.ticker || "").toUpperCase();
@@ -97,13 +98,13 @@ export const calculatePortfolioHistoricalPoints = (
     const priceIdr = Number(h.current_price_idr || h.current_price || h.avg_buy_price || 0);
     if (sym.includes("BTC")) {
       btcQty += q;
-      if (priceIdr > 0) currentBtcPriceIdr = priceIdr > 1000000 ? priceIdr : priceIdr * 16250;
+      if (priceIdr > 0) currentBtcPriceIdr = priceIdr > 1000000 ? priceIdr : priceIdr * fxRate;
     } else if (sym.includes("VT")) {
       vtQty += q;
-      if (priceIdr > 0) currentVtPriceIdr = priceIdr > 10000 ? priceIdr : priceIdr * 16250;
+      if (priceIdr > 0) currentVtPriceIdr = priceIdr > 10000 ? priceIdr : priceIdr * fxRate;
     } else if (sym.includes("USDT")) {
       usdtQty += q;
-      if (priceIdr > 0) currentUsdtPriceIdr = priceIdr > 100 ? priceIdr : priceIdr * 16250;
+      if (priceIdr > 0) currentUsdtPriceIdr = priceIdr > 100 ? priceIdr : priceIdr * fxRate;
     }
   });
 
