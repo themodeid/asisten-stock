@@ -50,13 +50,32 @@ export const COMMON_ALIASES: Record<string, string> = {
   BRIS: "BRIS.JK",
   EMAS: "GOLD.IDR",
   GOLD: "GOLD.IDR",
+  VT: "VT",
+  VOO: "VOO",
+  VTI: "VTI",
+  SPY: "SPY",
+  QQQ: "QQQ",
+  IVV: "IVV",
+  SCHD: "SCHD",
 };
 
 /**
  * Detects asset type automatically from symbol name or ticker
  */
 export function detectAssetType(rawSymbol: string): AssetType {
-  const clean = rawSymbol.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  let clean = rawSymbol.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (clean.endsWith("USD")) {
+    const base = clean.replace(/USD$/, "");
+    if (US_ETFS.has(base)) clean = base;
+  }
+
+  if (US_ETFS.has(clean)) {
+    return "ETF";
+  }
+
+  if (US_STOCKS.has(clean)) {
+    return "STOCK";
+  }
 
   if (COMMON_ALIASES[clean]) {
     const aliased = COMMON_ALIASES[clean];
@@ -98,10 +117,6 @@ export function detectAssetType(rawSymbol: string): AssetType {
     return "BOND";
   }
 
-  if (US_ETFS.has(clean)) {
-    return "ETF";
-  }
-
   if (
     clean.includes("REKSADANA") ||
     clean.includes("RDPU") ||
@@ -118,7 +133,19 @@ export function detectAssetType(rawSymbol: string): AssetType {
  * Formats symbol to standard market ticker (e.g. BBCA -> BBCA.JK, BTC -> BTC-USD, GOOGLE -> GOOGL)
  */
 export function formatTicker(ticker: string, assetType?: AssetType): string {
-  const clean = ticker.trim().toUpperCase();
+  let clean = ticker.trim().toUpperCase();
+
+  // Strip accidental -USD suffix for ETFs and US stocks (e.g. VT-USD -> VT)
+  if (clean.endsWith("-USD")) {
+    const base = clean.replace(/-USD$/, "");
+    if (US_ETFS.has(base) || US_STOCKS.has(base)) {
+      clean = base;
+    }
+  }
+
+  if (US_ETFS.has(clean) || US_STOCKS.has(clean)) {
+    return clean;
+  }
 
   if (COMMON_ALIASES[clean]) {
     return COMMON_ALIASES[clean];
@@ -126,7 +153,12 @@ export function formatTicker(ticker: string, assetType?: AssetType): string {
 
   if (clean.includes(".")) return clean;
 
-  const type = assetType || detectAssetType(clean);
+  const detected = detectAssetType(clean);
+  const type = (US_ETFS.has(clean) ? "ETF" : (US_STOCKS.has(clean) ? "STOCK" : (assetType || detected)));
+
+  if (type === "ETF" || US_ETFS.has(clean)) {
+    return clean;
+  }
 
   if (type === "CRYPTO") {
     if (!clean.includes("-") && !clean.endsWith("USD")) {
@@ -143,9 +175,6 @@ export function formatTicker(ticker: string, assetType?: AssetType): string {
     return clean;
   }
 
-  if (type === "ETF") {
-    return clean;
-  }
 
   if (type === "STOCK") {
     if (US_STOCKS.has(clean)) {

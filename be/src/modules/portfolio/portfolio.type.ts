@@ -30,6 +30,23 @@ export interface PortfolioHolding {
   floating_pnl_percent?: number;
   weight_percent?: number;
   company_name?: string;
+  portfolio_name?: string;
+  wallet_breakdown?: WalletHoldingBreakdown[];
+}
+
+export interface WalletHoldingBreakdown {
+  wallet_id: number;
+  wallet_name: string;
+  quantity: number;
+  total_shares?: number;
+  total_lots?: number;
+  total_invested: number;
+  total_invested_idr?: number;
+  market_value?: number;
+  market_value_idr?: number;
+  floating_pnl?: number;
+  floating_pnl_percent?: number;
+  avg_buy_price?: number;
 }
 
 export interface AssetAllocation {
@@ -53,6 +70,8 @@ export interface PortfolioSummary {
   holdings_count: number;
   holdings: PortfolioHolding[];
   asset_allocations?: AssetAllocation[];
+  is_aggregated?: boolean;
+  wallets?: any[];
 }
 
 export interface RebalanceItem {

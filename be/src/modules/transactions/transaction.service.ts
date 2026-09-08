@@ -8,6 +8,7 @@ import {
 import { StockTransaction, CreateTransactionInput, AssetType } from "./transaction.type";
 import * as marketService from "../market-data/market.service";
 import { emitPortfolioUpdate } from "../websocket/socket.service";
+import { AppError } from "../../utils/appError";
 
 export const recordTransaction = async (
   input: CreateTransactionInput
@@ -215,8 +216,9 @@ export const recordTransaction = async (
       const curQuantity = current ? Number(current.quantity || current.total_shares) : 0;
 
       if (!current || curQuantity < quantity) {
-        throw new Error(
-          `Jumlah ${ticker} yang dimiliki tidak cukup untuk dijual (tersedia: ${curQuantity} unit)`
+        throw new AppError(
+          `Penjualan Ditolak: Jumlah ${ticker} tidak mencukupi untuk dijual (tersedia: ${curQuantity} unit, diminta jual: ${quantity} unit). Kepemilikan aset tidak boleh minus.`,
+          400
         );
       }
 

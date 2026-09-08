@@ -5,12 +5,19 @@ import { AppError } from "../../utils/appError";
 import { z } from "zod";
 
 export const createTransactionSchema = z.object({
-  portfolio_id: z.number().int().positive(),
+  portfolio_id: z.number().int().positive().optional().default(1),
   ticker: z.string().min(1),
+  asset_type: z.enum(["STOCK", "CRYPTO", "ETF", "BOND", "MUTUAL_FUND", "GOLD", "CASH"]).optional(),
   type: z.enum(["BUY", "SELL"]),
-  lots: z.number().positive(),
-  price_per_share: z.number().positive(),
+  lots: z.number().positive().optional(),
+  shares: z.number().positive().optional(),
+  quantity: z.number().positive().optional(),
+  price_per_share: z.number().positive().optional(),
+  total_budget: z.number().positive().optional(),
+  currency: z.string().optional(),
   fee: z.number().optional().default(0),
+  historical_pnl_percent: z.number().optional(),
+  historical_buy_price: z.number().optional(),
   transaction_date: z.string().optional(),
   notes: z.string().optional(),
 });
@@ -22,11 +29,11 @@ export const createTransaction = async (
 ) => {
   try {
     const validated = createTransactionSchema.parse(req.body);
-    const result = await transactionService.recordTransaction(validated);
+    const result = await transactionService.recordTransaction(validated as any);
     return successResponse(
       res,
       result,
-      `Transaction ${validated.type} ${validated.ticker} recorded successfully`,
+      `Transaksi ${validated.type} ${validated.ticker} berhasil dicatat`,
       201
     );
   } catch (error: any) {

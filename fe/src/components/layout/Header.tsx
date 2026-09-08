@@ -1,15 +1,16 @@
 "use client";
 
-import { Menu, Search, User, Sun, Moon } from "lucide-react";
+import Link from "next/link";
+import { Menu, Search, User, Sun, Moon, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
 interface HeaderProps {
-  title: string;
+  title?: string;
   onMenuClick?: () => void;
 }
 
-export default function Header({ title, onMenuClick }: HeaderProps) {
+export default function Header({ title = "Asisten Stock & Crypto", onMenuClick }: HeaderProps) {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -83,18 +84,24 @@ export default function Header({ title, onMenuClick }: HeaderProps) {
           {theme === "dark" ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-zinc-600" />}
         </button>
 
-        {/* User Profile */}
-        <div className="flex items-center gap-2.5 pl-2 border-l border-zinc-200 dark:border-white/[0.08]">
-          <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-gradient-to-br dark:from-zinc-800 dark:to-zinc-850 border border-zinc-200 dark:border-white/[0.1] flex items-center justify-center text-zinc-600 dark:text-zinc-300 shadow-inner shrink-0 relative">
-            <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 ring-2 ring-white dark:ring-zinc-950" />
-          </div>
-          <div className="hidden sm:block text-left">
-            <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-tight max-w-[130px] truncate">
-              {displayName}
-            </p>
-            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-medium">Verified</p>
-          </div>
+        {/* User Profile & Lock Action */}
+        <div className="flex items-center gap-2 pl-2 border-l border-zinc-200 dark:border-white/[0.08]">
+          <Link
+            href="/profile"
+            className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/[0.06] transition"
+            title="Buka Jati Diri & Profil Investor"
+          >
+            <div className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-gradient-to-br dark:from-zinc-800 dark:to-zinc-850 border border-zinc-200 dark:border-white/[0.1] flex items-center justify-center text-zinc-600 dark:text-zinc-300 shadow-inner shrink-0 relative">
+              <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 ring-2 ring-white dark:ring-zinc-950" />
+            </div>
+            <div className="hidden sm:block text-left">
+              <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 leading-tight max-w-[130px] truncate">
+                {displayName}
+              </p>
+              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono font-medium">Verified Investor</p>
+            </div>
+          </Link>
         </div>
       </div>
     </header>

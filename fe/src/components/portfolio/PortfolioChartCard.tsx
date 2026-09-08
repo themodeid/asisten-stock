@@ -21,7 +21,7 @@ interface RenderedPoint {
 }
 
 interface PortfolioChartCardProps {
-  portfolioId?: number;
+  portfolioId?: number | string;
   totalNetWorth?: number;
   totalInvested?: number;
   cashBalance?: number;
@@ -29,7 +29,7 @@ interface PortfolioChartCardProps {
 }
 
 export default function PortfolioChartCard({
-  portfolioId = 1,
+  portfolioId = "all",
   totalNetWorth,
   totalInvested,
   cashBalance,
@@ -49,12 +49,14 @@ export default function PortfolioChartCard({
   const fetchChart = async (tf: TimeframeOption = timeframe) => {
     try {
       setLoading(true);
-      const res = await api.get(`/portfolio/chart/${portfolioId}?timeframe=${tf}`);
+      const targetPid = (portfolioId === "all" || portfolioId === 0 || !portfolioId) ? "all" : portfolioId;
+      const res = await api.get(`/portfolio/chart/${targetPid}?timeframe=${tf}`);
       if (res.data?.data) {
         setChartData(res.data.data);
       }
     } catch (err) {
       console.warn("Failed fetching chart data:", err);
+      setChartData(null);
     } finally {
       setLoading(false);
       setLastUpdated(new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }));
@@ -62,6 +64,7 @@ export default function PortfolioChartCard({
   };
 
   useEffect(() => {
+    setChartData(null);
     fetchChart(timeframe);
 
     // Auto-refresh realtime setiap 1 menit (ringan & hemat CPU)

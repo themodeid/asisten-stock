@@ -286,7 +286,7 @@ export default function DashboardPage() {
                   Posisi Aset Terbesar
                 </h3>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Nilai pasar live dan floating return per aset
+                  Nilai aset live dan floating return per aset
                 </p>
               </div>
               <Link
@@ -303,7 +303,7 @@ export default function DashboardPage() {
                   <tr className="border-b border-zinc-200 dark:border-white/[0.06] text-zinc-500 font-semibold uppercase tracking-wider text-[10px]">
                     <th className="pb-3 font-semibold">Instrumen</th>
                     <th className="pb-3 font-semibold">Tipe</th>
-                    <th className="pb-3 font-semibold text-right">Nilai Pasar</th>
+                    <th className="pb-3 font-semibold text-right">Nilai Aset Saat Ini</th>
                     <th className="pb-3 font-semibold text-right">P/L (%)</th>
                     <th className="pb-3 font-semibold text-right">Bobot</th>
                   </tr>

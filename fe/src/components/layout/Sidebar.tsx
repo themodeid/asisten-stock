@@ -13,8 +13,12 @@ import {
   Sun,
   Moon,
   X,
+  Shield,
+  LogOut,
+  User,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import { useAuth } from "@/context/AuthContext";
 
 export const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -24,6 +28,7 @@ export const navigation = [
   { name: "Berita & Sentimen", href: "/news", icon: Newspaper },
   { name: "Watchlist & Alerts", href: "/watchlist", icon: BookmarkCheck },
   { name: "Asisten AI Chat", href: "/playground", icon: Bot },
+  { name: "Jati Diri & Profil", href: "/profile", icon: Shield },
 ];
 
 interface SidebarProps {
@@ -34,6 +39,7 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
 
   const content = (
     <div className="flex flex-col justify-between h-full">
@@ -111,20 +117,53 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
       </div>
 
-      {/* Footer Info */}
-      <div className="p-3 m-3 rounded-2xl bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200/80 dark:border-white/[0.06] shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-zinc-800 dark:text-zinc-200 font-semibold">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50" />
-            <span>Telegram Bot</span>
+      {/* Footer Info & User Session */}
+      <div className="p-3 m-3 space-y-2">
+        <div className="p-3 rounded-2xl bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200/80 dark:border-white/[0.06] shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs text-zinc-800 dark:text-zinc-200 font-semibold">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50" />
+              <span>Telegram Bot</span>
+            </div>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-medium">
+              Online
+            </span>
           </div>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-medium">
-            Online
-          </span>
+          <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
+            Gemini AI Connected • Real-time Sync
+          </p>
         </div>
-        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
-          Gemini AI Connected • Real-time Sync
-        </p>
+
+        {/* User Card with Quick Lock */}
+        {user && (
+          <div className="p-2.5 rounded-2xl bg-zinc-100/80 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-white/[0.06] flex items-center justify-between gap-2">
+            <Link
+              href="/profile"
+              onClick={onClose}
+              className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-80 transition"
+              title="Kelola Jati Diri & Profil"
+            >
+              <div className="w-7 h-7 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 text-xs font-bold">
+                {user.first_name?.[0] || "A"}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                  {user.full_name || user.first_name}
+                </p>
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">
+                  @{user.username}
+                </p>
+              </div>
+            </Link>
+            <button
+              onClick={logout}
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-rose-400 hover:bg-rose-500/10 transition shrink-0"
+              title="Kunci / Logout Akun"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -6,9 +6,11 @@ import {
   AssetAllocation,
   PortfolioFxSummary,
   FxHoldingItem,
+  WalletHoldingBreakdown,
 } from "./portfolio.type";
 import * as marketService from "../market-data/market.service";
 import * as fxService from "../market-data/fx.service";
+import { formatTicker, detectAssetType } from "../../utils/stockHelper";
 
 export const getPrimaryPortfolioByUserId = async (
   userId: number
@@ -221,38 +223,57 @@ export const updateCashBalance = async (
 export const calculateRebalancePlan = async (
   portfolioId: number,
   freshCapital: number = 1000000,
-  strategy: string = "ALL_WEATHER",
-  customTargets?: Record<string, number>
+  strategy: string = "STATELESS_GLOBAL",
+  customTargets?: Record<string, number>,
+  userId: number = 1
 ): Promise<any> => {
-  const summary = await getPortfolioSummary(portfolioId);
+  let summary: PortfolioSummary;
+  if (!portfolioId || portfolioId === 0) {
+    summary = await getAggregatedPortfolioSummary(userId);
+  } else {
+    try {
+      summary = await getPortfolioSummary(portfolioId);
+    } catch {
+      summary = await getAggregatedPortfolioSummary(userId);
+    }
+  }
+
   const currentTotal = summary.total_net_worth || summary.total_market_value || 0;
   const projectedTotal = currentTotal + freshCapital;
 
-  // Preset Strategy Targets
+  // Preset Strategy Targets - Redesigned for Global Sovereign & Macro Resilient Portfolios
   const STRATEGIES: Record<string, { name: string; desc: string; targets: Record<string, number> }> = {
-    ALL_WEATHER: {
-      name: "All-Weather Seimbang (Ray Dalio & Bogle Style)",
-      desc: "Fokus pada kestabilan jangka panjang dengan diversifikasi global dominan, saham dividen, emas safe haven, dan porsi kripto terukur.",
-      targets: { ETF: 50, STOCK: 20, GOLD: 20, CRYPTO: 10 },
+    STATELESS_GLOBAL: {
+      name: "Stateless Global Macro (Anti-Fragile)",
+      desc: "Bebas risiko satu negara: 60% ETF Global VT (USD), 20% Emas (Safe Haven), 20% Bitcoin (BTC). 0% Saham Domestik.",
+      targets: { ETF: 60, GOLD: 20, CRYPTO: 20, STOCK: 0 },
     },
-    BALANCED_GROWTH: {
-      name: "Pertumbuhan Agresif Terukur (Balanced Growth)",
-      desc: "Menyeimbangkan pertumbuhan ETF Global dan Saham Bluechip dengan alokasi kripto 20% untuk potensi alpha.",
-      targets: { ETF: 40, STOCK: 30, CRYPTO: 20, GOLD: 10 },
+    ALL_WEATHER_GLOBAL: {
+      name: "Classic All-Weather Global (Ray Dalio Style)",
+      desc: "Tahan segala siklus ekonomi dunia: 50% ETF Global VT, 30% Emas Logam Mulia, 15% Bitcoin, 5% Saham Pilihan.",
+      targets: { ETF: 50, GOLD: 30, CRYPTO: 15, STOCK: 5 },
     },
-    CONSERVATIVE: {
-      name: "Defensif & Lindung Nilai (Conservative Capital Preservation)",
-      desc: "Memprioritaskan proteksi modal dengan porsi Emas/Kas dan ETF Global teratas serta kripto minimal.",
-      targets: { GOLD: 40, ETF: 35, STOCK: 20, CRYPTO: 5 },
+    HIGH_ALPHA_GLOBAL: {
+      name: "Aggressive Global Alpha (Maksimal Pertumbuhan)",
+      desc: "Akumulasi ekspansi kekayaan global: 55% ETF Global VT, 35% Bitcoin & Kripto, 10% Emas. 0% Saham Domestik.",
+      targets: { ETF: 55, CRYPTO: 35, GOLD: 10, STOCK: 0 },
     },
-    HIGH_ALPHA: {
-      name: "Akumulasi Kripto & Pertumbuhan Tinggi (High Alpha)",
-      desc: "Fokus pada aset berimbal hasil tinggi dengan alokasi kripto dominan namun tetap memiliki jangkar ETF global.",
-      targets: { CRYPTO: 45, ETF: 35, STOCK: 15, GOLD: 5 },
+    CAPITAL_DEFENSE: {
+      name: "Global Capital Preservation (Pelindung Modal)",
+      desc: "Prioritas lindung nilai kekayaan terhadap inflasi & krisis mata uang: 45% Emas Logam Mulia, 40% ETF Global VT, 10% Kripto, 5% Saham.",
+      targets: { GOLD: 45, ETF: 40, CRYPTO: 10, STOCK: 5 },
     },
   };
 
-  const selectedStrategy = STRATEGIES[strategy] || STRATEGIES.ALL_WEATHER;
+  // Backward compatibility alias:
+  const strategyAlias: Record<string, string> = {
+    BALANCED_GROWTH: "STATELESS_GLOBAL",
+    ALL_WEATHER: "ALL_WEATHER_GLOBAL",
+    HIGH_ALPHA: "HIGH_ALPHA_GLOBAL",
+    CONSERVATIVE: "CAPITAL_DEFENSE",
+  };
+  const resolvedStrategyKey = strategyAlias[strategy] || strategy;
+  const selectedStrategy = STRATEGIES[resolvedStrategyKey] || STRATEGIES.STATELESS_GLOBAL;
   const targetWeights = customTargets || selectedStrategy.targets;
 
   // Aggregate current values by Asset Class
@@ -270,19 +291,19 @@ export const calculateRebalancePlan = async (
   }
 
   // Calculate gaps and target amounts
-  const assetTypes = ["ETF", "STOCK", "GOLD", "CRYPTO"] as const;
+  const assetTypes = ["ETF", "GOLD", "CRYPTO", "STOCK"] as const;
   const representativeTickers: Record<string, string> = {
-    ETF: "VT (World ETF)",
-    STOCK: "BBCA / BBRI (Saham Bluechip)",
-    GOLD: "EMAS (Antam/UBS)",
-    CRYPTO: "BTC (Bitcoin)",
+    ETF: "VT (Vanguard Total World ETF / Pluang)",
+    GOLD: "EMAS (Emas Logam Mulia / Fisik / PAXG)",
+    CRYPTO: "BTC (Bitcoin Sovereign / Ajaib & Pluang)",
+    STOCK: "Saham IDX (0% Alokasi)",
   };
 
   const assetLabels: Record<string, string> = {
-    ETF: "ETF Global (VT / VOO)",
+    ETF: "ETF Global Dunia (VT)",
+    GOLD: "Emas Safe Haven (XAU)",
+    CRYPTO: "Kripto & Bitcoin (BTC)",
     STOCK: "Saham Domestik (IDX)",
-    GOLD: "Emas Logam Mulia (Safe Haven)",
-    CRYPTO: "Kripto (Crypto)",
   };
 
   // Find underweight classes and their deficit amounts
@@ -306,24 +327,39 @@ export const calculateRebalancePlan = async (
     const gapPct = targetPct - currentPct;
 
     let allocatedInflow = 0;
-    if (freshCapital > 0 && totalDeficit > 0 && deficits[type] > 0) {
-      allocatedInflow = (deficits[type] / totalDeficit) * freshCapital;
-    } else if (freshCapital > 0 && targetPct > 0) {
-      allocatedInflow = (targetPct / 100) * freshCapital;
+    if (targetPct > 0 && freshCapital > 0) {
+      if (totalDeficit > 0) {
+        if (deficits[type] > 0) {
+          allocatedInflow = (deficits[type] / totalDeficit) * freshCapital;
+        } else {
+          allocatedInflow = 0;
+        }
+      } else {
+        allocatedInflow = (targetPct / 100) * freshCapital;
+      }
     }
 
     const roundedInflow = Math.round(allocatedInflow);
     const allocatedInflowPct = freshCapital > 0 ? (roundedInflow / freshCapital) * 100 : 0;
 
     let status: "UNDERWEIGHT" | "BALANCED" | "OVERWEIGHT" = "BALANCED";
-    if (gapPct > 3) status = "UNDERWEIGHT";
-    else if (gapPct < -3) status = "OVERWEIGHT";
+    if (targetPct === 0) {
+      status = currentVal > 0 ? "OVERWEIGHT" : "BALANCED";
+    } else if (gapPct > 3) {
+      status = "UNDERWEIGHT";
+    } else if (gapPct < -3) {
+      status = "OVERWEIGHT";
+    }
 
     let recommended_action = `Pertahankan alokasi wajar.`;
-    if (roundedInflow > 0) {
+    if (targetPct === 0) {
+      recommended_action = currentVal > 0
+        ? `Target 0%: Jangan tambah modal baru (biarkan aset global berkembang).`
+        : `Target 0%: Diabaikan untuk menghindari risiko pasar domestik.`;
+    } else if (roundedInflow > 0) {
       recommended_action = `Beli ${representativeTickers[type]} senilai Rp ${roundedInflow.toLocaleString("id-ID")}`;
     } else if (status === "OVERWEIGHT") {
-      recommended_action = `Hold / Jangan tambah modal baru ke kelas ini (biarkan aset lain mengejar).`;
+      recommended_action = `Hold / Tahan (Porsi saat ini ${currentPct.toFixed(1)}% sudah melampaui target ${targetPct}%, alihkan belanja modal ke ETF & Emas).`;
     }
 
     return {
@@ -639,6 +675,7 @@ export interface PortfolioChartPoint {
 
 export interface PortfolioChartData {
   timeframe: string;
+  portfolio_id?: number;
   current_value: number;
   start_value: number;
   change_nominal: number;
@@ -716,30 +753,39 @@ export const getPortfolioChart = async (
 
     let val = cashBalance;
 
-    transactions.forEach((tx) => {
-      const txMs = new Date(tx.transaction_date).getTime();
-      if (txMs <= tMs) {
-        const initialAmount = Number(tx.total_amount || 0);
-        const holding = holdingMap.get(tx.ticker);
+    if (transactions.length > 0) {
+      transactions.forEach((tx) => {
+        const txMs = new Date(tx.transaction_date).getTime();
+        if (txMs <= tMs) {
+          const initialAmount = Number(tx.total_amount || 0);
+          const holding = holdingMap.get(tx.ticker);
 
-        if (!holding || !holding.quantity || holding.quantity <= 0) {
-          val += initialAmount;
-          return;
+          if (!holding || !holding.quantity || holding.quantity <= 0) {
+            val += initialAmount;
+            return;
+          }
+
+          const qty = Number(tx.quantity || tx.shares || 0);
+          const qtyRatio = Math.min(1, Math.max(0, qty / Number(holding.quantity)));
+          const finalHoldingVal = Number(holding.market_value_idr || holding.market_value || initialAmount);
+          const finalTxVal = finalHoldingVal * qtyRatio;
+
+          const duration = Math.max(1000, endMs - txMs);
+          const elapsed = Math.max(0, Math.min(duration, tMs - txMs));
+          const progress = elapsed / duration;
+
+          const txValAtT = initialAmount + (finalTxVal - initialAmount) * progress;
+          val += txValAtT;
         }
-
-        const qty = Number(tx.quantity || tx.shares || 0);
-        const qtyRatio = Math.min(1, Math.max(0, qty / Number(holding.quantity)));
-        const finalHoldingVal = Number(holding.market_value_idr || holding.market_value || initialAmount);
-        const finalTxVal = finalHoldingVal * qtyRatio;
-
-        const duration = Math.max(1000, endMs - txMs);
-        const elapsed = Math.max(0, Math.min(duration, tMs - txMs));
-        const progress = elapsed / duration;
-
-        const txValAtT = initialAmount + (finalTxVal - initialAmount) * progress;
-        val += txValAtT;
-      }
-    });
+      });
+    } else {
+      const baseStart = Number(summary?.total_invested || 0) > 0 
+        ? Number(summary?.total_invested || 0) + cashBalance 
+        : currentTotalVal;
+      const progress = stepCount > 1 ? i / (stepCount - 1) : 1;
+      const wobble = Math.sin(progress * Math.PI) * ((currentTotalVal - baseStart) * 0.08);
+      val = baseStart + (currentTotalVal - baseStart) * progress + wobble;
+    }
 
     if (i === stepCount - 1) {
       val = currentTotalVal;
@@ -772,6 +818,7 @@ export const getPortfolioChart = async (
 
   return {
     timeframe,
+    portfolio_id: portfolioId,
     current_value: endValue,
     start_value: startValue,
     change_nominal: changeNominal,
@@ -781,4 +828,453 @@ export const getPortfolioChart = async (
     updated_at: now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
     points,
   };
+};
+
+export const getAggregatedPortfolioChart = async (
+  userId: number = 1,
+  timeframe: string = "ALL"
+): Promise<PortfolioChartData> => {
+  const summary = await getAggregatedPortfolioSummary(userId);
+  const currentTotalVal = summary.total_net_worth || summary.total_market_value || 0;
+  const cashBalance = Number(summary.cash_balance) || 0;
+  const totalInvested = Number(summary.total_invested) || 0;
+
+  const txResult = await pool.query(
+    `SELECT t.* FROM stock_transactions t
+     JOIN portfolios p ON t.portfolio_id = p.id
+     WHERE p.user_id = $1
+     ORDER BY t.transaction_date ASC;`,
+    [userId]
+  );
+  const transactions = txResult.rows;
+
+  const now = new Date();
+  let startTime = new Date();
+  let stepCount = 30;
+
+  switch (timeframe) {
+    case "1W":
+      startTime.setDate(now.getDate() - 7);
+      stepCount = 14;
+      break;
+    case "1M":
+      startTime.setMonth(now.getMonth() - 1);
+      stepCount = 30;
+      break;
+    case "3M":
+      startTime.setMonth(now.getMonth() - 3);
+      stepCount = 35;
+      break;
+    case "YTD":
+      startTime = new Date(now.getFullYear(), 0, 1);
+      stepCount = 35;
+      break;
+    case "1Y":
+      startTime.setFullYear(now.getFullYear() - 1);
+      stepCount = 40;
+      break;
+    case "ALL":
+    default:
+      if (transactions.length > 0) {
+        startTime = new Date(transactions[0].transaction_date);
+      } else {
+        startTime.setDate(now.getDate() - 30);
+      }
+      stepCount = 35;
+      break;
+  }
+
+  const startMs = startTime.getTime();
+  const endMs = now.getTime();
+  const stepMs = Math.max(1000, (endMs - startMs) / Math.max(1, stepCount - 1));
+
+  const holdingMap = new Map<string, any>();
+  summary.holdings.forEach((h: any) => {
+    holdingMap.set(h.ticker, h);
+  });
+
+  const points: PortfolioChartPoint[] = [];
+
+  for (let i = 0; i < stepCount; i++) {
+    const tMs = i === stepCount - 1 ? endMs : startMs + i * stepMs;
+    const tDate = new Date(tMs);
+
+    let val = cashBalance;
+
+    if (transactions.length > 0) {
+      transactions.forEach((tx) => {
+        const txMs = new Date(tx.transaction_date).getTime();
+        if (txMs <= tMs) {
+          const initialAmount = Number(tx.total_amount || 0);
+          const holding = holdingMap.get(tx.ticker);
+
+          if (!holding || !holding.quantity || holding.quantity <= 0) {
+            val += initialAmount;
+            return;
+          }
+
+          const qty = Number(tx.quantity || tx.shares || 0);
+          const qtyRatio = Math.min(1, Math.max(0, qty / Number(holding.quantity)));
+          const finalHoldingVal = Number(holding.market_value_idr || holding.market_value || initialAmount);
+          const finalTxVal = finalHoldingVal * qtyRatio;
+
+          const duration = Math.max(1000, endMs - txMs);
+          const elapsed = Math.max(0, Math.min(duration, tMs - txMs));
+          const progress = elapsed / duration;
+
+          const txValAtT = initialAmount + (finalTxVal - initialAmount) * progress;
+          val += txValAtT;
+        }
+      });
+    } else {
+      const baseStart = totalInvested > 0 ? (totalInvested + cashBalance) : currentTotalVal;
+      const progress = stepCount > 1 ? i / (stepCount - 1) : 1;
+      const wobble = Math.sin(progress * Math.PI) * ((currentTotalVal - baseStart) * 0.08);
+      val = baseStart + (currentTotalVal - baseStart) * progress + wobble;
+    }
+
+    if (i === stepCount - 1) {
+      val = currentTotalVal;
+    }
+
+    points.push({
+      date: tDate.toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
+      timestamp: tMs,
+      value: Math.round(val),
+    });
+  }
+
+  const values = points.map((p) => p.value);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  let startValue = points[0]?.value || 0;
+  const endValue = points[points.length - 1]?.value || 0;
+
+  let changeNominal = endValue - startValue;
+  let changePercent = startValue > 0 ? Number(((changeNominal / startValue) * 100).toFixed(2)) : 0;
+
+  if (timeframe === "ALL" && totalInvested > 0) {
+    startValue = totalInvested;
+    changeNominal = endValue - totalInvested;
+    changePercent = Number(((changeNominal / totalInvested) * 100).toFixed(2));
+  }
+
+  return {
+    timeframe,
+    portfolio_id: 0,
+    current_value: Math.round(currentTotalVal),
+    start_value: Math.round(startValue),
+    change_nominal: Math.round(changeNominal),
+    change_percent: changePercent,
+    min_value: Math.round(minValue),
+    max_value: Math.round(maxValue),
+    updated_at: now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+    points,
+  };
+};
+
+export interface CalibrateHoldingInput {
+  holding_id?: number;
+  portfolio_id?: number;
+  target_portfolio_id?: number;
+  ticker?: string;
+  asset_type?: string;
+  quantity?: number;
+  total_invested_idr?: number;
+  avg_buy_price?: number;
+  delete_holding?: boolean;
+  current_value_idr?: number;
+  pnl_percent?: number;
+}
+
+export const getUserWallets = async (userId: number = 1) => {
+  const pResult = await pool.query(
+    "SELECT * FROM portfolios WHERE user_id = $1 ORDER BY id ASC;",
+    [userId]
+  );
+
+  const wallets = await Promise.all(
+    pResult.rows.map(async (row) => {
+      try {
+        const summary = await getPortfolioSummary(row.id);
+        return {
+          id: row.id,
+          user_id: row.user_id,
+          name: row.name,
+          cash_balance: summary.cash_balance,
+          total_invested: summary.total_invested,
+          total_market_value: summary.total_market_value,
+          total_net_worth: summary.total_net_worth,
+          floating_pnl: summary.total_floating_pnl,
+          floating_pnl_percent: summary.total_floating_pnl_percent,
+          holdings_count: summary.holdings_count,
+          created_at: row.created_at,
+          updated_at: row.updated_at,
+        };
+      } catch {
+        return {
+          id: row.id,
+          user_id: row.user_id,
+          name: row.name,
+          cash_balance: Number(row.cash_balance || 0),
+          total_invested: 0,
+          total_market_value: 0,
+          total_net_worth: Number(row.cash_balance || 0),
+          floating_pnl: 0,
+          floating_pnl_percent: 0,
+          holdings_count: 0,
+          created_at: row.created_at,
+          updated_at: row.updated_at,
+        };
+      }
+    })
+  );
+  return wallets;
+};
+
+export const createWallet = async (userId: number = 1, name: string, cashBalance: number = 0) => {
+  if (!name || name.trim().length === 0) {
+    throw new Error("Nama dompet tidak boleh kosong.");
+  }
+  const result = await pool.query(
+    "INSERT INTO portfolios (user_id, name, cash_balance) VALUES ($1, $2, $3) RETURNING *;",
+    [userId, name.trim(), cashBalance || 0]
+  );
+  return result.rows[0];
+};
+
+export const deleteWallet = async (walletId: number, userId: number = 1) => {
+  const countRes = await pool.query("SELECT COUNT(*) FROM portfolios WHERE user_id = $1;", [userId]);
+  if (Number(countRes.rows[0].count) <= 1) {
+    throw new Error("Tidak dapat menghapus dompet terakhir. Minimal harus memiliki satu dompet aktif.");
+  }
+  await pool.query("DELETE FROM portfolios WHERE id = $1 AND user_id = $2;", [walletId, userId]);
+  return { success: true, deleted_id: walletId };
+};
+
+export const getAggregatedPortfolioSummary = async (
+  userId: number = 1
+): Promise<PortfolioSummary> => {
+  const wallets = await getUserWallets(userId);
+  if (wallets.length === 0) {
+    const def = await getPrimaryPortfolioByUserId(userId);
+    return getPortfolioSummary(def.id);
+  }
+
+  let grandTotalInvested = 0;
+  let grandTotalMarketValue = 0;
+  let grandTotalCash = 0;
+  const allHoldings: PortfolioHolding[] = [];
+
+  for (const w of wallets) {
+    grandTotalCash += w.cash_balance;
+    const summary = await getPortfolioSummary(w.id);
+    for (const h of summary.holdings) {
+      allHoldings.push({
+        ...h,
+        portfolio_id: w.id,
+        portfolio_name: w.name,
+      });
+    }
+    grandTotalInvested += summary.total_invested;
+    grandTotalMarketValue += summary.total_market_value;
+  }
+
+  // Consolidate identical holdings across multiple wallets into single unified rows
+  const consolidatedMap: Record<string, any> = {};
+
+  for (const h of allHoldings) {
+    const key = `${h.ticker}-${h.asset_type || "STOCK"}`;
+    const itemBreakdown: WalletHoldingBreakdown = {
+      wallet_id: h.portfolio_id,
+      wallet_name: h.portfolio_name || "Portofolio Utama",
+      quantity: Number(h.quantity || h.total_shares || 0),
+      total_shares: Number(h.total_shares || 0),
+      total_lots: Number(h.total_lots || 0),
+      total_invested: Number(h.total_invested || 0),
+      total_invested_idr: Number(h.total_invested_idr || h.total_invested || 0),
+      market_value: Number(h.market_value || 0),
+      market_value_idr: Number(h.market_value_idr || 0),
+      floating_pnl: Number(h.floating_pnl || 0),
+      floating_pnl_percent: Number(h.floating_pnl_percent || 0),
+      avg_buy_price: Number(h.avg_buy_price || 0),
+    };
+
+    if (!consolidatedMap[key]) {
+      consolidatedMap[key] = {
+        ...h,
+        quantity: Number(h.quantity || h.total_shares || 0),
+        total_shares: Number(h.total_shares || 0),
+        total_lots: Number(h.total_lots || 0),
+        total_invested: Number(h.total_invested || 0),
+        total_invested_idr: Number(h.total_invested_idr || h.total_invested || 0),
+        market_value: Number(h.market_value || 0),
+        market_value_idr: Number(h.market_value_idr || 0),
+        floating_pnl: Number(h.floating_pnl || 0),
+        wallet_names: [h.portfolio_name || "Portofolio Utama"],
+        wallet_breakdown: [itemBreakdown],
+      };
+    } else {
+      const existing = consolidatedMap[key];
+      existing.quantity += Number(h.quantity || h.total_shares || 0);
+      existing.total_shares += Number(h.total_shares || 0);
+      existing.total_lots += Number(h.total_lots || 0);
+      existing.total_invested += Number(h.total_invested || 0);
+      existing.total_invested_idr += Number(h.total_invested_idr || h.total_invested || 0);
+      existing.market_value += Number(h.market_value || 0);
+      existing.market_value_idr += Number(h.market_value_idr || 0);
+      existing.floating_pnl += Number(h.floating_pnl || 0);
+      if (h.portfolio_name && !existing.wallet_names.includes(h.portfolio_name)) {
+        existing.wallet_names.push(h.portfolio_name);
+      }
+      existing.wallet_breakdown.push(itemBreakdown);
+    }
+  }
+
+  const consolidatedList = Object.values(consolidatedMap).map((c) => {
+    const inv = c.total_invested_idr || c.total_invested || 0;
+    const mv = c.market_value_idr || c.market_value || 0;
+    const diff = mv - inv;
+    const pnlPct = inv > 0 ? Number(((diff / inv) * 100).toFixed(2)) : 0;
+    const avgPrice = c.quantity > 0 ? inv / c.quantity : c.avg_buy_price;
+    return {
+      ...c,
+      avg_buy_price: avgPrice,
+      floating_pnl: diff,
+      floating_pnl_percent: pnlPct,
+      portfolio_name: c.wallet_names.join(", "),
+      wallet_breakdown: c.wallet_breakdown,
+    };
+  });
+
+  const grandTotalNetWorth = grandTotalMarketValue + grandTotalCash;
+  const grandTotalFloatingPnl = grandTotalMarketValue - grandTotalInvested;
+  const grandTotalFloatingPnlPercent = grandTotalInvested > 0
+    ? (grandTotalFloatingPnl / grandTotalInvested) * 100
+    : 0;
+
+  const holdingsWithWeights = consolidatedList.map((h) => {
+    const val = Number(h.market_value_idr || 0);
+    const weight = grandTotalMarketValue > 0 ? (val / grandTotalMarketValue) * 100 : 0;
+    return {
+      ...h,
+      weight_percent: Number(weight.toFixed(2)),
+    };
+  });
+
+  return {
+    portfolio_id: 0,
+    portfolio_name: "Semua Dompet (Total Konsolidasi)",
+    cash_balance: grandTotalCash,
+    total_invested: grandTotalInvested,
+    total_market_value: grandTotalMarketValue,
+    total_value: grandTotalMarketValue,
+    total_net_worth: grandTotalNetWorth,
+    total_floating_pnl: grandTotalFloatingPnl,
+    total_floating_pnl_percent: Number(grandTotalFloatingPnlPercent.toFixed(2)),
+    holdings_count: holdingsWithWeights.length,
+    holdings: holdingsWithWeights,
+    is_aggregated: true,
+    wallets,
+  };
+};
+
+export const calibrateHolding = async (input: CalibrateHoldingInput) => {
+  const portfolioId = input.target_portfolio_id || input.portfolio_id || 1;
+  let check: any = null;
+
+  if (input.holding_id) {
+    check = await pool.query(
+      "SELECT * FROM portfolio_holdings WHERE id = $1;",
+      [input.holding_id]
+    );
+  } else if (input.ticker) {
+    const rawTicker = input.ticker.trim().toUpperCase();
+    check = await pool.query(
+      `SELECT * FROM portfolio_holdings 
+       WHERE portfolio_id = $1 AND (ticker = $2 OR ticker ILIKE $3 || '%' OR ticker ILIKE '%' || $3)
+       LIMIT 1;`,
+      [portfolioId, rawTicker, rawTicker]
+    );
+  }
+
+  const current = check?.rows?.[0];
+
+  if (current && (input.delete_holding || (input.quantity !== undefined && Number(input.quantity) <= 0))) {
+    await pool.query("DELETE FROM portfolio_holdings WHERE id = $1", [current.id]);
+    return { deleted: true, id: current.id, ticker: current.ticker };
+  }
+
+  let rawTicker = (input.ticker || current?.ticker || "").trim().toUpperCase();
+  if (!rawTicker && !current) {
+    throw new Error("Simbol / Ticker aset wajib disertakan.");
+  }
+
+  // Auto-clean any accidental -USD suffix for ETFs or US Stocks
+  if (rawTicker.endsWith("-USD")) {
+    const base = rawTicker.replace(/-USD$/, "");
+    if (["VT", "VOO", "VTI", "SPY", "QQQ", "IVV", "SCHD"].includes(base)) {
+      rawTicker = base;
+    }
+  }
+
+  const isKnownEtf = ["VT", "VOO", "VTI", "SPY", "QQQ", "IVV", "SCHD"].includes(rawTicker);
+  const assetType = isKnownEtf ? "ETF" : ((input.asset_type && input.asset_type !== "CRYPTO" ? input.asset_type : detectAssetType(rawTicker)) as any);
+  const formattedTicker = isKnownEtf ? rawTicker : formatTicker(rawTicker, assetType);
+
+  let qty = input.quantity !== undefined && Number(input.quantity) > 0 ? Number(input.quantity) : Number(current?.quantity || current?.total_shares || 0);
+  let totalInvested = input.total_invested_idr !== undefined ? Number(input.total_invested_idr) : Number(current?.total_invested || 0);
+
+  // Smart PnL% Auto-Calculation (Uang Saat Ini + PnL %)
+  if (input.current_value_idr !== undefined && input.pnl_percent !== undefined) {
+    const pnlPct = Number(input.pnl_percent);
+    const curVal = Number(input.current_value_idr);
+    const calculatedInvested = pnlPct !== -100 ? curVal / (1 + pnlPct / 100) : curVal;
+    totalInvested = Math.round(calculatedInvested);
+
+    if (!input.quantity || Number(input.quantity) <= 0 || (current && Number(current.avg_buy_price) <= 1)) {
+      try {
+        const quote = await marketService.getStockQuote(formattedTicker, assetType);
+        const fxRate = await fxService.getUsdIdrRate();
+        const rawPrice = Number(quote.regularMarketPrice) || Number(current?.avg_buy_price || 0);
+        const isUSD = formattedTicker.includes("-USD") || assetType === "CRYPTO" || assetType === "ETF";
+        const priceIdr = isUSD ? rawPrice * fxRate : rawPrice;
+        if (priceIdr > 0) {
+          qty = Number((curVal / priceIdr).toFixed(8));
+        }
+      } catch {
+        // fallback
+      }
+    }
+  }
+
+  if (qty <= 0) {
+    qty = 1;
+  }
+
+  const avgPrice = input.avg_buy_price !== undefined ? Number(input.avg_buy_price) : (qty > 0 ? Math.round(totalInvested / qty) : Number(current?.avg_buy_price || 0));
+
+  const totalShares = assetType === "STOCK" ? qty : 0;
+  const totalLots = assetType === "STOCK" ? Number((qty / 100).toFixed(2)) : 0;
+  const targetPid = input.target_portfolio_id ? Number(input.target_portfolio_id) : (current ? current.portfolio_id : portfolioId);
+
+  if (current) {
+    const result = await pool.query(
+      `UPDATE portfolio_holdings
+       SET portfolio_id = $1, ticker = $2, asset_type = $3, quantity = $4, total_shares = $5, total_lots = $6, total_invested = $7, avg_buy_price = $8, currency = 'IDR', updated_at = NOW()
+       WHERE id = $9
+       RETURNING *;`,
+      [targetPid, formattedTicker, assetType, qty, totalShares, totalLots, totalInvested, avgPrice, current.id]
+    );
+    return result.rows[0];
+  } else {
+    const result = await pool.query(
+      `INSERT INTO portfolio_holdings
+       (portfolio_id, ticker, asset_type, quantity, total_shares, total_lots, avg_buy_price, total_invested, currency, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'IDR', NOW())
+       RETURNING *;`,
+      [targetPid, formattedTicker, assetType, qty, totalShares, totalLots, avgPrice, totalInvested]
+    );
+    return result.rows[0];
+  }
 };
