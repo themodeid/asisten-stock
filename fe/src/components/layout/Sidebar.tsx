@@ -21,8 +21,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 
 export const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Portofolio", href: "/portfolio", icon: PieChart },
+  { name: "Portofolio", href: "/portfolio", icon: LayoutDashboard },
   { name: "Riwayat Transaksi", href: "/transactions", icon: History },
   { name: "AI Analyst", href: "/analytics", icon: TrendingUp },
   { name: "Berita & Sentimen", href: "/news", icon: Newspaper },
@@ -91,7 +90,8 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           {navigation.map((item) => {
             const isActive =
               pathname === item.href ||
-              (item.href !== "/dashboard" && pathname?.startsWith(item.href));
+              (item.href === "/portfolio" && pathname === "/") ||
+              (item.href !== "/portfolio" && pathname?.startsWith(item.href));
             const Icon = item.icon;
             return (
               <Link

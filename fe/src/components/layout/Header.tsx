@@ -1,9 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, Search, User, Sun, Moon, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
+import GlobalSearchModal from "@/components/search/GlobalSearchModal";
 
 interface HeaderProps {
   title?: string;
@@ -13,6 +15,19 @@ interface HeaderProps {
 export default function Header({ title = "Asisten Stock & Crypto", onMenuClick }: HeaderProps) {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Global Cmd+K / Ctrl+K keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleOpenMenu = () => {
     if (onMenuClick) {
@@ -37,42 +52,43 @@ export default function Header({ title = "Asisten Stock & Crypto", onMenuClick }
         </button>
 
         {/* Brand indicator on small screens */}
-        <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-2.5 min-w-0 max-w-full">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 font-black text-zinc-950 text-xs flex items-center justify-center lg:hidden shrink-0 shadow-sm shadow-emerald-500/30">
-            JS
+            AS
           </div>
-          <div>
-            <h2 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 truncate tracking-tight">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xs sm:text-sm md:text-base font-bold text-zinc-900 dark:text-zinc-100 truncate tracking-tight max-w-[150px] sm:max-w-[220px] md:max-w-[320px] lg:max-w-none">
               {title}
             </h2>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3.5 shrink-0">
-        {/* Search bar with shortcut pill */}
-        <div className="relative hidden md:block">
+      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Search trigger button with shortcut pill - visible on lg+ desktop */}
+        <button
+          type="button"
+          onClick={() => setIsSearchOpen(true)}
+          className="relative hidden lg:flex items-center bg-zinc-100 dark:bg-zinc-900/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-850 border border-zinc-200 dark:border-white/[0.08] text-zinc-500 dark:text-zinc-400 text-xs rounded-xl pl-8 pr-12 py-1.5 w-48 xl:w-64 transition text-left cursor-pointer select-none"
+        >
           <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Cari emiten, koin, ETF..."
-            className="bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/[0.08] text-zinc-800 dark:text-zinc-200 text-xs rounded-xl pl-8 pr-12 py-1.5 focus:outline-none focus:border-emerald-500/50 w-48 lg:w-60 transition placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
-          />
+          <span className="truncate">Cari emiten US, IDX, koin...</span>
           <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 text-[10px] text-zinc-500 dark:text-zinc-400 font-mono">
             ⌘K
           </kbd>
-        </div>
+        </button>
 
-        {/* Live Market Pulse Badge */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200/80 dark:border-white/[0.06] text-xs font-medium shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50" />
-          <span className="text-zinc-700 dark:text-zinc-300 text-[11px] font-medium hidden md:inline">
-            Live IDX & Kripto 24/7
-          </span>
-          <span className="text-zinc-700 dark:text-zinc-300 text-[11px] font-medium md:hidden">
-            Live
-          </span>
-        </div>
+        {/* Mobile / Tablet Search Trigger Icon */}
+        <button
+          type="button"
+          onClick={() => setIsSearchOpen(true)}
+          className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200/80 dark:border-white/[0.06] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 lg:hidden transition"
+          title="Cari Saham & Aset Global"
+          aria-label="Cari Saham & Aset Global"
+        >
+          <Search className="w-4 h-4" />
+        </button>
+
 
         {/* Theme Toggle Button */}
         <button
@@ -104,6 +120,12 @@ export default function Header({ title = "Asisten Stock & Crypto", onMenuClick }
           </Link>
         </div>
       </div>
+
+      {/* Global Command Palette / Search Dialog */}
+      <GlobalSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
     </header>
   );
 }

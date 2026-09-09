@@ -1,5 +1,5 @@
 import { pool } from "../../config/database";
-import { formatTicker } from "../../utils/stockHelper";
+import { formatTicker, detectAssetType } from "../../utils/stockHelper";
 import { WatchlistItem, PriceAlert } from "./alert.type";
 import * as marketService from "../market-data/market.service";
 
@@ -16,17 +16,22 @@ export const getWatchlistByUserId = async (
       let currentPrice = 0;
       let dayChange = 0;
       let name = row.ticker;
+      let currency = row.currency || (row.ticker.endsWith(".JK") || row.ticker.endsWith(".IDR") ? "IDR" : "USD");
+      let assetType = row.asset_type || detectAssetType(row.ticker);
       try {
-        const quote = await marketService.getStockQuote(row.ticker);
+        const quote = await marketService.getStockQuote(row.ticker, assetType);
         currentPrice = quote.regularMarketPrice;
         dayChange = quote.regularMarketChangePercent;
         name = quote.name;
+        if (quote.currency) currency = quote.currency;
       } catch {}
       return {
         ...row,
         current_price: currentPrice,
         day_change_percent: dayChange,
         company_name: name,
+        asset_type: assetType,
+        currency,
       };
     })
   );
@@ -42,13 +47,21 @@ export const addToWatchlist = async (
   notes?: string
 ): Promise<WatchlistItem> => {
   const formatted = formatTicker(ticker);
+  const detectedType = detectAssetType(formatted);
+  let detectedCurrency = formatted.endsWith(".JK") || formatted.endsWith(".IDR") ? "IDR" : "USD";
+
+  try {
+    const q = await marketService.getStockQuote(formatted, detectedType);
+    if (q && q.currency) detectedCurrency = q.currency;
+  } catch {}
+
   const { rows } = await pool.query(
-    `INSERT INTO watchlists (user_id, ticker, target_buy_price, target_sell_price, notes)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO watchlists (user_id, ticker, target_buy_price, target_sell_price, notes, asset_type, currency)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (user_id, ticker) 
-     DO UPDATE SET target_buy_price = EXCLUDED.target_buy_price, target_sell_price = EXCLUDED.target_sell_price, notes = EXCLUDED.notes
+     DO UPDATE SET target_buy_price = EXCLUDED.target_buy_price, target_sell_price = EXCLUDED.target_sell_price, notes = EXCLUDED.notes, asset_type = EXCLUDED.asset_type, currency = EXCLUDED.currency
      RETURNING *;`,
-    [userId, formatted, targetBuy || null, targetSell || null, notes || null]
+    [userId, formatted, targetBuy || null, targetSell || null, notes || null, detectedType, detectedCurrency]
   );
   return rows[0];
 };

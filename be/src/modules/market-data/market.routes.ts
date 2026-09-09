@@ -49,4 +49,14 @@ router.get("/quote/:ticker", marketController.getQuote);
  */
 router.get("/fx-rate", marketController.handleGetFxRate);
 
+/**
+ * @openapi
+ * /market/search:
+ *   get:
+ *     summary: Pencarian emiten global (US, IDX, Crypto, Global ETF)
+ *     tags:
+ *       - Market Data
+ */
+router.get("/search", marketController.searchMarket);
+
 export default router;

@@ -9,7 +9,11 @@ const US_ETFS = new Set([
 ]);
 
 const US_STOCKS = new Set([
-  "AAPL", "NVDA", "TSLA", "MSFT", "GOOGL", "GOOG", "AMZN", "META", "AMD", "NFLX", "INTC", "PLTR", "COIN", "MSTR", "BABA", "TSM"
+  "AAPL", "NVDA", "TSLA", "MSFT", "GOOGL", "GOOG", "AMZN", "META", "AMD", "NFLX",
+  "INTC", "PLTR", "COIN", "MSTR", "BABA", "TSM", "KO", "DIS", "BA", "NKE", "COST",
+  "PYPL", "UBER", "ABNB", "ARM", "SMCI", "JNJ", "JPM", "V", "MA", "WMT", "PG",
+  "XOM", "CVX", "LLY", "AVGO", "ORCL", "CRM", "ADBE", "PEP", "MCD", "CSCO", "TXN",
+  "QCOM", "IBM", "UNH", "HD", "BAC", "GE", "CAT", "SBUX", "PANW", "SNOW", "NOW"
 ]);
 
 const GOLD_KEYWORDS = new Set(["EMAS", "GOLD", "ANTAM", "UBS", "XAU"]);

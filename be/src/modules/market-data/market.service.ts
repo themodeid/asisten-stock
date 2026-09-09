@@ -788,3 +788,128 @@ export const getMultipleQuotes = async (tickers: string[]): Promise<Record<strin
   );
   return result;
 };
+
+export interface MarketSearchResult {
+  ticker: string;
+  name: string;
+  market: "US" | "IDX" | "CRYPTO" | "GLOBAL_ETF";
+  asset_type: string;
+  currency: string;
+  price?: number;
+  change_percent?: number;
+}
+
+const GLOBAL_SEARCH_DIRECTORY: MarketSearchResult[] = [
+  // Saham AS (US Blue-Chips & Tech)
+  { ticker: "AAPL", name: "Apple Inc.", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "NVDA", name: "NVIDIA Corporation", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "TSLA", name: "Tesla, Inc.", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "MSFT", name: "Microsoft Corporation", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "GOOGL", name: "Alphabet Inc. (Google)", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "AMZN", name: "Amazon.com, Inc.", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "META", name: "Meta Platforms Inc. (Facebook)", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "AMD", name: "Advanced Micro Devices", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "NFLX", name: "Netflix, Inc.", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "PLTR", name: "Palantir Technologies", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "COIN", name: "Coinbase Global, Inc.", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "KO", name: "The Coca-Cola Company", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "DIS", name: "The Walt Disney Company", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "COST", name: "Costco Wholesale Corp.", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "NKE", name: "NIKE, Inc.", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "BA", name: "The Boeing Company", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "BABA", name: "Alibaba Group Holding", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "TSM", name: "Taiwan Semiconductor (TSMC)", market: "US", asset_type: "STOCK", currency: "USD" },
+  { ticker: "MSTR", name: "MicroStrategy Inc.", market: "US", asset_type: "STOCK", currency: "USD" },
+  // Global ETF
+  { ticker: "VT", name: "Vanguard Total World Stock ETF", market: "GLOBAL_ETF", asset_type: "ETF", currency: "USD" },
+  { ticker: "VOO", name: "Vanguard S&P 500 ETF", market: "GLOBAL_ETF", asset_type: "ETF", currency: "USD" },
+  { ticker: "SPY", name: "SPDR S&P 500 ETF Trust", market: "GLOBAL_ETF", asset_type: "ETF", currency: "USD" },
+  { ticker: "QQQ", name: "Invesco QQQ (Nasdaq 100)", market: "GLOBAL_ETF", asset_type: "ETF", currency: "USD" },
+  { ticker: "SCHD", name: "Schwab U.S. Dividend Equity ETF", market: "GLOBAL_ETF", asset_type: "ETF", currency: "USD" },
+  { ticker: "GLD", name: "SPDR Gold Shares ETF", market: "GLOBAL_ETF", asset_type: "ETF", currency: "USD" },
+  // Kripto
+  { ticker: "BTC-USD", name: "Bitcoin", market: "CRYPTO", asset_type: "CRYPTO", currency: "USD" },
+  { ticker: "ETH-USD", name: "Ethereum", market: "CRYPTO", asset_type: "CRYPTO", currency: "USD" },
+  { ticker: "SOL-USD", name: "Solana", market: "CRYPTO", asset_type: "CRYPTO", currency: "USD" },
+  { ticker: "BNB-USD", name: "BNB (Binance Coin)", market: "CRYPTO", asset_type: "CRYPTO", currency: "USD" },
+  { ticker: "XRP-USD", name: "XRP Ripple", market: "CRYPTO", asset_type: "CRYPTO", currency: "USD" },
+  { ticker: "USDT-USD", name: "Tether USD", market: "CRYPTO", asset_type: "CRYPTO", currency: "USD" },
+  // Saham Indonesia (IDX)
+  { ticker: "BBCA.JK", name: "Bank Central Asia Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+  { ticker: "BBRI.JK", name: "Bank Rakyat Indonesia Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+  { ticker: "BMRI.JK", name: "Bank Mandiri Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+  { ticker: "BBNI.JK", name: "Bank Negara Indonesia Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+  { ticker: "TLKM.JK", name: "Telkom Indonesia Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+  { ticker: "ASII.JK", name: "Astra International Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+  { ticker: "GOTO.JK", name: "GoTo Gojek Tokopedia Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+  { ticker: "ANTM.JK", name: "Aneka Tambang Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+  { ticker: "ICBP.JK", name: "Indofood CBP Sukses Makmur Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+  { ticker: "UNVR.JK", name: "Unilever Indonesia Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+  { ticker: "AMMN.JK", name: "Amman Mineral Internasional Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+  { ticker: "BREN.JK", name: "Barito Renewables Energy Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+];
+
+export const searchMarket = async (query: string): Promise<MarketSearchResult[]> => {
+  const cleanQ = query.trim().toUpperCase();
+  if (!cleanQ) {
+    // Return top popular mixed assets
+    const sample = GLOBAL_SEARCH_DIRECTORY.slice(0, 8);
+    return await enrichSearchResults(sample);
+  }
+
+  // 1. Search in local directory
+  const matched = GLOBAL_SEARCH_DIRECTORY.filter((item) => {
+    return (
+      item.ticker.toUpperCase().includes(cleanQ) ||
+      item.name.toUpperCase().includes(cleanQ) ||
+      (cleanQ === "BITCOIN" && item.ticker.startsWith("BTC")) ||
+      (cleanQ === "APPLE" && item.ticker === "AAPL") ||
+      (cleanQ === "TESLA" && item.ticker === "TSLA") ||
+      (cleanQ === "GOOGLE" && item.ticker === "GOOGL") ||
+      (cleanQ === "NVIDIA" && item.ticker === "NVDA")
+    );
+  });
+
+  // 2. If no direct matches and user typed a plausible ticker symbol, attempt live quote
+  if (matched.length === 0 && cleanQ.length >= 1 && cleanQ.length <= 10) {
+    try {
+      const q = await getStockQuote(cleanQ);
+      if (q && q.name) {
+        const isIdx = q.currency === "IDR" || q.ticker.endsWith(".JK");
+        const isCrypto = q.ticker.includes("-USD");
+        matched.push({
+          ticker: q.ticker,
+          name: q.name,
+          market: isIdx ? "IDX" : (isCrypto ? "CRYPTO" : "US"),
+          asset_type: isCrypto ? "CRYPTO" : "STOCK",
+          currency: q.currency || (isIdx ? "IDR" : "USD"),
+          price: q.regularMarketPrice,
+          change_percent: q.regularMarketChangePercent,
+        });
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return await enrichSearchResults(matched.slice(0, 10));
+};
+
+async function enrichSearchResults(items: MarketSearchResult[]): Promise<MarketSearchResult[]> {
+  return await Promise.all(
+    items.map(async (item) => {
+      try {
+        const q = await getStockQuote(item.ticker, item.asset_type as any);
+        return {
+          ...item,
+          price: q.regularMarketPrice,
+          change_percent: q.regularMarketChangePercent,
+          currency: q.currency || item.currency,
+        };
+      } catch {
+        return item;
+      }
+    })
+  );
+}
+

@@ -18,10 +18,10 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // If already authenticated, redirect to dashboard
+  // If already authenticated, redirect to portfolio
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      router.replace("/dashboard");
+      router.replace("/portfolio");
     }
   }, [authLoading, isAuthenticated, router]);
 
@@ -38,7 +38,7 @@ export default function LoginPage() {
     try {
       const res = await login(username.trim(), password);
       if (res.success) {
-        router.push("/dashboard");
+        router.push("/portfolio");
       } else {
         setErrorMsg(res.message || "Akses ditolak. Kredensial tidak valid.");
       }

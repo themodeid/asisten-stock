@@ -1086,6 +1086,7 @@ export const getAggregatedPortfolioSummary = async (
   for (const h of allHoldings) {
     const key = `${h.ticker}-${h.asset_type || "STOCK"}`;
     const itemBreakdown: WalletHoldingBreakdown = {
+      holding_id: h.id,
       wallet_id: h.portfolio_id,
       wallet_name: h.portfolio_name || "Portofolio Utama",
       quantity: Number(h.quantity || h.total_shares || 0),

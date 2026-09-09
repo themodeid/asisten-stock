@@ -32,6 +32,11 @@ const DEFAULT_SCAN_TICKERS = [
   { ticker: "ICBP", asset_type: "STOCK" as AssetType, name: "Indofood CBP Sukses Makmur" },
   { ticker: "UNVR", asset_type: "STOCK" as AssetType, name: "Unilever Indonesia" },
   { ticker: "ITMG", asset_type: "STOCK" as AssetType, name: "Indo Tambangraya Megah" },
+  // Saham AS (US Blue-Chips)
+  { ticker: "NVDA", asset_type: "STOCK" as AssetType, name: "NVIDIA Corporation" },
+  { ticker: "AAPL", asset_type: "STOCK" as AssetType, name: "Apple Inc." },
+  { ticker: "TSLA", asset_type: "STOCK" as AssetType, name: "Tesla, Inc." },
+  { ticker: "MSFT", asset_type: "STOCK" as AssetType, name: "Microsoft Corporation" },
   // Global ETF
   { ticker: "VT", asset_type: "ETF" as AssetType, name: "Vanguard Total World Stock ETF" },
   { ticker: "VOO", asset_type: "ETF" as AssetType, name: "Vanguard S&P 500 ETF" },

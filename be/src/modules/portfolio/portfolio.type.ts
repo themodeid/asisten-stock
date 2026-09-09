@@ -35,6 +35,7 @@ export interface PortfolioHolding {
 }
 
 export interface WalletHoldingBreakdown {
+  holding_id?: number;
   wallet_id: number;
   wallet_name: string;
   quantity: number;

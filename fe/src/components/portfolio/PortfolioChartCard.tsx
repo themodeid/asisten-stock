@@ -26,6 +26,9 @@ interface PortfolioChartCardProps {
   totalInvested?: number;
   cashBalance?: number;
   holdings?: any[];
+  isPrivate?: boolean;
+  headerRightSlot?: React.ReactNode;
+  quickActionsSlot?: React.ReactNode;
 }
 
 export default function PortfolioChartCard({
@@ -34,6 +37,9 @@ export default function PortfolioChartCard({
   totalInvested,
   cashBalance,
   holdings,
+  isPrivate = false,
+  headerRightSlot,
+  quickActionsSlot,
 }: PortfolioChartCardProps) {
   const [timeframe, setTimeframe] = useState<TimeframeOption>("ALL");
   const [chartData, setChartData] = useState<any>(null);
@@ -102,7 +108,7 @@ export default function PortfolioChartCard({
     maxPoint: AnchorPoint | null;
     renderedPoints: RenderedPoint[];
   }>(() => {
-    if (points.length < 2) {
+    if (points.length === 0) {
       return { pathD: "", areaD: "", minPoint: null, maxPoint: null, renderedPoints: [] };
     }
 
@@ -110,6 +116,24 @@ export default function PortfolioChartCard({
     const H = 220;
     const padX = 16;
     const padY = 32;
+
+    if (points.length === 1) {
+      const p = points[0];
+      const y = H / 2;
+      const coords: RenderedPoint[] = [
+        { x: padX, y, point: p },
+        { x: W - padX, y, point: p },
+      ];
+      const d = `M ${padX} ${y} L ${W - padX} ${y}`;
+      const area = `${d} L ${W - padX} ${H} L ${padX} ${H} Z`;
+      return {
+        pathD: d,
+        areaD: area,
+        minPoint: { x: W / 2, y, val: p.value, date: p.date },
+        maxPoint: null,
+        renderedPoints: coords,
+      };
+    }
 
     const values = points.map((p) => p.value);
     const minVal = Math.min(...values);
@@ -216,7 +240,7 @@ export default function PortfolioChartCard({
   return (
     <div className="bg-black text-white rounded-2xl p-5 md:p-6 border border-zinc-850 shadow-2xl space-y-4 select-none">
       {/* 1. Header Label & Updated Clock */}
-      <div className="flex items-center justify-between text-xs">
+      <div className="flex items-center justify-between text-xs gap-3">
         <div className="flex items-center gap-2">
           <span className="text-zinc-400 font-semibold tracking-wide">Nilai Portofolio</span>
           <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full font-medium">
@@ -224,28 +248,33 @@ export default function PortfolioChartCard({
             Live 1 mnt
           </span>
         </div>
-        <span className="text-zinc-400 font-mono text-[11px]">
-          Diperbarui {chartData?.updated_at || lastUpdated}
-        </span>
+        <div className="flex items-center gap-2">
+          {headerRightSlot}
+          <span className="text-zinc-400 font-mono text-[11px] hidden sm:inline">
+            Diperbarui {chartData?.updated_at || lastUpdated}
+          </span>
+        </div>
       </div>
 
       {/* 2. Big Live Amount & Profit/Loss Subtitle */}
-      <div className="space-y-1">
-        <div className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white break-words">
-          {formatIDR(displayValue)}
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
-          <span className={`flex items-center gap-0.5 font-bold ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
-            {isPositive ? (
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            ) : (
-              <ArrowDownRight className="w-3.5 h-3.5" />
-            )}
-            {formattedNominal} ({formattedPercent})
-          </span>
-          <span className="text-zinc-400 font-normal">
-            {hoveredPoint ? `• ${hoveredPoint.date}` : timeframe === "ALL" ? "Semua" : timeframe}
-          </span>
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <div className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white break-words">
+            {isPrivate ? "Rp ••••••••" : formatIDR(displayValue)}
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+            <span className={`flex items-center gap-0.5 font-bold ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
+              {isPositive ? (
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              ) : (
+                <ArrowDownRight className="w-3.5 h-3.5" />
+              )}
+              {isPrivate ? "••••" : `${formattedNominal} (${formattedPercent})`}
+            </span>
+            <span className="text-zinc-400 font-normal">
+              {hoveredPoint ? `• ${hoveredPoint.date}` : timeframe === "ALL" ? "Semua" : timeframe}
+            </span>
+          </div>
         </div>
 
         {/* Real asset breakdown indicator on hover */}
@@ -256,6 +285,13 @@ export default function PortfolioChartCard({
             <span>VT: <strong className="text-emerald-400 font-semibold">{formatIDR(hoveredPoint.vt_value || 0)}</strong></span>
             <span className="text-zinc-600">•</span>
             <span>USDT: <strong className="text-cyan-400 font-semibold">{formatIDR(hoveredPoint.usdt_value || 0)}</strong></span>
+          </div>
+        )}
+
+        {/* Quick Actions Slot (Opsi 2: Action bar di bawah angka saldo) */}
+        {quickActionsSlot && (
+          <div className="pt-1">
+            {quickActionsSlot}
           </div>
         )}
       </div>
@@ -345,7 +381,7 @@ export default function PortfolioChartCard({
                 textAnchor="middle"
                 className="select-none font-mono"
               >
-                {formatIDR(maxPoint.val)}
+                {isPrivate ? "••••" : formatIDR(maxPoint.val)}
               </text>
             </g>
           )}
@@ -362,7 +398,7 @@ export default function PortfolioChartCard({
                 textAnchor="middle"
                 className="select-none font-mono"
               >
-                {formatIDR(minPoint.val)}
+                {isPrivate ? "••••" : formatIDR(minPoint.val)}
               </text>
             </g>
           )}
@@ -444,7 +480,7 @@ export default function PortfolioChartCard({
 
           <div className="flex items-center gap-2">
             <span className="font-bold text-white text-sm">
-              {formatIDR(displayValue)}
+              {isPrivate ? "Rp ••••••••" : formatIDR(displayValue)}
             </span>
             {isDetailsOpen ? (
               <ChevronUp className="w-4 h-4 text-zinc-400" />
@@ -459,18 +495,9 @@ export default function PortfolioChartCard({
             <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800/70 flex items-center justify-between text-xs">
               <span className="text-zinc-400">Jumlah Investasi</span>
               <span className="font-bold text-zinc-200">
-                {formatIDR(totalInvested || 2589827)}
+                {isPrivate ? "••••" : formatIDR(totalInvested || 0)}
               </span>
             </div>
-
-            {cashBalance !== undefined && (
-              <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800/70 flex items-center justify-between text-xs">
-                <span className="text-zinc-400">Kas Tersedia di RDN</span>
-                <span className="font-bold text-emerald-400">
-                  {formatIDR(cashBalance)}
-                </span>
-              </div>
-            )}
           </div>
         )}
       </div>

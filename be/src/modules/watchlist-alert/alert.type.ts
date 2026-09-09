@@ -10,6 +10,8 @@ export interface WatchlistItem {
   current_price?: number;
   day_change_percent?: number;
   company_name?: string;
+  asset_type?: string;
+  currency?: string;
 }
 
 export interface PriceAlert {

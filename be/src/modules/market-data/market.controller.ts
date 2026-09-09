@@ -46,3 +46,18 @@ export const handleGetFxRate = async (
     next(error);
   }
 };
+
+export const searchMarket = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const q = (req.query.q as string) || "";
+    const results = await marketService.searchMarket(q);
+    return successResponse(res, results, "Market search results");
+  } catch (error: any) {
+    next(error);
+  }
+};
+

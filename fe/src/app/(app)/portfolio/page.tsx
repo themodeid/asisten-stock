@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useFxRate } from "@/services/fxRate";
 import Header from "@/components/layout/Header";
@@ -41,14 +41,25 @@ import {
   Building2,
   ExternalLink,
   ArrowRight,
+  Eye,
+  EyeOff,
+  MoreVertical,
 } from "lucide-react";
 import { AssetType } from "@/types";
 import PortfolioChartCard from "@/components/portfolio/PortfolioChartCard";
+import PluangAssetDonutChart from "@/components/portfolio/PluangAssetDonutChart";
+import PluangProfitLossChart from "@/components/portfolio/PluangProfitLossChart";
+import PluangAssetRow from "@/components/portfolio/PluangAssetRow";
+import PortfolioHealthCard from "@/components/portfolio/PortfolioHealthCard";
 
 export default function PortfolioPage() {
   const { user } = useAuth();
   const { rate: fxRate } = useFxRate();
   const [mainTab, setMainTab] = useState<"HOLDINGS" | "FX" | "REBALANCE" | "TAX" | "HEALTH" | "DIVIDENDS">("HOLDINGS");
+  const [pluangPrimaryTab, setPluangPrimaryTab] = useState<"RINGKASAN" | "ASET" | "POCKET">("RINGKASAN");
+  const [isBalancePrivate, setIsBalancePrivate] = useState<boolean>(false);
+  const [pluangAssetFilter, setPluangAssetFilter] = useState<"ALL" | "CRYPTO" | "SAHAM_AS" | "GOLD" | "STOCK">("ALL");
+  const [pocketSubTab, setPocketSubTab] = useState<"REBALANCE" | "TAX" | "HEALTH" | "DIVIDENDS">("REBALANCE");
   const [portfolio, setPortfolio] = useState<any>(null);
   const [healthData, setHealthData] = useState<any>(null);
   const [dividendData, setDividendData] = useState<any>(null);
@@ -61,16 +72,20 @@ export default function PortfolioPage() {
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
   const [isOcrModalOpen, setIsOcrModalOpen] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
 
   // Form state for manual transaction
   const [assetType, setAssetType] = useState<AssetType>("STOCK");
   const [ticker, setTicker] = useState("");
   const [type, setType] = useState<"BUY" | "SELL">("BUY");
+  const [txInputMode, setTxInputMode] = useState<"NOMINAL" | "UNIT">("NOMINAL");
+  const [txNominalAmount, setTxNominalAmount] = useState("");
   const [quantity, setQuantity] = useState("");
   const [price, setPrice] = useState("");
   const [currency, setCurrency] = useState<"IDR" | "USD">("IDR");
   const [notes, setNotes] = useState("");
   const [txDate, setTxDate] = useState(new Date().toISOString().slice(0, 16));
+  const [txTargetWalletId, setTxTargetWalletId] = useState<number>(1);
   const [submitting, setSubmitting] = useState(false);
 
   // OCR state
@@ -486,20 +501,47 @@ export default function PortfolioPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ticker || !quantity || !price) return;
+    if (!ticker) {
+      alert("Harap masukkan kode simbol / ticker aset.");
+      return;
+    }
+
+    const owned = portfolio?.holdings?.find(
+      (h: any) =>
+        h.ticker.toUpperCase() === ticker.toUpperCase() ||
+        h.ticker.toUpperCase() === `${ticker.toUpperCase()}-USD` ||
+        h.ticker.toUpperCase() === `${ticker.toUpperCase()}.JK`
+    );
+    const livePriceFallback = owned
+      ? Number(owned.current_price_idr || owned.current_price || (owned.currency === "USD" ? owned.avg_buy_price * fxRate : owned.avg_buy_price) || 0)
+      : 0;
+
+    let finalPrice = Number(price) > 0 ? Number(price) : livePriceFallback;
+    let finalQuantity = Number(quantity);
+
+    if (txInputMode === "NOMINAL") {
+      const nom = Number(txNominalAmount);
+      if (!nom || nom <= 0) {
+        alert("Harap masukkan nominal uang transaksi.");
+        return;
+      }
+      if (!finalPrice || finalPrice <= 0) {
+        alert("Harga aset acuan belum tersedia. Harap tentukan harga per unit.");
+        return;
+      }
+      finalQuantity = Number((nom / finalPrice).toFixed(8));
+    }
+
+    if (!finalQuantity || finalQuantity <= 0 || !finalPrice || finalPrice <= 0) {
+      alert("Harap periksa kembali jumlah unit dan harga transaksi.");
+      return;
+    }
 
     if (type === "SELL") {
-      const owned = portfolio?.holdings?.find(
-        (h: any) =>
-          h.ticker.toUpperCase() === ticker.toUpperCase() ||
-          h.ticker.toUpperCase() === `${ticker.toUpperCase()}-USD` ||
-          h.ticker.toUpperCase() === `${ticker.toUpperCase()}.JK`
-      );
       const isStock = assetType === "STOCK";
       const availableUnits = owned ? Number(isStock ? owned.total_lots || (owned.total_shares / 100) : owned.quantity) : 0;
-      const requestedUnits = Number(quantity);
 
-      if (!owned || requestedUnits > availableUnits || availableUnits <= 0) {
+      if (!owned || finalQuantity > availableUnits || availableUnits <= 0) {
         alert(
           `Penjualan Ditolak: Anda hanya memiliki ${availableUnits} ${isStock ? "lot" : "unit"} dari ${ticker}. Kepemilikan aset tidak boleh minus!`
         );
@@ -510,14 +552,27 @@ export default function PortfolioPage() {
     try {
       setSubmitting(true);
       const isStock = assetType === "STOCK";
+      
+      // Determine valid non-zero portfolio_id
+      let targetWId = 1;
+      if (selectedWalletId !== "all" && Number(selectedWalletId) > 0) {
+        targetWId = Number(selectedWalletId);
+      } else if (txTargetWalletId && Number(txTargetWalletId) > 0) {
+        targetWId = Number(txTargetWalletId);
+      } else if (wallets && wallets.length > 0 && wallets[0].id > 0) {
+        targetWId = Number(wallets[0].id);
+      } else if (portfolio?.portfolio_id && Number(portfolio.portfolio_id) > 0) {
+        targetWId = Number(portfolio.portfolio_id);
+      }
+
       await api.post("/transactions", {
-        portfolio_id: portfolio?.portfolio_id || 1,
+        portfolio_id: targetWId,
         ticker,
         asset_type: assetType,
         type,
-        lots: isStock ? Number(quantity) : undefined,
-        quantity: isStock ? undefined : Number(quantity),
-        price_per_share: Number(price),
+        lots: isStock ? Number(finalQuantity) : undefined,
+        quantity: isStock ? undefined : Number(finalQuantity),
+        price_per_share: finalPrice,
         currency,
         notes,
         transaction_date: txDate ? new Date(txDate).toISOString() : undefined,
@@ -526,6 +581,7 @@ export default function PortfolioPage() {
       setTicker("");
       setQuantity("");
       setPrice("");
+      setTxNominalAmount("");
       setNotes("");
       fetchAllPortfolioData();
       if (mainTab === "FX") fetchFxData();
@@ -582,26 +638,236 @@ export default function PortfolioPage() {
 
   const currentPortfolio = portfolio;
 
+  // 1. Pluang Real Cash & Net Asset Breakdown Computation
+  const pluangCashBreakdown = useMemo(() => {
+    if (!currentPortfolio) {
+      return {
+        total_asset_and_cash: 0,
+        net_asset_value: 0,
+        idr_crypto_cash: 0,
+        idr_cash: 0,
+        rdn_cash: 0,
+        usd_cash: 0,
+        usd_margin: 0,
+      };
+    }
+
+    const netAssetVal = Math.round(
+      Number(currentPortfolio.total_market_value ?? currentPortfolio.total_value ?? 0)
+    );
+    const totalCash = Math.round(Number(currentPortfolio.cash_balance || 0));
+
+    let cryptoCash = 0;
+    let rdnCash = 0;
+    let usdCash = 0;
+    let idrCash = 0;
+
+    if (wallets && wallets.length > 0) {
+      for (const w of wallets) {
+        const cBal = Math.round(Number(w.cash_balance || 0));
+        const name = (w.name || "").toLowerCase();
+        if (name.includes("indodax") || name.includes("crypto") || name.includes("pintu") || name.includes("toko")) {
+          cryptoCash += cBal;
+        } else if (name.includes("ajaib") || name.includes("ipot") || name.includes("stockbit") || name.includes("rdn") || name.includes("saham")) {
+          rdnCash += cBal;
+        } else if (name.includes("pluang") || name.includes("usd") || name.includes("ibkr")) {
+          usdCash += cBal;
+        } else {
+          idrCash += cBal;
+        }
+      }
+    }
+
+    if (totalCash > 0 && cryptoCash + rdnCash + usdCash + idrCash === 0) {
+      idrCash = totalCash;
+    }
+
+    const totalAssetAndCash = netAssetVal + totalCash;
+
+    return {
+      total_asset_and_cash: totalAssetAndCash,
+      net_asset_value: netAssetVal,
+      idr_crypto_cash: cryptoCash,
+      idr_cash: idrCash,
+      rdn_cash: rdnCash,
+      usd_cash: usdCash,
+      usd_margin: 0,
+    };
+  }, [currentPortfolio, wallets]);
+
+  // 2. Analisis Selisih Kurs & Hedging Pelemahan Rupiah
+  const pluangPnlBreakdown = useMemo(() => {
+    if (!currentPortfolio) {
+      return {
+        total_foreign_usd: 0,
+        entry_rate: 15650,
+        current_rate: 16300,
+        rate_delta: 650,
+        fx_gain_percent: 0,
+        fx_gain_idr: 0,
+        pure_asset_gain_idr: 0,
+        total_unrealized_pnl_idr: 0,
+        total_unrealized_pnl_percent: 0,
+        total_invested: 0,
+        current_market_value: 0,
+      };
+    }
+
+    const holdings = currentPortfolio.holdings || [];
+    const entryBaselineRate = 15650;
+    const currentUsdRate = fxRate && fxRate > 10000 ? fxRate : 16300;
+
+    let totalForeignUsd = 0;
+
+    for (const h of holdings) {
+      const isUsdAsset =
+        h.currency === "USD" ||
+        h.asset_type === "CRYPTO" ||
+        h.asset_type === "ETF" ||
+        (h.ticker && (h.ticker.endsWith("-USD") || ["VT", "VOO", "SPY", "QQQ"].includes(h.ticker)));
+
+      if (isUsdAsset) {
+        const qty = Number(h.quantity || 1);
+        let currPriceUsd = 0;
+        if (h.current_price && h.current_price < 500000) {
+          currPriceUsd = Number(h.current_price);
+        } else if (h.market_value && h.market_value < 500000) {
+          currPriceUsd = Number(h.market_value) / qty;
+        } else if (h.market_value_idr) {
+          currPriceUsd = Number(h.market_value_idr) / (qty * currentUsdRate);
+        }
+
+        const mValUsd = qty * currPriceUsd;
+        totalForeignUsd += mValUsd;
+      }
+    }
+
+    if (totalForeignUsd === 0 && currentPortfolio.total_market_value > 0) {
+      totalForeignUsd = Number(currentPortfolio.total_market_value) / currentUsdRate;
+    }
+
+    const rateDelta = currentUsdRate - entryBaselineRate;
+    const fxGainPct = entryBaselineRate > 0 ? (rateDelta / entryBaselineRate) * 100 : 0;
+    const fxGainIdr = Math.round(totalForeignUsd * rateDelta);
+
+    const totalNetWorthIdr = Math.round(
+      Number(currentPortfolio.total_market_value ?? currentPortfolio.total_value ?? 0)
+    );
+    const totalInvestedIdr = Math.round(Number(currentPortfolio.total_invested || 0));
+    const totalPnlIdr = totalNetWorthIdr - totalInvestedIdr;
+    const totalPnlPct = totalInvestedIdr > 0 ? (totalPnlIdr / totalInvestedIdr) * 100 : 0;
+    const pureAssetGainIdr = totalPnlIdr - fxGainIdr;
+
+    return {
+      total_foreign_usd: Number(totalForeignUsd.toFixed(2)),
+      entry_rate: entryBaselineRate,
+      current_rate: Math.round(currentUsdRate),
+      rate_delta: Math.round(rateDelta),
+      fx_gain_percent: Number(fxGainPct.toFixed(2)),
+      fx_gain_idr: fxGainIdr,
+      pure_asset_gain_idr: pureAssetGainIdr,
+      total_unrealized_pnl_idr: totalPnlIdr,
+      total_unrealized_pnl_percent: Number(totalPnlPct.toFixed(2)),
+      total_invested: totalInvestedIdr,
+      current_market_value: totalNetWorthIdr,
+    };
+  }, [currentPortfolio, fxRate]);
+
+  // 3. Pluang Real Category Allocation for Donut Chart
+  const pluangAllocations = useMemo(() => {
+    if (!currentPortfolio) return undefined;
+    const holdings = currentPortfolio.holdings || [];
+    const totalNetWorth = Number(
+      currentPortfolio.total_net_worth ??
+        ((currentPortfolio.total_market_value || 0) + (currentPortfolio.cash_balance || 0))
+    );
+
+    const catMap: Record<string, { name: string; color: string; amount: number; pnl: number; subs: any[] }> = {
+      CRYPTO: { name: "Kripto", color: "#f59e0b", amount: 0, pnl: 0, subs: [] },
+      SAHAM_AS: { name: "Saham AS & Global", color: "#3b82f6", amount: 0, pnl: 0, subs: [] },
+      GOLD: { name: "Emas & Komoditas", color: "#eab308", amount: 0, pnl: 0, subs: [] },
+      STOCK: { name: "Saham Indonesia", color: "#10b981", amount: 0, pnl: 0, subs: [] },
+      CASH: { name: "Uang Tunai", color: "#6366f1", amount: Number(currentPortfolio.cash_balance || 0), pnl: 0, subs: [] },
+    };
+
+    for (const h of holdings) {
+      const aType = h.asset_type || "STOCK";
+      const isUsd = h.currency === "USD" || h.ticker?.endsWith("-USD") || ["VT", "VOO", "SPY", "QQQ"].includes(h.ticker);
+      const val = Number(h.market_value_idr || h.market_value || h.total_invested || 0);
+      const pnl = Number(h.floating_pnl || 0);
+
+      let key = "STOCK";
+      if (aType === "CRYPTO") key = "CRYPTO";
+      else if (aType === "ETF" || (aType === "STOCK" && isUsd)) key = "SAHAM_AS";
+      else if (aType === "GOLD") key = "GOLD";
+
+      catMap[key].amount += val;
+      catMap[key].pnl += pnl;
+      catMap[key].subs.push({
+        name: h.company_name || h.ticker,
+        amount: val,
+        percentage: totalNetWorth > 0 ? Number(((val / totalNetWorth) * 100).toFixed(1)) : 0,
+      });
+    }
+
+    const classes = Object.entries(catMap)
+      .filter(([_, d]) => d.amount > 0)
+      .map(([k, d]) => {
+        const pct = totalNetWorth > 0 ? Number(((d.amount / totalNetWorth) * 100).toFixed(1)) : 0;
+        return {
+          key: k,
+          label: d.name,
+          color: d.color,
+          percent: pct,
+          percentage: pct,
+          formatted_percentage: `${pct}%`,
+          assets_value: d.amount,
+          pocket_value: 0,
+          total_value: d.amount,
+          sub_items: d.subs,
+        };
+      });
+
+    const centerLabel =
+      totalNetWorth >= 1_000_000_000
+        ? `${(totalNetWorth / 1_000_000_000).toFixed(2).replace(".", ",")}M`
+        : totalNetWorth >= 1_000_000
+        ? `${(totalNetWorth / 1_000_000).toFixed(2).replace(".", ",")}Jt`
+        : totalNetWorth >= 1_000
+        ? `${(totalNetWorth / 1_000).toFixed(1).replace(".", ",")}Rb`
+        : `${totalNetWorth}`;
+
+    return {
+      center_label: centerLabel,
+      total_market_value: totalNetWorth,
+      classes,
+    };
+  }, [currentPortfolio]);
+
   const filteredHoldings = (currentPortfolio?.holdings || []).filter((h: any) => {
-    if (activeAssetFilter === "ALL") return true;
-    return (h.asset_type || "STOCK") === activeAssetFilter;
+    if (pluangAssetFilter === "ALL") return true;
+    if (pluangAssetFilter === "CRYPTO") return h.asset_type === "CRYPTO";
+    if (pluangAssetFilter === "SAHAM_AS") return h.asset_type === "ETF" || h.currency === "USD";
+    if (pluangAssetFilter === "GOLD") return h.asset_type === "GOLD";
+    if (pluangAssetFilter === "STOCK") return h.asset_type === "STOCK" && h.currency !== "USD";
+    return true;
   });
 
   const getUnitLabel = (type: AssetType) => {
     switch (type) {
       case "STOCK":
-        return "JUMLAH LOT (1 Lot = 100 lembar)";
+        return "Lot";
       case "CRYPTO":
-        return "JUMLAH UNIT / KOIN (misal: 0.05 BTC)";
+        return "Unit / Koin";
       case "GOLD":
-        return "BERAT (GRAM)";
+        return "Gram";
       case "BOND":
-        return "NOMINAL / UNIT (Rp)";
+        return "Unit";
       case "ETF":
       case "MUTUAL_FUND":
-        return "JUMLAH UNIT PENYERTAAN";
+        return "Unit";
       default:
-        return "JUMLAH KUANTITAS";
+        return "Unit";
     }
   };
 
@@ -634,93 +900,7 @@ export default function PortfolioPage() {
       <Header title="Pusat Portofolio & Wealth Management" />
 
       <main className="p-3.5 sm:p-5 md:p-8 space-y-5 sm:space-y-6 max-w-7xl w-full mx-auto">
-        {/* Top Header Controls */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-              {currentPortfolio?.portfolio_name || "Portofolio Utama"}
-              <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 font-normal border border-zinc-700">
-                {currentPortfolio?.holdings_count || 3} Instrumen
-              </span>
-            </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              Total Investasi: <span className="text-zinc-200 font-semibold">{formatIDR(currentPortfolio?.total_invested || 0)}</span> | Nilai Live: <span className="text-emerald-400 font-semibold">{formatIDR(currentPortfolio?.total_market_value ?? currentPortfolio?.total_value ?? 0)}</span> | Kas: <span className="text-zinc-200 font-medium">{formatIDR(currentPortfolio?.cash_balance || 0)}</span>
-            </p>
-          </div>
-
-          {/* Action Hub */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button
-              onClick={() => {
-                fetchAllPortfolioData();
-                if (mainTab === "FX") fetchFxData();
-                if (mainTab === "REBALANCE") fetchRebalanceData();
-                if (mainTab === "TAX") {
-                  fetchTaxSummary();
-                  runTaxSimulation();
-                }
-              }}
-              className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-zinc-300 border border-zinc-700 transition"
-              title="Refresh Data & Quotes"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            </button>
-
-            {/* OCR Struk Button */}
-            <button
-              onClick={() => {
-                setOcrFile(null);
-                setOcrPreview(null);
-                setOcrResult(null);
-                setIsOcrModalOpen(true);
-              }}
-              className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-zinc-200 border border-zinc-700 text-xs font-medium transition flex items-center gap-1.5"
-            >
-              <Camera className="w-3.5 h-3.5 text-zinc-300" />
-              Scan Struk (OCR)
-            </button>
-
-            {/* Export CSV Button */}
-            <button
-              onClick={handleExportCsv}
-              className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-zinc-200 border border-zinc-700 text-xs font-medium transition flex items-center gap-1.5"
-            >
-              <Download className="w-3.5 h-3.5 text-zinc-300" />
-              Export CSV
-            </button>
-
-            {/* Executive Factsheet Button */}
-            <button
-              onClick={() => setIsReportModalOpen(true)}
-              className="px-3 py-2 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-800/80 text-xs font-semibold transition flex items-center gap-1.5"
-            >
-              <FileText className="w-3.5 h-3.5 text-emerald-300" />
-              Factsheet Eksekutif (PDF)
-            </button>
-
-            {/* Masukkan Nilai Awal Aset Button */}
-            <button
-              onClick={() => handleOpenAddInitialAsset()}
-              className="px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs shadow-md shadow-emerald-500/20 transition flex items-center gap-1.5 active:scale-[0.98]"
-              title="Catat saldo awal aset dari Ajaib/Indodax dengan uang saat ini dan PnL%"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-zinc-950" />
-              + Nilai Awal Aset
-            </button>
-
-            {/* Catat Transaksi Button */}
-            <button
-              onClick={() => setIsTxModalOpen(true)}
-              className="px-4 py-2 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-900 font-semibold text-xs shadow-sm transition flex items-center gap-1.5 active:scale-[0.98]"
-            >
-              <Plus className="w-4 h-4 text-zinc-900" />
-              Catat Transaksi
-            </button>
-          </div>
-        </div>
-
-        {/* Reku-Style Glowing Line Portfolio Chart */}
-        {/* Multi-Dompet Modern Segmented Bar */}
+        {/* Multi-Dompet Modern Segmented Bar (Urutan A: Posisi Teratas) */}
         <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-3 sm:p-4 backdrop-blur-md shadow-lg shadow-black/20">
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2">
@@ -815,569 +995,417 @@ export default function PortfolioPage() {
           </div>
         </div>
 
+        {/* Reku-Style Glowing Line Portfolio Historical Chart dengan Quick Action Bar (Opsi 2) */}
         <PortfolioChartCard
           portfolioId={selectedWalletId}
           totalNetWorth={currentPortfolio?.total_market_value ?? currentPortfolio?.total_value ?? 0}
           totalInvested={currentPortfolio?.total_invested || 0}
           cashBalance={currentPortfolio?.cash_balance || 0}
           holdings={currentPortfolio?.holdings}
+          isPrivate={isBalancePrivate}
+          headerRightSlot={
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setIsBalancePrivate(!isBalancePrivate)}
+                className="p-1.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-white/[0.06] transition"
+                title={isBalancePrivate ? "Tampilkan Saldo" : "Sembunyikan Saldo (Mode Privasi)"}
+              >
+                {isBalancePrivate ? (
+                  <EyeOff className="w-3.5 h-3.5 text-zinc-400" />
+                ) : (
+                  <Eye className="w-3.5 h-3.5 text-zinc-300" />
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  fetchAllPortfolioData();
+                  if (pocketSubTab === "REBALANCE") fetchRebalanceData();
+                }}
+                className="p-1.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-white/[0.06] transition"
+                title="Refresh Live Data"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+          }
+          quickActionsSlot={
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {/* Jika sedang di dompet spesifik: Tampilkan aksi transaksi riil */}
+              {selectedWalletId !== "all" ? (
+                <>
+                  {/* Primary Action: Catat Transaksi (Beli / Jual) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (Number(selectedWalletId) > 0) {
+                        setTxTargetWalletId(Number(selectedWalletId));
+                      }
+                      setTicker("");
+                      setQuantity("");
+                      setPrice("");
+                      setTxNominalAmount("");
+                      setCurrency("IDR");
+                      setIsTxModalOpen(true);
+                    }}
+                    className="px-4 py-1.5 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-xs shadow-md transition flex items-center gap-1.5 active:scale-95"
+                    title="Catat transaksi Beli (Buy) atau Jual (Sell)"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-zinc-950" />
+                    <span>+ Transaksi</span>
+                  </button>
+
+                  {/* Secondary Action: Nilai Awal */}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAddInitialAsset(Number(selectedWalletId))}
+                    className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-emerald-400 border border-emerald-500/25 text-xs font-semibold transition flex items-center gap-1.5 active:scale-95"
+                    title="Catat saldo awal aset dari exchange ini"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>+ Nilai Awal</span>
+                  </button>
+
+                  {/* Tertiary Action: Scan OCR */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOcrFile(null);
+                      setOcrPreview(null);
+                      setOcrResult(null);
+                      setIsOcrModalOpen(true);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700/60 text-xs font-medium transition flex items-center gap-1.5 active:scale-95"
+                    title="Scan struk pembelian dengan AI OCR"
+                  >
+                    <Camera className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Scan Struk</span>
+                  </button>
+                </>
+              ) : (
+                /* Jika di Dompet Global: Mode Konsolidasi & Rekapitulasi Murni */
+                <div className="px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 text-[11px] text-zinc-400 flex items-center gap-2 shadow-inner">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Mode Rekapitulasi Semua Dompet (Pilih salah satu dompet di atas untuk mencatat transaksi)</span>
+                </div>
+              )}
+
+              {/* Secondary Options Menu Dropdown */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsOptionsMenuOpen(!isOptionsMenuOpen)}
+                  className="p-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-700/60 transition"
+                  title="Alat & Opsi Lainnya"
+                >
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+
+                {isOptionsMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setIsOptionsMenuOpen(false)}
+                    />
+                    <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-52 rounded-2xl bg-[#0d1015] border border-white/[0.1] shadow-2xl p-1.5 z-50 divide-y divide-white/[0.06] backdrop-blur-xl">
+                      <div className="py-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsOptionsMenuOpen(false);
+                            handleExportCsv();
+                          }}
+                          className="w-full text-left px-3 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] rounded-xl transition flex items-center gap-2.5"
+                        >
+                          <Download className="w-3.5 h-3.5 text-zinc-400" />
+                          <span>Ekspor CSV</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsOptionsMenuOpen(false);
+                            setIsReportModalOpen(true);
+                          }}
+                          className="w-full text-left px-3 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] rounded-xl transition flex items-center gap-2.5"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-zinc-400" />
+                          <span>Unduh Factsheet PDF</span>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          }
         />
 
-        {/* Primary View Switcher - Premium Pluang Glass Segmented Bar */}
-        <div className="relative">
-          <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#0c0e14]/90 backdrop-blur-md border border-white/5 overflow-x-auto no-scrollbar scroll-smooth shadow-lg shadow-black/40">
+        {/* Pluang Primary 3-Pillar Tab Switcher: [ Ringkasan | Aset | Pocket & Rebalance ] */}
+        <div className="border-b border-zinc-800/80 pt-2">
+          <div className="flex items-center gap-6 sm:gap-8 text-sm sm:text-base font-bold overflow-x-auto no-scrollbar">
             <button
-              onClick={() => setMainTab("HOLDINGS")}
-              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
-                mainTab === "HOLDINGS"
-                  ? "bg-zinc-800 text-zinc-100 border border-white/10 shadow-sm font-semibold"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
+              type="button"
+              onClick={() => setPluangPrimaryTab("RINGKASAN")}
+              className={`pb-3 relative transition-colors shrink-0 ${
+                pluangPrimaryTab === "RINGKASAN"
+                  ? "text-white font-extrabold"
+                  : "text-zinc-500 hover:text-zinc-300 font-semibold"
               }`}
             >
-              <Layers className={`w-4 h-4 ${mainTab === "HOLDINGS" ? "text-white" : "text-zinc-400"}`} />
-              Portofolio & Aset
-            </button>
-
-            <button
-              onClick={() => setMainTab("REBALANCE")}
-              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
-                mainTab === "REBALANCE"
-                  ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm font-semibold"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
-              }`}
-            >
-              <Scale className={`w-4 h-4 ${mainTab === "REBALANCE" ? "text-emerald-400" : "text-emerald-500/70"}`} />
-              AI Rebalancing
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold border ${
-                mainTab === "REBALANCE" 
-                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" 
-                  : "bg-emerald-950/60 text-emerald-400 border-emerald-800/50"
-              }`}>
-                Inflow AI
-              </span>
-            </button>
-
-            <button
-              onClick={() => setMainTab("FX")}
-              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
-                mainTab === "FX"
-                  ? "bg-blue-500/15 text-blue-300 border border-blue-500/30 shadow-sm font-semibold"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
-              }`}
-            >
-              <Globe className={`w-4 h-4 ${mainTab === "FX" ? "text-blue-400" : "text-blue-500/70"}`} />
-              Analisis Kurs
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold border ${
-                mainTab === "FX" 
-                  ? "bg-blue-500/20 text-blue-300 border-blue-500/40" 
-                  : "bg-blue-950/60 text-blue-400 border-blue-800/50"
-              }`}>
-                USD/IDR
-              </span>
-            </button>
-
-            <button
-              onClick={() => setMainTab("TAX")}
-              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
-                mainTab === "TAX"
-                  ? "bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm font-semibold"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
-              }`}
-            >
-              <Receipt className={`w-4 h-4 ${mainTab === "TAX" ? "text-amber-400" : "text-amber-500/70"}`} />
-              Pajak & SPT
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold border ${
-                mainTab === "TAX" 
-                  ? "bg-amber-500/20 text-amber-300 border-amber-500/40" 
-                  : "bg-amber-950/60 text-amber-400 border-amber-800/50"
-              }`}>
-                PPh Final
-              </span>
-            </button>
-
-            <button
-              onClick={() => setMainTab("HEALTH")}
-              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
-                mainTab === "HEALTH"
-                  ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm font-semibold"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
-              }`}
-            >
-              <Activity className={`w-4 h-4 ${mainTab === "HEALTH" ? "text-emerald-400" : "text-emerald-500/70"}`} />
-              Health Score
-              {healthData?.health_score !== undefined && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold border ${
-                  healthData.health_score >= 70 
-                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40" 
-                    : "bg-amber-500/20 text-amber-300 border-amber-500/40"
-                }`}>
-                  {healthData.health_score}
-                </span>
+              Ringkasan
+              {pluangPrimaryTab === "RINGKASAN" && (
+                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-white rounded-full shadow-sm" />
               )}
             </button>
 
             <button
-              onClick={() => setMainTab("DIVIDENDS")}
-              className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-150 flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
-                mainTab === "DIVIDENDS"
-                  ? "bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm font-semibold"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
+              type="button"
+              onClick={() => setPluangPrimaryTab("ASET")}
+              className={`pb-3 relative transition-colors shrink-0 ${
+                pluangPrimaryTab === "ASET"
+                  ? "text-white font-extrabold"
+                  : "text-zinc-500 hover:text-zinc-300 font-semibold"
               }`}
             >
-              <Calendar className={`w-4 h-4 ${mainTab === "DIVIDENDS" ? "text-amber-400" : "text-amber-500/70"}`} />
-              Kalender Dividen
+              Aset
+              {pluangPrimaryTab === "ASET" && (
+                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-white rounded-full shadow-sm" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setPluangPrimaryTab("POCKET")}
+              className={`pb-3 relative transition-colors flex items-center gap-1.5 shrink-0 ${
+                pluangPrimaryTab === "POCKET"
+                  ? "text-white font-extrabold"
+                  : "text-zinc-500 hover:text-zinc-300 font-semibold"
+              }`}
+            >
+              Pocket & Rebalance
+              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-mono font-bold">
+                AI
+              </span>
+              {pluangPrimaryTab === "POCKET" && (
+                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-white rounded-full shadow-sm" />
+              )}
             </button>
           </div>
         </div>
 
-        {/* TAB 1: HOLDINGS & ALLOCATION */}
-        {mainTab === "HOLDINGS" && (
-          <div className="space-y-6">
-            {/* Asset Class Filter Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        {/* ========================================================================= */}
+        {/* TAB 1: RINGKASAN (Donut Chart, Diversification Banner, Historical Chart)   */}
+        {/* ========================================================================= */}
+        {pluangPrimaryTab === "RINGKASAN" && (
+          <div className="space-y-5 sm:space-y-6">
+            {/* 1. Alokasi Kelas Aset (Donut Chart & Legend & Accordion Cards) */}
+            <PluangAssetDonutChart
+              data={pluangAllocations}
+              isPrivate={isBalancePrivate}
+              onSelectCategory={(cat) => {
+                setPluangAssetFilter(cat as any);
+                setPluangPrimaryTab("ASET");
+              }}
+            />
+
+            {/* 2. Pluang Profit & Loss Monthly Chart & Breakdown */}
+            <PluangProfitLossChart
+              data={pluangPnlBreakdown}
+              isPrivate={isBalancePrivate}
+              holdingPeriodText={(() => {
+                const holdings = currentPortfolio?.holdings || [];
+                let earliestMs = Date.now();
+                holdings.forEach((h: any) => {
+                  const d = h.transaction_date || h.created_at || h.first_buy_date;
+                  if (d) {
+                    const t = new Date(d).getTime();
+                    if (!isNaN(t) && t < earliestMs) earliestMs = t;
+                  }
+                });
+                const diffDays = Math.max(0, Math.floor((Date.now() - earliestMs) / 86400000));
+                if (diffDays === 0) return "Hari ini";
+                if (diffDays < 30) return `${diffDays} hari`;
+                if (diffDays < 365) {
+                  const months = Math.floor(diffDays / 30);
+                  const remDays = diffDays % 30;
+                  return remDays > 0 ? `${months} bulan ${remDays} hari` : `${months} bulan`;
+                }
+                const years = Math.floor(diffDays / 365);
+                const remMonths = Math.floor((diffDays % 365) / 30);
+                return remMonths > 0 ? `${years} tahun ${remMonths} bulan` : `${years} tahun`;
+              })()}
+            />
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 2: ASET (Filter Chips, Nilai Aset & Tunai, Dual P&L, Sparkline Rows) */}
+        {/* ========================================================================= */}
+        {pluangPrimaryTab === "ASET" && (
+          <div className="space-y-4 sm:space-y-5">
+            {/* Sub-kategori Filter Chips (Pluang Style - Responsive Touch Scroll) */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
               {[
-                { key: "ALL", label: "SEMUA ASET" },
-                { key: "STOCK", label: "SAHAM (IDX)" },
-                { key: "CRYPTO", label: "KRIPTO" },
-                { key: "ETF", label: "ETF" },
-                { key: "BOND", label: "OBLIGASI / SBN" },
-                { key: "GOLD", label: "EMAS" },
-                { key: "MUTUAL_FUND", label: "REKSADANA" },
-              ].map((tab) => (
+                { key: "ALL", label: "Semua" },
+                { key: "CRYPTO", label: "Crypto" },
+                { key: "SAHAM_AS", label: "Saham AS" },
+                { key: "GOLD", label: "Emas" },
+                { key: "STOCK", label: "Saham ID" },
+              ].map((f) => (
                 <button
-                  key={tab.key}
-                  onClick={() => setActiveAssetFilter(tab.key as any)}
-                  className={`px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap ${
-                    activeAssetFilter === tab.key
-                      ? "bg-zinc-100 text-zinc-900 font-semibold shadow-sm"
-                      : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                  key={f.key}
+                  type="button"
+                  onClick={() => setPluangAssetFilter(f.key as any)}
+                  className={`px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-semibold transition whitespace-nowrap border ${
+                    pluangAssetFilter === f.key
+                      ? "bg-white text-zinc-950 border-white shadow-sm font-bold"
+                      : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
-                  {tab.label}
+                  {f.label}
                 </button>
               ))}
             </div>
 
-            {/* Holdings Table */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-zinc-850 border-b border-zinc-800 text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
-                    <tr>
-                      <th className="py-3 px-6">KELAS ASET & SIMBOL</th>
-                      <th className="py-3 px-4">KUANTITAS / UNIT</th>
-                      <th className="py-3 px-4">AVG BUY</th>
-                      <th className="py-3 px-4">HARGA SAAT INI</th>
-                      <th className="py-3 px-4">TOTAL MODAL</th>
-                      <th className="py-3 px-4">NILAI ASET SAAT INI</th>
-                      <th className="py-3 px-4">FLOATING P/L</th>
-                      <th className="py-3 px-6 text-right">BOBOT</th>
-                      <th className="py-3 px-4 text-center">KALIBRASI</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-800/80">
-                    {filteredHoldings.length > 0 ? (
-                      filteredHoldings.map((h: any) => {
-                        const isUp = (h.floating_pnl || 0) >= 0;
-                        const aType = h.asset_type || "STOCK";
-                        const isStock = aType === "STOCK";
-                        const investedIdr =
-                          h.total_invested_idr ??
-                          (h.currency === "USD" ? h.total_invested * fxRate : h.total_invested);
-                        const marketValIdr =
-                          h.market_value_idr ??
-                          (h.currency === "USD"
-                            ? (h.market_value || h.total_invested) * fxRate
-                            : h.market_value || h.total_invested);
+            {/* Holdings Asset List (Pluang Clean Row Design with Mini Sparkline Chart - Mobile, Tablet, Desktop Responsive) */}
+            <div className="bg-[#090b0e] border border-white/[0.08] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl">
+              {/* Header Label Row */}
+              <div className="px-3.5 sm:px-4 py-3 border-b border-white/[0.04] bg-white/[0.015] flex items-center justify-between text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
+                <div className="flex-1 min-w-0">Aset & Kode Simbol</div>
+                <div className="hidden sm:block w-20 text-center">Tren (7H)</div>
+                <div className="text-right">Harga & Nilai Portofolio</div>
+              </div>
 
-                        return (
-                          <tr
-                            key={`${h.ticker}-${aType}`}
-                            className="hover:bg-zinc-800/40 transition"
-                          >
-                            <td className="py-3.5 px-6">
-                              <div className="flex items-center gap-2">
-                                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700/60">
-                                  {aType}
-                                </span>
-                                <div className="font-semibold text-zinc-100 text-sm">
-                                  {h.ticker}
-                                </div>
-                                {selectedWalletId !== "all" && h.portfolio_name && (
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-emerald-400 border border-emerald-800/40 font-medium">
-                                    {h.portfolio_name}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-[11px] text-zinc-400 truncate max-w-[200px] mt-0.5">
-                                {h.company_name}
-                              </div>
-
-                              {/* Multi-Exchange Detailed Breakdown & Direct Navigation Pill Hub */}
-                              {selectedWalletId === "all" && h.wallet_breakdown && h.wallet_breakdown.length > 0 && (
-                                <div className="mt-2.5 pt-2 border-t border-zinc-800/60 space-y-1.5">
-                                  <div className="text-[10px] font-medium text-zinc-400 flex items-center gap-1">
-                                    <Building2 className="w-3 h-3 text-emerald-400" />
-                                    <span>Tersedia di {h.wallet_breakdown.length} exchange (klik untuk buka dompet):</span>
-                                  </div>
-                                  <div className="flex flex-wrap items-center gap-1.5">
-                                    {h.wallet_breakdown.map((wb: any) => {
-                                      const isWbPnlUp = (wb.floating_pnl || 0) >= 0;
-                                      return (
-                                        <button
-                                          key={wb.wallet_id}
-                                          type="button"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedWalletId(wb.wallet_id);
-                                          }}
-                                          className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-950/90 hover:bg-emerald-950/70 border border-zinc-800 hover:border-emerald-500/50 text-[11px] transition shadow-sm cursor-pointer active:scale-95 text-left"
-                                          title={`Klik untuk langsung menuju dompet ${wb.wallet_name}`}
-                                        >
-                                          <span className="font-bold text-zinc-100 group-hover:text-emerald-300 capitalize">
-                                            {wb.wallet_name}:
-                                          </span>
-                                          <span className="font-mono text-zinc-300 group-hover:text-emerald-200">
-                                            {isStock
-                                              ? `${wb.total_lots || 0} Lot`
-                                              : `${Number(wb.quantity).toLocaleString(undefined, { maximumFractionDigits: 8 })} unit`}
-                                          </span>
-                                          <span className="text-zinc-500 text-[10px] font-mono">
-                                            ({formatIDR(wb.market_value_idr || wb.market_value || 0)})
-                                          </span>
-                                          {wb.floating_pnl_percent !== undefined && (
-                                            <span
-                                              className={`text-[9px] px-1 py-0.2 rounded font-semibold ${
-                                                isWbPnlUp
-                                                  ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/40"
-                                                  : "bg-red-950/80 text-red-400 border border-red-800/40"
-                                              }`}
-                                            >
-                                              {isWbPnlUp ? "+" : ""}
-                                              {wb.floating_pnl_percent}%
-                                            </span>
-                                          )}
-                                          <ExternalLink className="w-2.5 h-2.5 text-zinc-500 group-hover:text-emerald-400 group-hover:translate-x-0.5 transition shrink-0" />
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4 font-medium text-zinc-200">
-                              {isStock ? (
-                                <>
-                                  {h.total_lots} Lot
-                                  <div className="text-[10px] text-zinc-500 font-normal">
-                                    {h.total_shares || h.quantity} lembar
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  {h.quantity}{" "}
-                                  <span className="text-zinc-500 font-normal">
-                                    {aType === "GOLD" ? "gram" : "unit"}
-                                  </span>
-                                </>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4 text-zinc-300">
-                              {formatPriceVal(h.avg_buy_price, h.currency)}
-                            </td>
-                            <td className="py-3.5 px-4 font-semibold text-zinc-100">
-                              {formatPriceVal(h.current_price || h.avg_buy_price, h.currency)}
-                            </td>
-                            <td className="py-3.5 px-4 text-zinc-200 font-medium">
-                              {formatIDR(investedIdr)}
-                            </td>
-                            <td className="py-3.5 px-4 font-semibold text-zinc-100">
-                              {formatIDR(marketValIdr)}
-                              {h.currency === "USD" && (
-                                <div className="text-[10px] text-zinc-500 font-normal">
-                                  ${Number(h.market_value || (marketValIdr / fxRate)).toLocaleString(undefined, {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                  })}
-                                </div>
-                              )}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <div className="flex flex-col">
-                                <Badge variant={isUp ? "success" : "danger"}>
-                                  {isUp ? "+" : ""}
-                                  {h.floating_pnl_percent}%
-                                </Badge>
-                                <span className="text-[10px] text-zinc-400 mt-1">
-                                  {formatIDR(h.floating_pnl || 0)}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4 text-center">
-                              {selectedWalletId === "all" ? (
-                                h.wallet_breakdown && h.wallet_breakdown.length > 1 ? (
-                                  <div className="flex flex-col gap-1 items-center">
-                                    <span className="text-[10px] text-zinc-400 font-medium">Buka dompet:</span>
-                                    <div className="flex flex-wrap gap-1 justify-center max-w-[150px]">
-                                      {h.wallet_breakdown.map((wb: any) => (
-                                        <button
-                                          key={wb.wallet_id}
-                                          type="button"
-                                          onClick={() => setSelectedWalletId(wb.wallet_id)}
-                                          className="px-2 py-1 rounded-lg bg-zinc-800/80 hover:bg-emerald-950/60 text-zinc-300 hover:text-emerald-300 border border-zinc-700/60 hover:border-emerald-700/60 text-[10px] font-semibold transition capitalize flex items-center gap-1 shadow-sm active:scale-95"
-                                          title={`Buka dompet ${wb.wallet_name}`}
-                                        >
-                                          <span>{wb.wallet_name}</span>
-                                          <ArrowRight className="w-2.5 h-2.5" />
-                                        </button>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const targetW = wallets.find(
-                                        (w) =>
-                                          w.name === h.portfolio_name ||
-                                          w.id === h.portfolio_id ||
-                                          (h.wallet_breakdown && h.wallet_breakdown[0]?.wallet_id === w.id)
-                                      );
-                                      if (targetW) {
-                                        setSelectedWalletId(targetW.id);
-                                      } else if (wallets.length > 0) {
-                                        setSelectedWalletId(wallets[0].id);
-                                      }
-                                    }}
-                                    className="px-2.5 py-1.5 rounded-lg bg-zinc-800/60 hover:bg-emerald-950/40 text-zinc-300 hover:text-emerald-300 border border-zinc-700/60 hover:border-emerald-700/60 text-[11px] font-medium transition flex items-center gap-1.5 mx-auto active:scale-95"
-                                    title={`Buka dompet ${h.portfolio_name || "spesifik"} untuk mengatur modal & saldo`}
-                                  >
-                                    <Sliders className="w-3.5 h-3.5 text-zinc-400" />
-                                    <span>
-                                      {h.wallet_breakdown && h.wallet_breakdown[0]
-                                        ? `Buka di ${h.wallet_breakdown[0].wallet_name}`
-                                        : "Buka di Dompet"}
-                                    </span>
-                                  </button>
-                                )
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenCalibrate(h)}
-                                  className="px-2.5 py-1 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700/60 hover:border-emerald-500/50 text-[11px] font-medium transition flex items-center gap-1.5 mx-auto"
-                                  title={`Atur Modal & Saldo Riil di dompet ${currentPortfolio?.portfolio_name || "ini"}`}
-                                >
-                                  <Sliders className="w-3.5 h-3.5 text-emerald-400" />
-                                  <span>Kalibrasi</span>
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan={9} className="py-12 px-4">
-                          <div className="max-w-md mx-auto text-center space-y-3">
-                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
-                              <Sparkles className="w-6 h-6" />
-                            </div>
-                            <div>
-                              <h4 className="font-bold text-sm text-zinc-200">
-                                {loading ? "Memuat data portofolio..." : "Belum Ada Aset Tercatat di Dompet Ini"}
-                              </h4>
-                              <p className="text-xs text-zinc-400 mt-1 max-w-sm mx-auto">
-                                Punya aset di Ajaib, Indodax, atau Pluang? Cukup masukkan saldo uang saat ini & persentase untung/rugi secara langsung tanpa perlu repot mencatat transaksi beli masa lalu!
-                              </p>
-                            </div>
-                            {!loading && (
-                              <button
-                                type="button"
-                                onClick={() => handleOpenAddInitialAsset()}
-                                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition active:scale-[0.98]"
-                              >
-                                <Sparkles className="w-4 h-4" />
-                                + Masukkan Nilai Awal (Ajaib / Indodax)
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+              {/* Rows List */}
+              <div className="divide-y divide-white/[0.04]">
+                {filteredHoldings.length > 0 ? (
+                  filteredHoldings.map((h: any) => (
+                    <PluangAssetRow
+                      key={`${h.ticker}-${h.asset_type || "STOCK"}-${h.portfolio_id || ""}`}
+                      holding={h}
+                      fxRate={fxRate}
+                      isPrivate={isBalancePrivate}
+                      selectedWalletId={selectedWalletId}
+                      onSelectWallet={(wId) => setSelectedWalletId(wId)}
+                      onOpenCalibrate={(holding) => handleOpenCalibrate(holding)}
+                    />
+                  ))
+                ) : (
+                  <div className="py-12 sm:py-14 px-4 sm:px-6 text-center space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto text-emerald-400">
+                      <Sparkles className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-zinc-200">
+                        {loading ? "Memuat data portofolio..." : "Belum Ada Aset Tercatat di Kategori Ini"}
+                      </h4>
+                      <p className="text-xs text-zinc-400 mt-1 max-w-sm mx-auto">
+                        Punya aset di Ajaib, Indodax, atau Pluang? Cukup masukkan saldo awal & persentase untung/rugi secara langsung tanpa repot mencatat histori transaksi!
+                      </p>
+                    </div>
+                    {!loading && selectedWalletId !== "all" ? (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAddInitialAsset(Number(selectedWalletId))}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-xs shadow-md transition active:scale-[0.98]"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        + Masukkan Saldo Awal
+                      </button>
+                    ) : !loading ? (
+                      <div className="text-xs text-zinc-400 bg-zinc-900/60 border border-white/[0.06] rounded-xl p-2.5 max-w-xs mx-auto">
+                        Pilih salah satu dompet spesifik di atas (misal: Ajaib atau Pluang) untuk menambah aset awal.
+                      </div>
+                    ) : null}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
 
-        {/* TAB 2: FX DUAL-RETURN & CURRENCY HEDGE ANALYTICS */}
-        {mainTab === "FX" && (
+        {/* ========================================================================= */}
+        {/* TAB 3: POCKET & REBALANCE (AI Rebalancing, FX, Tax, Health, Dividends)    */}
+        {/* ========================================================================= */}
+        {pluangPrimaryTab === "POCKET" && (
           <div className="space-y-6">
-            {/* Top FX Banner */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm space-y-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
-                <div>
-                  <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
-                    <Globe className="w-5 h-5 text-blue-400" />
-                    Analisis Keuntungan Ganda Kurs USD/IDR (FX Dual-Return)
-                  </h3>
-                  <p className="text-xs text-zinc-400 mt-1 max-w-3xl leading-relaxed">
-                    Dekomposisi transparan antara laba murni aset global (Capital Gain dalam USD) dan keuntungan tambahan dari depresiasi Rupiah / apresiasi Dollar AS (FX Hedge).
-                  </p>
-                </div>
+            {/* Pocket Sub-Navigation Glass Bar - Responsive Touch Scroll */}
+            <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[#0c0e14]/90 backdrop-blur-md border border-white/5 overflow-x-auto no-scrollbar scroll-smooth shadow-lg shadow-black/40">
+              <button
+                type="button"
+                onClick={() => setPocketSubTab("REBALANCE")}
+                className={`px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
+                  pocketSubTab === "REBALANCE"
+                    ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm font-semibold"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
+                }`}
+              >
+                <Scale className={`w-4 h-4 ${pocketSubTab === "REBALANCE" ? "text-emerald-400" : "text-emerald-500/70"}`} />
+                AI Rebalancing
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-800/50">
+                  Inflow AI
+                </span>
+              </button>
 
-                <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center gap-3 shrink-0">
-                  <div>
-                    <div className="text-[10px] text-zinc-400 uppercase font-semibold">Kurs Acuan Pasar</div>
-                    <div className="text-sm font-bold text-emerald-400">1 USD = Rp {fxRate.toLocaleString('id-ID')}</div>
-                  </div>
-                  <div className="h-6 w-px bg-zinc-800" />
-                  <div>
-                    <div className="text-[10px] text-zinc-400 uppercase font-semibold">Kurs Masuk Rata-rata</div>
-                    <div className="text-sm font-bold text-zinc-300">1 USD = Rp 15.650</div>
-                  </div>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setPocketSubTab("TAX");
+                  fetchTaxSummary();
+                  runTaxSimulation();
+                }}
+                className={`px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
+                  pocketSubTab === "TAX"
+                    ? "bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm font-semibold"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
+                }`}
+              >
+                <Receipt className={`w-4 h-4 ${pocketSubTab === "TAX" ? "text-amber-400" : "text-amber-500/70"}`} />
+                Pajak & SPT
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold bg-amber-950/60 text-amber-400 border border-amber-800/50">
+                  PPh Final
+                </span>
+              </button>
 
-              {/* 3 Major Stats Card */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-4 rounded-xl bg-zinc-850 border border-zinc-800">
-                  <div className="text-xs text-zinc-400 uppercase font-semibold">Total Nilai Aset USD</div>
-                  <div className="text-xl font-black text-zinc-100 mt-1">
-                    ${fxData?.total_foreign_value_usd?.toLocaleString() || "0"}
-                  </div>
-                  <div className="text-xs text-zinc-500 mt-0.5">
-                    {formatIDR(fxData?.total_foreign_value_idr || 0)} (Alokasi: {fxData?.foreign_allocation_percent || 0}%)
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-xl bg-zinc-850 border border-zinc-800">
-                  <div className="text-xs text-zinc-400 uppercase font-semibold">Laba Kenaikan Harga Aset (USD)</div>
-                  <div className={`text-xl font-black mt-1 ${
-                    (fxData?.total_pure_asset_gain_idr || 0) >= 0 ? "text-emerald-400" : "text-red-400"
+              <button
+                type="button"
+                onClick={() => setPocketSubTab("HEALTH")}
+                className={`px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
+                  pocketSubTab === "HEALTH"
+                    ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm font-semibold"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
+                }`}
+              >
+                <Activity className={`w-4 h-4 ${pocketSubTab === "HEALTH" ? "text-emerald-400" : "text-emerald-500/70"}`} />
+                Health Score
+                {healthData?.health_score !== undefined && (
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                    healthData.health_score >= 70 
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40" 
+                      : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
                   }`}>
-                    {(fxData?.total_pure_asset_gain_idr || 0) >= 0 ? "+" : ""}
-                    {formatIDR(fxData?.total_pure_asset_gain_idr || 0)}
-                  </div>
-                  <div className="text-xs text-zinc-500 mt-0.5">
-                    Return murni instrumen tanpa efek kurs
-                  </div>
-                </div>
+                    {healthData.health_score}
+                  </span>
+                )}
+              </button>
 
-                <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-800/60">
-                  <div className="text-xs text-emerald-400 uppercase font-semibold flex items-center gap-1.5">
-                    <TrendingUp className="w-3.5 h-3.5" /> Laba Apresiasi Kurs Dollar (IDR)
-                  </div>
-                  <div className="text-xl font-black text-emerald-300 mt-1">
-                    +{formatIDR(fxData?.total_fx_currency_gain_idr || 0)}
-                  </div>
-                  <div className="text-xs text-emerald-400/80 mt-0.5">
-                    Keuntungan lindung nilai terhadap Rupiah
-                  </div>
-                </div>
-              </div>
-
-              {/* Hedging Summary Box */}
-              {fxData?.hedging_summary && (
-                <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 flex items-start gap-3 text-xs text-zinc-300 leading-relaxed">
-                  <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-zinc-100 block mb-0.5">Diagnostik Lindung Nilai (Currency Hedge):</strong>
-                    {fxData.hedging_summary}
-                  </div>
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setPocketSubTab("DIVIDENDS")}
+                className={`px-3 sm:px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all flex items-center gap-2 whitespace-nowrap outline-none focus:outline-none shrink-0 ${
+                  pocketSubTab === "DIVIDENDS"
+                    ? "bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm font-semibold"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.03] border border-transparent"
+                }`}
+              >
+                <Calendar className={`w-4 h-4 ${pocketSubTab === "DIVIDENDS" ? "text-amber-400" : "text-amber-500/70"}`} />
+                Kalender Dividen
+              </button>
             </div>
 
-            {/* Holdings FX Breakdown Table */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-              <div className="p-4 bg-zinc-850/60 border-b border-zinc-800">
-                <h4 className="font-bold text-sm text-zinc-100">
-                  Rincian Komposisi Return per Aset Berbasis Dollar
-                </h4>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-zinc-850 border-b border-zinc-800 text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
-                    <tr>
-                      <th className="py-3 px-6">INSTRUMEN</th>
-                      <th className="py-3 px-4">KUANTITAS</th>
-                      <th className="py-3 px-4">HARGA BELI & LIVE (USD)</th>
-                      <th className="py-3 px-4">NILAI SAAT INI (USD)</th>
-                      <th className="py-3 px-4">LABA MURNI ASET</th>
-                      <th className="py-3 px-4 bg-emerald-950/20 text-emerald-300 font-bold">LABA KURS USD</th>
-                      <th className="py-3 px-6 text-right">TOTAL RETURN RIIL (IDR)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-zinc-800/80">
-                    {fxData?.items && fxData.items.length > 0 ? (
-                      fxData.items.map((item: any) => {
-                        const isPureUp = item.pure_asset_gain_usd >= 0;
-                        const isNetUp = item.total_net_gain_idr >= 0;
-
-                        return (
-                          <tr key={item.ticker} className="hover:bg-zinc-800/40 transition">
-                            <td className="py-4 px-6">
-                              <div className="font-bold text-zinc-100 text-sm">{item.ticker}</div>
-                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
-                                {item.asset_type}
-                              </span>
-                            </td>
-                            <td className="py-4 px-4 text-zinc-300 font-medium">
-                              {item.quantity}
-                            </td>
-                            <td className="py-4 px-4 text-zinc-300">
-                              <div>${item.current_price_usd}</div>
-                              <div className="text-[10px] text-zinc-500">Buy: ${item.entry_price_usd}</div>
-                            </td>
-                            <td className="py-4 px-4 font-semibold text-zinc-100">
-                              ${item.current_market_value_usd}
-                            </td>
-                            <td className="py-4 px-4">
-                              <div className={`font-bold ${isPureUp ? "text-emerald-400" : "text-red-400"}`}>
-                                {isPureUp ? "+" : ""}{item.pure_asset_gain_percent}%
-                              </div>
-                              <div className="text-[10px] text-zinc-400 mt-0.5">
-                                {formatIDR(item.pure_asset_gain_idr)}
-                              </div>
-                            </td>
-                            <td className="py-4 px-4 bg-emerald-950/20">
-                              <div className="font-bold text-emerald-300">
-                                +{item.fx_gain_percent}%
-                              </div>
-                              <div className="text-[10px] text-emerald-400/80 font-semibold mt-0.5">
-                                +{formatIDR(item.fx_gain_idr)}
-                              </div>
-                            </td>
-                            <td className="py-4 px-6 text-right">
-                              <div className={`text-sm font-black ${isNetUp ? "text-emerald-400" : "text-red-400"}`}>
-                                {isNetUp ? "+" : ""}{formatIDR(item.total_net_gain_idr)}
-                              </div>
-                              <div className="text-[10px] text-zinc-400 font-medium">
-                                {isNetUp ? "+" : ""}{item.total_net_gain_percent}%
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan={7} className="text-center py-8 text-zinc-500">
-                          {fxLoading ? "Menghitung analisis kurs..." : "Tidak ada aset berbasis USD di portofolio Anda."}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: REBALANCE & NEW CAPITAL ALLOCATION ADVISOR */}
-        {mainTab === "REBALANCE" && (
+            {/* TAB 3: REBALANCE & NEW CAPITAL ALLOCATION ADVISOR */}
+        {pocketSubTab === "REBALANCE" && (
           <div className="space-y-6">
             {/* Strategy & Capital Inflow Controls Card */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm space-y-5">
@@ -1663,7 +1691,7 @@ export default function PortfolioPage() {
         )}
 
         {/* TAB 4: INDONESIAN TAX SIMULATOR & REALIZED P/L */}
-        {mainTab === "TAX" && (
+        {pocketSubTab === "TAX" && (
           <div className="space-y-6">
             {/* Header / Intro Card */}
             <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm">
@@ -1933,154 +1961,15 @@ export default function PortfolioPage() {
         )}
 
         {/* TAB 5: HEALTH SCORE */}
-        {mainTab === "HEALTH" && (
-          <div className="space-y-6">
-            {/* Top Score Banner */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Score Gauge Card */}
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex flex-col items-center justify-center text-center shadow-sm">
-                <span className="text-xs text-zinc-400 uppercase tracking-wider font-semibold mb-2">
-                  Indeks Kesehatan Portofolio
-                </span>
-                <div className="relative flex items-center justify-center my-3">
-                  <div className={`text-6xl font-black ${
-                    (healthData?.health_score || 0) >= 70
-                      ? "text-emerald-400"
-                      : (healthData?.health_score || 0) >= 50
-                      ? "text-amber-400"
-                      : "text-red-400"
-                  }`}>
-                    {healthData?.health_score ?? "--"}
-                  </div>
-                  <span className="text-sm text-zinc-500 font-bold ml-1 self-end mb-2">/100</span>
-                </div>
-                <Badge variant={(healthData?.health_score || 0) >= 70 ? "success" : "danger"}>
-                  {healthData?.rating || "Analisis"}
-                </Badge>
-                <p className="text-xs text-zinc-400 mt-3 max-w-xs">
-                  Profil Risiko: <strong className="text-zinc-200">{healthData?.risk_profile}</strong>
-                </p>
-              </div>
-
-              {/* Metrics & Diagnostic Details */}
-              <div className="md:col-span-2 bg-zinc-900 border border-zinc-800 rounded-xl p-6 flex flex-col justify-between shadow-sm">
-                <div>
-                  <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2 mb-1">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    Diagnostik & Distribusi Risiko
-                  </h3>
-                  <p className="text-xs text-zinc-400 mb-4">
-                    {healthData?.summary}
-                  </p>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <div className="p-3 rounded-lg bg-zinc-850 border border-zinc-800">
-                      <div className="text-[10px] text-zinc-400 uppercase font-semibold">Konsentrasi Tertinggi</div>
-                      <div className="text-sm font-bold text-amber-300 mt-0.5">
-                        {healthData?.metrics?.top_holding_concentration?.ticker || "-"} (
-                        {healthData?.metrics?.top_holding_concentration?.weight_percent || 0}%)
-                      </div>
-                      <div className="text-[10px] text-zinc-500">Maksimal ideal: &lt; 30%</div>
-                    </div>
-
-                    <div className="p-3 rounded-lg bg-zinc-850 border border-zinc-800">
-                      <div className="text-[10px] text-zinc-400 uppercase font-semibold">Safe Haven & Kas</div>
-                      <div className="text-sm font-bold text-emerald-400 mt-0.5">
-                        {healthData?.metrics?.safe_haven_percentage || 0}%
-                      </div>
-                      <div className="text-[10px] text-zinc-500">Bantalan Emas/SBN/Kas (min. 10%)</div>
-                    </div>
-
-                    <div className="p-3 rounded-lg bg-zinc-850 border border-zinc-800">
-                      <div className="text-[10px] text-zinc-400 uppercase font-semibold">Aset Volatil / Growth</div>
-                      <div className="text-sm font-bold text-blue-400 mt-0.5">
-                        {healthData?.metrics?.high_growth_percentage || 0}%
-                      </div>
-                      <div className="text-[10px] text-zinc-500">Saham + Kripto eksposur</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Warnings / Strengths Check */}
-                <div className="mt-4 pt-4 border-t border-zinc-800 space-y-1.5">
-                  {healthData?.warnings?.map((w: string, idx: number) => (
-                    <div key={idx} className="flex items-start gap-2 text-xs text-amber-300/90">
-                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                      <span>{w}</span>
-                    </div>
-                  ))}
-                  {healthData?.strengths?.map((s: string, idx: number) => (
-                    <div key={idx} className="flex items-start gap-2 text-xs text-emerald-300/90">
-                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                      <span>{s}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Rebalancing Plan */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2">
-                    <Scale className="w-4 h-4 text-emerald-400" />
-                    Rekomendasi Penyesuaian Bobot Portofolio
-                  </h3>
-                  <p className="text-xs text-zinc-400 mt-0.5">
-                    Langkah-langkah strategis untuk mengembalikan rasio portofolio Anda ke tingkat risiko optimal.
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {healthData?.rebalancing_actions && healthData.rebalancing_actions.length > 0 ? (
-                  healthData.rebalancing_actions.map((act: any, idx: number) => (
-                    <div
-                      key={idx}
-                      className="p-4 rounded-lg bg-zinc-850 border border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs ${
-                          act.action === "REDUCE"
-                            ? "bg-amber-950/60 text-amber-300 border border-amber-800/60"
-                            : "bg-emerald-950/60 text-emerald-300 border border-emerald-800/60"
-                        }`}>
-                          {act.action === "REDUCE" ? "TRIM" : "ADD"}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-xs text-zinc-200 flex items-center gap-2">
-                            <span>{act.action === "REDUCE" ? "Kurangi Bobot" : "Tambah Alokasi"}: {act.asset_type}</span>
-                            <span className="text-[10px] text-zinc-500">
-                              (Saat ini {act.current_weight_percent}% &rarr; Target {act.target_weight_percent}%)
-                            </span>
-                          </div>
-                          <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                            {act.reason}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="text-right shrink-0">
-                        <div className="text-xs text-zinc-400">Nominal Penyesuaian</div>
-                        <div className="text-sm font-bold text-zinc-100 mt-0.5">
-                          {formatIDR(act.recommended_amount_idr || 0)}
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-xs text-zinc-500">
-                    Portofolio Anda sudah dalam kondisi prima dan seimbang!
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+        {pocketSubTab === "HEALTH" && (
+          <PortfolioHealthCard
+            healthData={healthData}
+            onNavigateToRebalance={() => setPocketSubTab("REBALANCE")}
+          />
         )}
 
         {/* TAB 6: DIVIDENDS & PASSIVE INCOME */}
-        {mainTab === "DIVIDENDS" && (
+        {pocketSubTab === "DIVIDENDS" && (
           <div className="space-y-6">
             {/* Top Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -2220,6 +2109,8 @@ export default function PortfolioPage() {
                 </table>
               </div>
             </div>
+          </div>
+        )}
           </div>
         )}
 
@@ -2444,7 +2335,7 @@ export default function PortfolioPage() {
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-zinc-300 print:text-black border-t border-zinc-800/80 pt-1.5">
                     <div>011 - Uang Tunai / Kas</div>
-                    <div>Kas Tersedia di Rekening RDN/Bank</div>
+                    <div>Kas Tersedia di Rekening Bank / Dompet</div>
                     <div className="text-right">Bukan Objek Pajak Tambahan</div>
                   </div>
                 </div>
@@ -2960,6 +2851,43 @@ export default function PortfolioPage() {
               </div>
             </div>
 
+            {/* Target Wallet / Platform Exchange Selector */}
+            <div>
+              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
+                DOMPET / PLATFORM TRANSAKSI
+              </label>
+              {selectedWalletId !== "all" && Number(selectedWalletId) > 0 ? (
+                <div className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-750 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <Wallet className="w-3.5 h-3.5 text-emerald-400" />
+                    <span className="text-zinc-200 font-semibold">
+                      {wallets.find((w: any) => w.id === Number(selectedWalletId))?.name || `Dompet #${selectedWalletId}`}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded">
+                    Terkunci di Dompet Ini
+                  </span>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <select
+                    value={txTargetWalletId}
+                    onChange={(e) => setTxTargetWalletId(Number(e.target.value))}
+                    className="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none"
+                  >
+                    {wallets.map((w: any) => (
+                      <option key={w.id} value={w.id}>
+                        {w.name} (Saldo Kas: {formatIDR(w.cash_balance || 0)})
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-[10px] text-zinc-500 block">
+                    Pilih dompet/exchange tempat transaksi ini dicatatkan (misal: Indodax, Ajaib, Pluang).
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Transaction Type Radio */}
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-2">
@@ -3039,9 +2967,36 @@ export default function PortfolioPage() {
                   type="text"
                   placeholder={getTickerPlaceholder(assetType)}
                   value={ticker}
-                  onChange={(e) => setTicker(e.target.value.toUpperCase())}
+                  onChange={(e) => {
+                    const newTick = e.target.value.toUpperCase();
+                    setTicker(newTick);
+                    if (newTick) {
+                      const matchedHolding = portfolio?.holdings?.find(
+                        (h: any) =>
+                          h.ticker.toUpperCase() === newTick ||
+                          h.ticker.toUpperCase() === `${newTick}-USD` ||
+                          h.ticker.toUpperCase() === `${newTick}.JK`
+                      );
+                      if (matchedHolding) {
+                        const targetW = matchedHolding.portfolio_id || matchedHolding.wallet_id || matchedHolding.wallet_breakdown?.[0]?.wallet_id;
+                        if (targetW && targetW > 0) {
+                          setTxTargetWalletId(Number(targetW));
+                        }
+                        // Auto-fill harga pasar sesuai mata uang yang aktif
+                        const livePrice = currency === "IDR"
+                          ? Number(matchedHolding.current_price_idr || (matchedHolding.currency === "USD" ? matchedHolding.current_price * fxRate : matchedHolding.current_price))
+                          : Number(matchedHolding.current_price || (matchedHolding.current_price_idr ? matchedHolding.current_price_idr / fxRate : 0));
+                        if (livePrice > 0) {
+                          setPrice(String(Math.round(livePrice)));
+                          if (txInputMode === "NOMINAL" && Number(txNominalAmount) > 0) {
+                            setQuantity(String(Number((Number(txNominalAmount) / livePrice).toFixed(8))));
+                          }
+                        }
+                      }
+                    }
+                  }}
                   required
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 uppercase"
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 uppercase font-semibold"
                 />
               </div>
               <div>
@@ -3050,8 +3005,30 @@ export default function PortfolioPage() {
                 </label>
                 <select
                   value={currency}
-                  onChange={(e) => setCurrency(e.target.value as any)}
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
+                  onChange={(e) => {
+                    const newCur = e.target.value as "IDR" | "USD";
+                    setCurrency(newCur);
+                    if (ticker) {
+                      const matchedHolding = portfolio?.holdings?.find(
+                        (h: any) =>
+                          h.ticker.toUpperCase() === ticker.toUpperCase() ||
+                          h.ticker.toUpperCase() === `${ticker.toUpperCase()}-USD` ||
+                          h.ticker.toUpperCase() === `${ticker.toUpperCase()}.JK`
+                      );
+                      if (matchedHolding) {
+                        const livePrice = newCur === "IDR"
+                          ? Number(matchedHolding.current_price_idr || (matchedHolding.currency === "USD" ? matchedHolding.current_price * fxRate : matchedHolding.current_price))
+                          : Number(matchedHolding.current_price || (matchedHolding.current_price_idr ? matchedHolding.current_price_idr / fxRate : 0));
+                        if (livePrice > 0) {
+                          setPrice(String(newCur === "IDR" ? Math.round(livePrice) : Number(livePrice.toFixed(2))));
+                          if (txInputMode === "NOMINAL" && Number(txNominalAmount) > 0) {
+                            setQuantity(String(Number((Number(txNominalAmount) / livePrice).toFixed(8))));
+                          }
+                        }
+                      }
+                    }
+                  }}
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 font-semibold"
                 >
                   <option value="IDR">IDR (Rp)</option>
                   <option value="USD">USD ($)</option>
@@ -3059,36 +3036,222 @@ export default function PortfolioPage() {
               </div>
             </div>
 
-            {/* Quantity and Price */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                  {getUnitLabel(assetType)}
-                </label>
-                <input
-                  type="number"
-                  placeholder={assetType === "STOCK" ? "10" : "0.05"}
-                  min="0.00000001"
-                  step="any"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  required
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
-                />
+            {/* Mode Input: Nominal Uang (Rp/$) vs Kuantitas Koin/Unit */}
+            <div className="bg-zinc-900/90 border border-zinc-800 p-3 rounded-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-zinc-300">CARA MEMASUKKAN TRANSAKSI</span>
+                <div className="inline-flex rounded-lg bg-zinc-950 p-0.5 border border-zinc-800 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTxInputMode("NOMINAL");
+                      if (price && quantity && (!txNominalAmount || txNominalAmount === "0")) {
+                        setTxNominalAmount(String(Math.round(Number(quantity) * Number(price))));
+                      }
+                    }}
+                    className={`px-2.5 py-1 rounded-md transition font-medium ${
+                      txInputMode === "NOMINAL"
+                        ? "bg-zinc-750 text-emerald-400 font-semibold shadow-sm"
+                        : "text-zinc-400 hover:text-zinc-200"
+                    }`}
+                  >
+                    Nominal Uang ({currency === "IDR" ? "Rp" : "$"})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTxInputMode("UNIT");
+                      if (price && txNominalAmount && (!quantity || quantity === "0")) {
+                        setQuantity(String(Number((Number(txNominalAmount) / Number(price)).toFixed(8))));
+                      }
+                    }}
+                    className={`px-2.5 py-1 rounded-md transition font-medium ${
+                      txInputMode === "UNIT"
+                        ? "bg-zinc-750 text-emerald-400 font-semibold shadow-sm"
+                        : "text-zinc-400 hover:text-zinc-200"
+                    }`}
+                  >
+                    Jumlah {getUnitLabel(assetType)}
+                  </button>
+                </div>
               </div>
+
+              {txInputMode === "NOMINAL" ? (
+                <div className="space-y-2">
+                  <div>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <label className="text-xs font-medium text-zinc-300">
+                        {type === "SELL" ? "Nominal Uang yang Ingin Ditarik / Dijual" : "Nominal Uang Pembelian"} ({currency === "IDR" ? "Rp" : "$"})
+                      </label>
+                      {price && Number(price) > 0 && (
+                        <span className="text-[10px] text-zinc-400">
+                          Harga: {currency === "IDR" ? formatIDR(Number(price)) : `$${Number(price).toLocaleString()}`}
+                        </span>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5 text-xs text-zinc-400 font-mono">
+                        {currency === "IDR" ? "Rp" : "$"}
+                      </span>
+                      <input
+                        type="number"
+                        placeholder={currency === "IDR" ? "Contoh: 1100000" : "Contoh: 100"}
+                        min="1"
+                        step="any"
+                        value={txNominalAmount}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setTxNominalAmount(val);
+                          const p = Number(price);
+                          if (p > 0 && Number(val) > 0) {
+                            setQuantity(String(Number((Number(val) / p).toFixed(8))));
+                          } else {
+                            setQuantity("");
+                          }
+                        }}
+                        required
+                        className="w-full bg-zinc-950 border border-zinc-700 rounded-lg pl-9 pr-3 py-2 text-zinc-100 text-xs font-mono focus:outline-none focus:border-zinc-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tombol Cepat Penarikan untuk mode SELL */}
+                  {type === "SELL" && (() => {
+                    const owned = portfolio?.holdings?.find(
+                      (h: any) =>
+                        h.ticker.toUpperCase() === ticker.toUpperCase() ||
+                        h.ticker.toUpperCase() === `${ticker.toUpperCase()}-USD` ||
+                        h.ticker.toUpperCase() === `${ticker.toUpperCase()}.JK`
+                    );
+                    const isStock = assetType === "STOCK";
+                    const avail = owned ? Number(isStock ? owned.total_lots || (owned.total_shares / 100) : owned.quantity) : 0;
+                    const curPrice = Number(price) > 0 ? Number(price) : (owned ? Number(owned.current_price_idr || owned.current_price || 0) : 0);
+                    const totalVal = avail * curPrice;
+
+                    if (avail <= 0 || curPrice <= 0) return null;
+
+                    return (
+                      <div className="flex items-center gap-1.5 pt-1">
+                        <span className="text-[10px] text-zinc-400">Porsi Jual:</span>
+                        {[25, 50, 75, 100].map((pct) => (
+                          <button
+                            key={pct}
+                            type="button"
+                            onClick={() => {
+                              const portionVal = Math.round(totalVal * (pct / 100));
+                              setTxNominalAmount(String(portionVal));
+                              if (pct === 100) {
+                                setQuantity(String(avail));
+                              } else {
+                                setQuantity(String(Number((portionVal / curPrice).toFixed(8))));
+                              }
+                            }}
+                            className="px-2 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-[10px] text-zinc-300 font-medium transition"
+                          >
+                            {pct}%
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })()}
+
+                  {/* Konversi Otomatis Unit */}
+                  {Number(price) > 0 && Number(txNominalAmount) > 0 && (
+                    <div className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800/80 flex items-center justify-between text-xs">
+                      <span className="text-zinc-400">Estimasi Koin / Unit Terpotong:</span>
+                      <span className="font-mono font-bold text-amber-400">
+                        {Number((Number(txNominalAmount) / Number(price)).toFixed(8))} {getUnitLabel(assetType)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Mode Kuantitas Langsung */
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-400 mb-1.5">
+                      JUMLAH {getUnitLabel(assetType)}
+                    </label>
+                    <input
+                      type="number"
+                      placeholder={assetType === "STOCK" ? "10" : "0.001"}
+                      min="0.00000001"
+                      step="any"
+                      value={quantity}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setQuantity(val);
+                        const p = Number(price);
+                        if (p > 0 && Number(val) > 0) {
+                          setTxNominalAmount(String(Math.round(Number(val) * p)));
+                        } else {
+                          setTxNominalAmount("");
+                        }
+                      }}
+                      required
+                      className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Input Harga Unit / Acuan Live */}
               <div>
-                <label className="block text-xs font-medium text-zinc-400 mb-1.5">
-                  HARGA / UNIT ({currency})
-                </label>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-xs font-medium text-zinc-400">
+                    HARGA PER {getUnitLabel(assetType).toUpperCase()} ({currency})
+                  </label>
+                  {(() => {
+                    const owned = portfolio?.holdings?.find(
+                      (h: any) =>
+                        h.ticker.toUpperCase() === ticker.toUpperCase() ||
+                        h.ticker.toUpperCase() === `${ticker.toUpperCase()}-USD` ||
+                        h.ticker.toUpperCase() === `${ticker.toUpperCase()}.JK`
+                    );
+                    const live = owned ? Number(currency === "IDR" ? (owned.current_price_idr || (owned.currency === "USD" ? owned.current_price * fxRate : owned.current_price)) : owned.current_price) : 0;
+                    if (live > 0) {
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPrice(String(live));
+                            if (txInputMode === "NOMINAL" && Number(txNominalAmount) > 0) {
+                              setQuantity(String(Number((Number(txNominalAmount) / live).toFixed(8))));
+                            }
+                          }}
+                          className="text-[10px] text-emerald-400 hover:underline"
+                        >
+                          Pakai Harga Pasar: {currency === "IDR" ? formatIDR(live) : `$${live.toLocaleString()}`}
+                        </button>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
                 <input
                   type="number"
-                  placeholder={currency === "USD" ? "64500" : "9850"}
+                  placeholder={currency === "USD" ? "64500" : "1050000000"}
                   min="0.00000001"
                   step="any"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPrice(val);
+                    const p = Number(val);
+                    if (txInputMode === "NOMINAL") {
+                      const nom = Number(txNominalAmount);
+                      if (p > 0 && nom > 0) {
+                        setQuantity(String(Number((nom / p).toFixed(8))));
+                      }
+                    } else {
+                      const q = Number(quantity);
+                      if (p > 0 && q > 0) {
+                        setTxNominalAmount(String(Math.round(q * p)));
+                      }
+                    }
+                  }}
                   required
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs font-mono focus:outline-none focus:border-zinc-400"
                 />
               </div>
             </div>
@@ -3179,7 +3342,7 @@ export default function PortfolioPage() {
 
             <div>
               <label className="block text-xs font-medium text-zinc-300 mb-1.5">
-                SISA KAS TUNAI / SALDO RDN MENGENDAP (OPSIONAL - IDR)
+                SALDO KAS TUNAI MENGENDAP (OPSIONAL - IDR)
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-zinc-500">

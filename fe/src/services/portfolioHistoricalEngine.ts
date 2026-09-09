@@ -108,48 +108,87 @@ export const calculatePortfolioHistoricalPoints = (
     }
   });
 
-  // 3. Determine timeframe slice
-  let totalDays = 120;
-  let sampleInterval = 1;
+  const now = Date.now();
+  const dayMs = 86400000;
 
+  // 3. Determine actual earliest data date from holdings or transactions
+  let earliestDateMs = now;
+  if (holdings && holdings.length > 0) {
+    holdings.forEach((h: any) => {
+      const dStr = h.updated_at || h.created_at || h.transaction_date;
+      if (dStr) {
+        const t = new Date(dStr).getTime();
+        if (!isNaN(t) && t < earliestDateMs) {
+          earliestDateMs = t;
+        }
+      }
+    });
+  }
+
+  // Calculate day difference between earliest entry and now
+  const daysSinceEntry = Math.max(0, Math.floor((now - earliestDateMs) / dayMs));
+
+  // Determine timeframe requested in days
+  let requestedDays = 120;
   switch (timeframe) {
     case "1W":
-      totalDays = 7;
-      sampleInterval = 1;
+      requestedDays = 7;
       break;
     case "1M":
-      totalDays = 30;
-      sampleInterval = 1;
+      requestedDays = 30;
       break;
     case "3M":
-      totalDays = 90;
-      sampleInterval = 2;
+      requestedDays = 90;
       break;
     case "YTD":
-      totalDays = 65;
-      sampleInterval = 2;
+      requestedDays = 65;
       break;
     case "1Y":
-      totalDays = 120;
-      sampleInterval = 3;
+      requestedDays = 120;
       break;
     case "ALL":
     default:
-      totalDays = 120;
-      sampleInterval = 2;
+      requestedDays = Math.max(1, daysSinceEntry);
       break;
   }
 
-  const now = Date.now();
-  const dayMs = 86400000;
+  // Sesuai instruksi: Jangan lihat ke belakang jika datanya tidak ada.
+  // Hanya buat grafik dari tanggal input data pengguna sampai sekarang.
+  const activeDays = Math.min(requestedDays, daysSinceEntry);
+
   const points: ChartPoint[] = [];
 
-  // Generate backwards from day totalDays to day 0
-  for (let d = totalDays; d >= 0; d -= sampleInterval) {
+  if (activeDays <= 0) {
+    // Pengguna baru menginput hari ini: hanya buat data titik hari ini
+    const currentVal = Math.round(
+      btcQty * currentBtcPriceIdr + vtQty * currentVtPriceIdr + usdtQty * currentUsdtPriceIdr + cash
+    );
+    const dateObj = new Date(now);
+    points.push({
+      date: dateObj.toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
+      timestamp: now,
+      value: currentVal,
+      btc_value: Math.round(btcQty * currentBtcPriceIdr),
+      vt_value: Math.round(vtQty * currentVtPriceIdr),
+      usdt_value: Math.round(usdtQty * currentUsdtPriceIdr),
+    });
+
+    return {
+      timeframe,
+      start_value: currentVal,
+      current_value: currentVal,
+      change_nominal: 0,
+      change_percent: 0,
+      points,
+    };
+  }
+
+  // Jika ada rentang beberapa hari sejak tanggal input
+  for (let d = activeDays; d >= 0; d--) {
     const idx = Math.min(d, BTC_TRAJECTORY_120D.length - 1);
     const btcRatio = BTC_TRAJECTORY_120D[idx];
     const vtRatio = VT_TRAJECTORY_120D[idx];
-    const usdtRatio = 1.0; // Stablecoin remains pegged
+    const usdtRatio = 1.0;
 
     const btcPriceAtDate = currentBtcPriceIdr * btcRatio;
     const vtPriceAtDate = currentVtPriceIdr * vtRatio;

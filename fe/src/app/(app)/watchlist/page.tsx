@@ -49,7 +49,9 @@ export default function WatchlistPage() {
   // Dip Radar state
   const [dipRadarItems, setDipRadarItems] = useState<any[]>([]);
   const [dipLoading, setDipLoading] = useState(false);
-  const [radarFilterAsset, setRadarFilterAsset] = useState<"ALL" | AssetType>("ALL");
+  const [radarFilterAsset, setRadarFilterAsset] = useState<"ALL" | "STOCK" | "STOCK_US" | "ETF" | "CRYPTO">("ALL");
+  const [watchlistCategory, setWatchlistCategory] = useState<"ALL" | "US" | "IDX" | "CRYPTO">("ALL");
+  const [targetCurrency, setTargetCurrency] = useState<"USD" | "IDR">("USD");
   const [onlyStrongAccumulate, setOnlyStrongAccumulate] = useState(false);
 
   const fetchWatchlist = async () => {
@@ -139,17 +141,40 @@ export default function WatchlistPage() {
     }
   };
 
+  const filteredWatchlist = useMemo(() => {
+    return watchlist.filter((item) => {
+      if (watchlistCategory === "ALL") return true;
+      const isIdx = item.ticker?.endsWith(".JK") || item.currency === "IDR";
+      const isCrypto = item.ticker?.includes("-USD") || item.asset_type === "CRYPTO";
+      const isUs = !isIdx && !isCrypto;
+      if (watchlistCategory === "US") return isUs;
+      if (watchlistCategory === "IDX") return isIdx;
+      if (watchlistCategory === "CRYPTO") return isCrypto;
+      return true;
+    });
+  }, [watchlist, watchlistCategory]);
+
   const filteredRadarItems = useMemo(() => {
     return dipRadarItems.filter((item) => {
-      if (radarFilterAsset !== "ALL" && item.asset_type !== radarFilterAsset) return false;
+      if (radarFilterAsset !== "ALL") {
+        if (radarFilterAsset === "STOCK_US") {
+          if (item.currency !== "USD" || item.asset_type !== "STOCK") return false;
+        } else if (radarFilterAsset === "STOCK") {
+          if (item.currency === "USD" || item.asset_type !== "STOCK") return false;
+        } else if (item.asset_type !== radarFilterAsset) {
+          return false;
+        }
+      }
       if (onlyStrongAccumulate && item.buy_confidence_score < 70) return false;
       return true;
     });
   }, [dipRadarItems, radarFilterAsset, onlyStrongAccumulate]);
 
-  const formatPrice = (price: number, cur: string) => {
-    if (cur === "USD") return `$${Number(price).toLocaleString()}`;
-    return formatIDR(price);
+  const formatPrice = (price: number, cur?: string) => {
+    if (cur === "USD") {
+      return `$${Number(price || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    return formatIDR(price || 0);
   };
 
   return (
@@ -216,11 +241,38 @@ export default function WatchlistPage() {
               </div>
             </div>
 
+            {/* Watchlist Market Filters */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
+              {[
+                { key: "ALL", label: `Semua Aset (${watchlist.length})` },
+                { key: "US", label: "🇺🇸 Saham AS & Global" },
+                { key: "IDX", label: "🇮🇩 Saham IDX" },
+                { key: "CRYPTO", label: "🪙 Kripto" },
+              ].map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setWatchlistCategory(f.key as any)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition border ${
+                    watchlistCategory === f.key
+                      ? "bg-white text-zinc-950 border-white font-bold shadow-sm"
+                      : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
             {/* Watchlist Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {watchlist.length > 0 ? (
-                watchlist.map((item) => {
+              {filteredWatchlist.length > 0 ? (
+                filteredWatchlist.map((item) => {
                   const isUp = (item.day_change_percent || 0) >= 0;
+                  const itemCur = item.currency || (item.ticker.endsWith(".JK") ? "IDR" : "USD");
+                  const isUs = !item.ticker.endsWith(".JK") && !item.ticker.includes("-USD") && item.asset_type !== "CRYPTO";
+                  const isCrypto = item.ticker.includes("-USD") || item.asset_type === "CRYPTO";
+
                   return (
                     <div
                       key={item.id}
@@ -229,10 +281,18 @@ export default function WatchlistPage() {
                       <div>
                         <div className="flex items-start justify-between">
                           <div>
-                            <h3 className="text-lg font-bold text-zinc-100">
-                              {item.ticker}
-                            </h3>
-                            <div className="text-xs text-zinc-400 truncate max-w-[200px]">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base">
+                                {isUs ? "🇺🇸" : isCrypto ? "🪙" : "🇮🇩"}
+                              </span>
+                              <h3 className="text-lg font-bold text-zinc-100">
+                                {item.ticker}
+                              </h3>
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-800 text-zinc-400 border border-zinc-700">
+                                {itemCur}
+                              </span>
+                            </div>
+                            <div className="text-xs text-zinc-400 truncate max-w-[200px] mt-0.5">
                               {item.company_name}
                             </div>
                           </div>
@@ -246,8 +306,8 @@ export default function WatchlistPage() {
                         </div>
 
                         <div className="mt-4 flex items-baseline gap-2">
-                          <span className="text-2xl font-black text-zinc-100">
-                            {formatIDR(item.current_price || 0)}
+                          <span className="text-2xl font-black text-zinc-100 font-mono">
+                            {formatPrice(item.current_price || 0, itemCur)}
                           </span>
                           <Badge variant={isUp ? "success" : "danger"}>
                             {isUp ? "+" : ""}
@@ -259,14 +319,14 @@ export default function WatchlistPage() {
                         <div className="mt-4 pt-3 border-t border-zinc-800/80 grid grid-cols-2 gap-2 text-xs">
                           <div>
                             <span className="text-[10px] text-zinc-500 uppercase font-semibold">Target Beli</span>
-                            <div className="font-semibold text-emerald-400 mt-0.5">
-                              {item.target_buy_price ? formatIDR(item.target_buy_price) : "-"}
+                            <div className="font-semibold text-emerald-400 mt-0.5 font-mono">
+                              {item.target_buy_price ? formatPrice(item.target_buy_price, itemCur) : "-"}
                             </div>
                           </div>
                           <div>
                             <span className="text-[10px] text-zinc-500 uppercase font-semibold">Target Jual</span>
-                            <div className="font-semibold text-amber-400 mt-0.5">
-                              {item.target_sell_price ? formatIDR(item.target_sell_price) : "-"}
+                            <div className="font-semibold text-amber-400 mt-0.5 font-mono">
+                              {item.target_sell_price ? formatPrice(item.target_sell_price, itemCur) : "-"}
                             </div>
                           </div>
                         </div>
@@ -336,9 +396,10 @@ export default function WatchlistPage() {
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
                   {[
                     { key: "ALL", label: "SEMUA INSTRUMEN" },
-                    { key: "STOCK", label: "SAHAM IDX" },
-                    { key: "ETF", label: "GLOBAL ETF" },
-                    { key: "CRYPTO", label: "KRIPTO" },
+                    { key: "STOCK_US", label: "🇺🇸 SAHAM AS" },
+                    { key: "STOCK", label: "🇮🇩 SAHAM IDX" },
+                    { key: "ETF", label: "🌐 GLOBAL ETF" },
+                    { key: "CRYPTO", label: "🪙 KRIPTO" },
                   ].map((tab) => (
                     <button
                       key={tab.key}
@@ -534,12 +595,32 @@ export default function WatchlistPage() {
               </label>
               <input
                 type="text"
-                placeholder="Contoh: BBCA, BBRI, VT, BTC"
+                placeholder="Contoh: AAPL, TSLA, NVDA, VT, BTC, BBCA"
                 value={ticker}
                 onChange={(e) => setTicker(e.target.value.toUpperCase())}
                 required
-                className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 uppercase"
+                className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 uppercase font-mono"
               />
+              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                <span className="text-[10px] text-zinc-500 mr-1">Rekomendasi Cepat:</span>
+                {[
+                  { sym: "AAPL", label: "🇺🇸 Apple" },
+                  { sym: "NVDA", label: "🇺🇸 Nvidia" },
+                  { sym: "TSLA", label: "🇺🇸 Tesla" },
+                  { sym: "VT", label: "🌐 Global ETF" },
+                  { sym: "BTC", label: "🪙 Bitcoin" },
+                  { sym: "BBCA", label: "🇮🇩 BCA" },
+                ].map((s) => (
+                  <button
+                    key={s.sym}
+                    type="button"
+                    onClick={() => setTicker(s.sym)}
+                    className="px-2 py-0.5 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-750 text-[10px] transition"
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
