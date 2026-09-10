@@ -21,7 +21,7 @@ interface NewsItem {
   source: string;
   url?: string;
   published_at: string;
-  category: "STOCK" | "CRYPTO" | "MACRO" | "GOLD" | "GLOBAL";
+  category: "HOT" | "GLOBAL_EQUITIES" | "CRYPTO" | "MACRO_GLOBAL" | "SAFE_HAVEN";
   tickers: string[];
   sentiment: "BULLISH" | "BEARISH" | "NEUTRAL";
   sentiment_score: number;
@@ -29,12 +29,12 @@ interface NewsItem {
 }
 
 const CATEGORIES = [
-  { label: "Semua Kategori", value: "ALL" },
-  { label: "Saham RI", value: "STOCK" },
-  { label: "Kripto", value: "CRYPTO" },
-  { label: "Makro & BI", value: "MACRO" },
-  { label: "Emas", value: "GOLD" },
-  { label: "Global ETF", value: "GLOBAL" },
+  { label: "🔥 Semua Intelijen Global", value: "ALL" },
+  { label: "⚡ Hot Narratives & AI Disruptions", value: "HOT" },
+  { label: "🌍 Global Equities & Moats", value: "GLOBAL_EQUITIES" },
+  { label: "🪙 Bitcoin & Crypto ETF", value: "CRYPTO" },
+  { label: "🏛️ Central Banks & The Fed", value: "MACRO_GLOBAL" },
+  { label: "🥇 Safe-Haven & Gold", value: "SAFE_HAVEN" },
 ];
 
 export default function NewsPage() {
@@ -64,9 +64,9 @@ export default function NewsPage() {
   const formatTimeAgo = (dateStr: string) => {
     const diffMs = Date.now() - new Date(dateStr).getTime();
     const diffMinutes = Math.floor(diffMs / (60 * 1000));
-    if (diffMinutes < 60) return `${diffMinutes} menit yang lalu`;
+    if (diffMinutes < 60) return `${diffMinutes}m yang lalu`;
     const diffHours = Math.floor(diffMinutes / 60);
-    if (diffHours < 24) return `${diffHours} jam yang lalu`;
+    if (diffHours < 24) return `${diffHours}h yang lalu`;
     return new Date(dateStr).toLocaleDateString("id-ID", {
       day: "numeric",
       month: "short",
@@ -74,55 +74,60 @@ export default function NewsPage() {
   };
 
   const bullishCount = news.filter((n) => n.sentiment === "BULLISH").length;
-  const bullishRatio = news.length > 0 ? Math.round((bullishCount / news.length) * 100) : 70;
+  const bearishCount = news.filter((n) => n.sentiment === "BEARISH").length;
+  const bullishRatio = news.length > 0 ? Math.round((bullishCount / news.length) * 100) : 65;
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-200">
-      <Header title="Berita & Intelijen Pasar" />
+    <div className="min-h-screen bg-[#0b0f19] text-slate-100 transition-colors duration-200">
+      <Header title="Intelijen Makroekonomi & Geopolitik Global" />
 
       <main className="p-3.5 sm:p-5 md:p-8 max-w-7xl w-full mx-auto space-y-6">
-        {/* Market Mood Intelligence Banner */}
-        <div className="rounded-2xl p-5 border border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-950/20 backdrop-blur-sm relative overflow-hidden">
+        {/* Global Market Intelligence Radar Banner (Sovereign Terminal Style) */}
+        <div className="rounded-2xl p-5 border border-slate-800 bg-slate-900/90 shadow-xl backdrop-blur-md relative overflow-hidden">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-blue-400">
                 <Sparkles className="w-4 h-4 animate-pulse" />
-                <span>AI Sentiment Radar • Analisis Waktu Nyata</span>
+                <span>TERMINAL MACRO RADAR &bull; GLOBAL SENTIMENT FEED</span>
               </div>
-              <h2 className="text-base sm:text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                Kondisi Pasar: Cenderung Akumulatif & Bullish ({bullishRatio}%)
+              <h2 className="text-base sm:text-lg font-bold tracking-tight text-slate-100 font-sans">
+                Sentimen Likuiditas Global: {bullishRatio >= 50 ? "Akumulatif & Resilient" : "Risk-Off & Waspada"} ({bullishRatio}% Bullish)
               </h2>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 max-w-2xl leading-relaxed">
-                Stabilitas suku bunga BI mendukung likuiditas perbankan, sementara adopsi ETF institusional global menjaga momentum aset kripto dan saham dunia.
+              <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
+                Pemantauan real-time terhadap volatilitas bursa Asia/semikonduktor, perdebatan valuasi AI Capex, kebijakan suku bunga The Fed, dan pergerakan emas/Bitcoin institusional.
               </p>
             </div>
 
-            <div className="flex items-center gap-3 self-start md:self-center shrink-0">
-              <div className="px-3 py-2 rounded-xl bg-white/80 dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/10 text-center">
-                <span className="text-[10px] uppercase font-bold text-zinc-400 block">Total Berita</span>
-                <span className="text-sm font-black text-zinc-900 dark:text-zinc-100 tabular-nums">{news.length}</span>
+            <div className="flex items-center gap-3 self-start md:self-center shrink-0 font-mono">
+              <div className="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-center">
+                <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">TOTAL DISPATCH</span>
+                <span className="text-sm font-bold text-slate-100 tabular-nums">{news.length}</span>
               </div>
-              <div className="px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-center">
-                <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 block">Bullish</span>
-                <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 tabular-nums">{bullishCount}</span>
+              <div className="px-3.5 py-2 rounded-xl bg-slate-950 border border-emerald-800/40 text-center">
+                <span className="text-[9px] uppercase font-bold text-emerald-400 block tracking-wider">BULLISH</span>
+                <span className="text-sm font-bold text-emerald-400 tabular-nums">{bullishCount}</span>
+              </div>
+              <div className="px-3.5 py-2 rounded-xl bg-slate-950 border border-rose-800/40 text-center">
+                <span className="text-[9px] uppercase font-bold text-rose-400 block tracking-wider">BEARISH</span>
+                <span className="text-sm font-bold text-rose-400 tabular-nums">{bearishCount}</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Category Filters */}
+        {/* Category Filters (Console Style) */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-          <Filter className="w-3.5 h-3.5 text-zinc-400 shrink-0 ml-1" />
+          <Filter className="w-3.5 h-3.5 text-blue-400 shrink-0 ml-1" />
           {CATEGORIES.map((cat) => {
             const isActive = selectedCategory === cat.value;
             return (
               <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-mono font-semibold whitespace-nowrap transition-all border ${
                   isActive
-                    ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-semibold shadow-sm"
-                    : "bg-white/80 dark:bg-zinc-900/60 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 border border-zinc-200/80 dark:border-white/[0.06]"
+                    ? "bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/25 ring-1 ring-blue-400/40 font-bold"
+                    : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
                 }`}
               >
                 {cat.label}
@@ -152,22 +157,39 @@ export default function NewsPage() {
               const isBullish = item.sentiment === "BULLISH";
               const isBearish = item.sentiment === "BEARISH";
 
+              const getCategoryBadgeClass = (cat: string) => {
+                switch (cat) {
+                  case "HOT":
+                    return "bg-rose-950/70 text-rose-400 border-rose-800/60";
+                  case "GLOBAL_EQUITIES":
+                    return "bg-blue-950/70 text-blue-400 border-blue-800/60";
+                  case "CRYPTO":
+                    return "bg-amber-950/70 text-amber-400 border-amber-800/60";
+                  case "MACRO_GLOBAL":
+                    return "bg-indigo-950/70 text-indigo-300 border-indigo-800/60";
+                  case "SAFE_HAVEN":
+                    return "bg-yellow-950/70 text-yellow-400 border-yellow-800/60";
+                  default:
+                    return "bg-slate-800 text-slate-300 border-slate-700";
+                }
+              };
+
               return (
                 <article
                   key={item.id}
-                  className="rounded-2xl p-5 bg-white/90 dark:bg-zinc-900/75 border border-zinc-200/80 dark:border-white/[0.07] hover:border-zinc-300 dark:hover:border-white/[0.16] transition-all duration-200 shadow-sm dark:shadow-lg dark:shadow-black/40 glass-card glass-card-hover flex flex-col justify-between space-y-4"
+                  className="rounded-2xl p-5 bg-slate-900 border border-slate-800 hover:border-blue-500/50 transition-all duration-200 shadow-xl flex flex-col justify-between space-y-4 group"
                 >
-                  <div className="space-y-2.5">
+                  <div className="space-y-3">
                     {/* Top Row: Category, Tickers, Sentiment */}
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">
-                          {item.category}
+                        <span className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded border uppercase tracking-wider ${getCategoryBadgeClass(item.category)}`}>
+                          {item.category.replace("_", " ")}
                         </span>
                         {item.tickers.map((t) => (
                           <span
                             key={t}
-                            className="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40"
+                            className="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-slate-950 text-blue-400 border border-blue-500/30"
                           >
                             ${t}
                           </span>
@@ -176,12 +198,12 @@ export default function NewsPage() {
 
                       {/* Sentiment Badge */}
                       <span
-                        className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg font-mono ${
+                        className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded font-mono ${
                           isBullish
-                            ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/60"
+                            ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/60"
                             : isBearish
-                            ? "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-800/60"
-                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700"
+                            ? "bg-rose-950/80 text-rose-400 border border-rose-800/60"
+                            : "bg-slate-950 text-slate-300 border border-slate-800"
                         }`}
                       >
                         {isBullish ? (
@@ -203,40 +225,40 @@ export default function NewsPage() {
                         rel="noopener noreferrer"
                         className="group/link block"
                       >
-                        <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 group-hover/link:text-emerald-500 transition-colors leading-snug tracking-tight flex items-start justify-between gap-2">
+                        <h3 className="text-sm sm:text-base font-bold text-slate-100 group-hover/link:text-blue-400 transition-colors leading-snug tracking-tight flex items-start justify-between gap-2 font-sans">
                           <span>{item.title}</span>
-                          <ExternalLink className="w-3.5 h-3.5 opacity-40 group-hover/link:opacity-100 group-hover/link:text-emerald-500 shrink-0 mt-1 transition-all" />
+                          <ExternalLink className="w-3.5 h-3.5 opacity-40 group-hover/link:opacity-100 group-hover/link:text-blue-400 shrink-0 mt-1 transition-all" />
                         </h3>
                       </a>
                     ) : (
-                      <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100 leading-snug tracking-tight">
+                      <h3 className="text-sm sm:text-base font-bold text-slate-100 leading-snug tracking-tight font-sans">
                         {item.title}
                       </h3>
                     )}
 
                     {/* Summary */}
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed line-clamp-3">
+                    <p className="text-xs text-slate-300 leading-relaxed line-clamp-3 font-normal">
                       {item.summary}
                     </p>
                   </div>
 
                   {/* AI Impact Box & Meta */}
-                  <div className="space-y-3 pt-2 border-t border-zinc-100 dark:border-white/[0.04]">
-                    <div className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-950/50 border border-zinc-200/60 dark:border-white/[0.04] text-[11px] text-zinc-700 dark:text-zinc-300 flex items-start gap-2">
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                  <div className="space-y-3 pt-2.5 border-t border-slate-800/80">
+                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-[11px] text-slate-300 flex items-start gap-2 font-sans">
+                      <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-semibold text-emerald-700 dark:text-emerald-400">Dampak Portofolio: </span>
+                        <span className="font-bold text-blue-400 font-mono">DAMPAK PORTOFOLIO: </span>
                         {item.impact_summary}
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-zinc-400 gap-2 flex-wrap">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 gap-2 flex-wrap font-mono">
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1 font-semibold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800/80 px-2 py-0.5 rounded-md border border-zinc-200/70 dark:border-white/[0.06]">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        <span className="inline-flex items-center gap-1.5 font-semibold text-slate-300 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
                           {item.source}
                         </span>
-                        <div className="flex items-center gap-1 text-zinc-400">
+                        <div className="flex items-center gap-1 text-slate-500">
                           <Clock className="w-3 h-3" />
                           <span>{formatTimeAgo(item.published_at)}</span>
                         </div>
@@ -247,9 +269,9 @@ export default function NewsPage() {
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 transition-colors ml-auto"
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors ml-auto font-sans"
                         >
-                          <span>Buka Berita</span>
+                          <span>Buka Dispatch</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       )}

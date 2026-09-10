@@ -1024,9 +1024,101 @@ ${quote.valuationSummary ? `Diagnostik: ${quote.valuationSummary}` : ""}`,
     };
   }
 
-  // General default message
+  // 5. ANALISIS DISKUSI MAKRO, BUBBLE AI, SIKLUS PASAR, & GEOPOLITIK
+  const isMacroOrBubbleQuestion =
+    lower.includes("bubble") ||
+    lower.includes("turun") ||
+    lower.includes("anjlok") ||
+    lower.includes("crash") ||
+    lower.includes("korsel") ||
+    lower.includes("kospi") ||
+    lower.includes("nikkei") ||
+    lower.includes("amerika") ||
+    lower.includes("the fed") ||
+    lower.includes("suku bunga") ||
+    lower.includes("dot com") ||
+    lower.includes("dotcom") ||
+    lower.includes("98") ||
+    lower.includes("1998") ||
+    lower.includes("2000") ||
+    lower.includes("2008") ||
+    lower.includes("inflasi") ||
+    lower.includes("ai") ||
+    lower.includes("semikonduktor") ||
+    lower.includes("nvidia");
+
+  if (isMacroOrBubbleQuestion) {
+    if (lower.includes("bubble") || lower.includes("98") || lower.includes("1998") || lower.includes("2000") || lower.includes("dotcom")) {
+      return {
+        replyText: `🏛️ **Perspektif Analisis Makro: AI Bubble vs Dot-Com Crash 1998-2000**
+
+Pertanyaan yang sangat tajam dan tepat sasaran! Mari kita bedah perbandingan fundamentalnya secara objektif:
+
+---
+
+### 1. Perbedaan Mendasar: Valuasi Kosong vs Cash Flow Raksasa
+• **Era Dot-Com (1998–2000)**:
+  Perusahaan internet masa itu (seperti Pets.com, Webvan, WorldCom) diperdagangkan dengan valuasi P/E ratusan kali lipat tanpa pendapatan riil—hanya berdasar metrik fana seperti *"eyeballs"* atau klik website. Ketika likuiditas ditarik, mereka bangkrut karena tidak punya uang tunai.
+• **Era AI Hari Ini (2024–2026)**:
+  Raksasa yang memimpin reli AI saat ini (**Nvidia, Microsoft, Apple, Alphabet, Meta**) adalah **mesin pencetak uang tunai (*Free Cash Flow monster*)**. 
+  - Margin laba kotor Nvidia di atas 70%.
+  - Neraca keuangan mereka memiliki cadangan kas ratusan miliar dolar dengan utang sangat rendah (*cash-rich fortress balance sheet*).
+
+---
+
+### 2. Di Mana Titik Risikonya Sekarang?
+Meskipun bukan kebangkrutan seperti 1998, pasar memang menghadapi **2 risiko koreksi nyata**:
+1. **The $600B AI ROI Dilemma**:
+   Perusahaan teknologi (Big Tech) membelanjakan ratusan miliar dolar untuk GPU & data center. Jika aplikasi perangkat lunak (*software/enterprise monetization*) lambat menghasilkan laba yang sepadan, belanja modal (*Capex*) akan dipangkas, sehingga saham chip hardware (NVDA, SK Hynix, TSMC) akan mengalami koreksi valuasi yang dalam.
+2. **Konsentrasi Valuasi Bursa AS**:
+   Indeks S&P 500 memiliki bobot sangat tinggi pada 7 saham teknologi (Magnificent 7). Jika sektor tech terkoreksi 15–20%, indeks saham AS akan terseret turun secara agregat.
+
+---
+
+### 3. Mengapa Kasus Korsel & Nikkei Anjlok?
+Bursa Korea Selatan (KOSPI) dan Nikkei sangat terkonsentrasi pada chip memori HBM (Samsung & SK Hynix). Begitu ada rumor penurunan pesanan chip atau pembatasan ekspor, dana asing langsung keluar cepat (*foreign capital flight*).
+
+---
+
+### 4. Bagaimana Strategi Portofolio Anda Harus Bersikap?
+Sebagai investor berfondasi kokoh (Sovereign Portfolio):
+1. **Jangan Berjudi di Satu Saham Chip Saja**:
+   Gunakan **Vanguard Total World Stock (VT)** atau **VOO/SPY**. Jika sektor semikonduktor terkoreksi, indeks dunia akan tetap tertopang oleh sektor defensif, healthcare, consumer staples, dan finansial global.
+2. **Benteng Pelindung (Emas & Bitcoin)**:
+   Alokasi 10% Emas murni dan 15% Bitcoin bertindak sebagai aset tanpa risiko pihak ketiga (*sovereign hedge*) saat pasar ekuitas mengalami rotasi atau volatilitas nilai tukar fiat.
+3. **Peluang "Buy The Dip" (Akumulasi DCA Bertahap)**:
+   Koreksi akibat kekhawatiran bubble pada bisnis monopoli ber-parit lebar (Apple, Microsoft, Google) secara historis justru merupakan **titik masuk terbaik** untuk akumulasi modal jangka panjang.`,
+        toolCallsExecuted: [],
+      };
+    }
+
+    return {
+      replyText: `🏛️ **Catatan Makroekonomi & Dinamika Pasar Global**
+
+Pasar modal dunia saat ini sedang berada dalam fase transisi struktural antara kebijakan suku bunga tinggi The Fed, pergeseran belanja modal kecerdasan buatan (AI Capex), dan fragmentasi geopolitik.
+
+**Poin Kunci untuk Portofolio Anda:**
+1. **Ketahanan Dollar vs Aset Nyata**: Memegang aset berdenominasi USD (seperti ETF Global VT) memberikan lindung nilai alami dari depresiasi nilai tukar lokal.
+2. **Kekuatan Parit Ekonomi (Economic Moat)**: Perusahaan dengan arus kas operasional tinggi dan kekuatan penetapan harga (*pricing power*) mampu melewati siklus inflasi lebih tangguh dibanding emiten spekulatif.
+3. **Disiplin Rebalancing**: Tetap pertahankan porsi alokasi multi-aset seimbang (Saham Global, Emas, Kripto, dan Likuiditas Kas) daripada mencoba menebak waktu titik balik pasar (*market timing*).
+
+Ada aset tertentu atau skenario makro yang ingin Anda simulasikan dampaknya terhadap portofolio Anda?`,
+      toolCallsExecuted: [],
+    };
+  }
+
+  // General default message (Sovereign Terminal Advisor)
   return {
-    replyText: `🤖 **Halo! Saya Asisten+Stock Multi-Asset Assistant.**\n\nAnda dapat mencatat dan memantau berbagai aset:\n1. **Saham**: *"Beli BBCA 10 lot di 9850"* atau *"Beli BBCA 5 juta"*\n2. **Kripto (Crypto)**: *"Beli BTC 1.100.000 rupiah"* atau *"Beli BTC 0.05 di 64500 USD"*\n3. **Emas / Logam Mulia**: *"Beli Emas Antam 2 juta"* atau *"Beli Emas 10 gram di 1410000"*\n4. **Obligasi / SBN**: *"Beli ORI024 10000000"*\n5. **ETF**: *"Beli SPY 2 unit di 550 USD"*\n6. **Cek Portofolio**: *"Cek portofolio & alokasi aset saya"*\n\nAda yang ingin dicatat atau dicek saat ini?`,
+    replyText: `🏛️ **Asisten+Stock Sovereign Terminal Advisor**
+
+Saya siap mendampingi Anda dalam analisis investasi, pencatatan transaksi, dan strategi portofolio:
+
+• **Pencatatan Cepat**: *"Beli VT 1 juta"*, *"Beli BTC 0.02 di 64000 USD"*, *"Beli Emas 5 gram"*
+• **Riset Valuasi & Moat**: *"Analisa fundamental AAPL"*, *"Valuasi NVDA"*, *"Analisis BBCA"*
+• **Saran Rebalancing**: *"Saya punya uang dingin 2 juta, alokasikan kemana?"*
+• **Diskusi Makro**: Tanyakan seputar siklus suku bunga The Fed, bubble AI, inflasi, atau proteksi kekayaan global.
+
+Apa yang ingin Anda telaah atau eksekusi hari ini?`,
     toolCallsExecuted: [],
   };
 }

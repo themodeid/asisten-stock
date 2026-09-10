@@ -225,199 +225,304 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Main Profile Form */}
+        {/* Main Profile Form (Intuitive Sovereign Questionnaire Form) */}
         <form onSubmit={handleSaveProfile} className="space-y-6">
-          <div className="bg-[#0d1017] border border-white/5 rounded-2xl p-6 space-y-6 shadow-sm">
-            <div className="border-b border-zinc-800 pb-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <User className="w-4 h-4 text-emerald-400" />
-                1. Identitas & Demografi Investor
+          {/* Section 1: Demografi & Tahun Lahir */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
+            <div className="border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2 font-mono uppercase tracking-wider">
+                <User className="w-4 h-4 text-blue-400" />
+                1. Identitas, Tahun Kelahiran &amp; Pekerjaan
               </h3>
-              <p className="text-xs text-zinc-400 mt-0.5">Identitas pemilik tunggal brankas portofolio.</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Membantu AI menghitung sisa horizon usia produktif dan bunga majemuk (*compound interest*).
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-300">Nama Lengkap</label>
+                <label className="text-xs font-mono font-medium text-slate-300">Nama Investor</label>
                 <input
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Adam Wahyu Kurniawan"
-                  className="w-full bg-[#131722] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-emerald-500/60"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500 font-sans"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-300">Username Akun</label>
-                <input
-                  type="text"
-                  disabled
-                  value={username}
-                  className="w-full bg-[#131722]/60 border border-zinc-800/60 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-400 cursor-not-allowed"
-                />
+                <label className="text-xs font-mono font-medium text-slate-300">Tahun Lahir / Usia</label>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={new Date().getFullYear() - age}
+                    onChange={(e) => setAge(new Date().getFullYear() - Number(e.target.value))}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500 font-mono"
+                  >
+                    {Array.from({ length: 65 }, (_, i) => 2010 - i).map((year) => (
+                      <option key={year} value={year}>
+                        Lahir {year} ({new Date().getFullYear() - year} Tahun)
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-300">Usia Saat Ini (Tahun)</label>
-                <input
-                  type="number"
-                  value={age}
-                  onChange={(e) => setAge(Number(e.target.value))}
-                  min={15}
-                  max={100}
-                  className="w-full bg-[#131722] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-emerald-500/60"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-300">Profesi / Pekerjaan</label>
-                <input
-                  type="text"
-                  value={occupation}
-                  onChange={(e) => setOccupation(e.target.value)}
-                  placeholder="Investor & Professional"
-                  className="w-full bg-[#131722] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-emerald-500/60"
-                />
+                <label className="text-xs font-mono font-medium text-slate-300">Profesi / Pekerjaan</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={occupation}
+                    onChange={(e) => setOccupation(e.target.value)}
+                    placeholder="Pilih atau ketik pekerjaan..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500"
+                  />
+                  {/* Preset quick pills */}
+                  <div className="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar pb-0.5">
+                    {["Software Engineer", "Wiraswasta / Bisnis", "Karyawan Swasta", "Trader & Investor", "Freelancer"].map((occ) => (
+                      <button
+                        key={occ}
+                        type="button"
+                        onClick={() => setOccupation(occ)}
+                        className={`text-[10px] px-2 py-0.5 rounded-md border whitespace-nowrap transition ${
+                          occupation === occ
+                            ? "bg-blue-600/20 border-blue-500 text-blue-300 font-bold"
+                            : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                        }`}
+                      >
+                        {occ}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#0d1017] border border-white/5 rounded-2xl p-6 space-y-6 shadow-sm">
-            <div className="border-b border-zinc-800 pb-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
+          {/* Section 2: Arus Kas & Kapasitas Investasi */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
+            <div className="border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2 font-mono uppercase tracking-wider">
                 <Wallet className="w-4 h-4 text-blue-400" />
-                2. Arus Kas Bulanan & Kapasitas Investasi
+                2. Arus Kas Bulanan &amp; Kapasitas Investasi Dingin
               </h3>
-              <p className="text-xs text-zinc-400 mt-0.5">Menentukan batas aman alokasi modal dan rekomendasi DCA.</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                AI menghitung surplus tabungan Anda agar rekomendasi alokasi tidak mengganggu kebutuhan harian.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-300">Pemasukan / Gaji Bulanan (IDR)</label>
+                <label className="text-xs font-mono font-medium text-slate-300">Pemasukan / Gaji Bulanan</label>
                 <input
                   type="number"
                   value={monthlyIncome}
                   onChange={(e) => setMonthlyIncome(Number(e.target.value))}
                   step={500000}
-                  className="w-full bg-[#131722] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-emerald-500/60"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500 font-mono tabular-nums"
                 />
-                <span className="text-[11px] text-zinc-500">{formatIDR(monthlyIncome)}</span>
+                <span className="text-[11px] text-blue-400 font-mono block">{formatIDR(monthlyIncome)}</span>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-300">Pengeluaran Rutin Bulanan (IDR)</label>
+                <label className="text-xs font-mono font-medium text-slate-300">Pengeluaran Rutin Pokok</label>
                 <input
                   type="number"
                   value={monthlyExpenses}
                   onChange={(e) => setMonthlyExpenses(Number(e.target.value))}
                   step={500000}
-                  className="w-full bg-[#131722] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-emerald-500/60"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500 font-mono tabular-nums"
                 />
-                <span className="text-[11px] text-zinc-500">{formatIDR(monthlyExpenses)}</span>
+                <span className="text-[11px] text-slate-400 font-mono block">{formatIDR(monthlyExpenses)}</span>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-300">Cadangan Dana Darurat (Bulan)</label>
+                <label className="text-xs font-mono font-medium text-slate-300">Cadangan Dana Darurat</label>
                 <select
                   value={emergencyMonths}
                   onChange={(e) => setEmergencyMonths(Number(e.target.value))}
-                  className="w-full bg-[#131722] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-emerald-500/60"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500 font-mono"
                 >
-                  <option value={3}>3 Bulan Pengeluaran</option>
-                  <option value={6}>6 Bulan Pengeluaran (Standar Disarankan)</option>
-                  <option value={12}>12 Bulan Pengeluaran (Sangat Aman)</option>
+                  <option value={3}>3 Bulan (Agresif / Minimal)</option>
+                  <option value={6}>6 Bulan (Standar Disarankan)</option>
+                  <option value={12}>12 Bulan (Sangat Konservatif)</option>
                 </select>
-                <span className="text-[11px] text-zinc-500">Total target: {formatIDR(emergencyFundTarget)}</span>
+                <span className="text-[11px] text-slate-400 font-mono block">Bantalan aman: {formatIDR(emergencyFundTarget)}</span>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#0d1017] border border-white/5 rounded-2xl p-6 space-y-6 shadow-sm">
-            <div className="border-b border-zinc-800 pb-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Target className="w-4 h-4 text-emerald-400" />
-                3. Profil Risiko & Sasaran Finansial
+          {/* Section 3: Target Visi Finansial & Gaya Investasi */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
+            <div className="border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2 font-mono uppercase tracking-wider">
+                <Target className="w-4 h-4 text-blue-400" />
+                3. Sasaran Visi Finansial &amp; Karakteristik Portofolio
               </h3>
-              <p className="text-xs text-zinc-400 mt-0.5">Panduan AI untuk menyeimbangkan portofolio sesuai preferensi Anda.</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Pilih dengan satu klik tujuan utama dan gaya alokasi aset yang Anda sukai.
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-zinc-300">Toleransi Risiko</label>
-                <div className="grid grid-cols-1 gap-2">
-                  {[
-                    { id: "conservative", name: "Konservatif", desc: "Prioritas keamanan modal & dividen defensif" },
-                    { id: "moderate", name: "Moderat (Seimbang)", desc: "Kombinasi pertumbuhan & perlindungan nilai" },
-                    { id: "aggressive", name: "Agresif (High Alpha)", desc: "Maksimal pertumbuhan dengan toleransi volatilitas tinggi" },
-                  ].map((r) => (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => setRiskProfile(r.id as any)}
-                      className={`p-3 rounded-xl border text-left text-xs transition ${
-                        riskProfile === r.id
-                          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300 font-semibold shadow-sm"
-                          : "bg-[#131722] border-zinc-800 text-zinc-400 hover:border-zinc-700"
-                      }`}
-                    >
-                      <div className="font-bold">{r.name}</div>
-                      <div className="text-[11px] text-zinc-400 mt-0.5">{r.desc}</div>
-                    </button>
-                  ))}
-                </div>
+            {/* Quick Choice: Target Visi Finansial */}
+            <div className="space-y-2">
+              <label className="text-xs font-mono font-medium text-slate-300">Apa Target Utama Investasi Anda?</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                {[
+                  {
+                    id: "FIRE",
+                    title: "Financial Freedom (FIRE)",
+                    desc: "Kebebasan finansial & pensiun dini dari hasil dividen/gain",
+                    value: "Financial Independence / Pensiun Dini & Bebas Finansial",
+                  },
+                  {
+                    id: "PASSIVE_DIVIDEND",
+                    title: "Dividen Pasif Rutin",
+                    desc: "Membangun aliran kas dividen rutin dari saham bluechip & obligasi",
+                    value: "Membangun Arus Kas Dividen Pasif & Perlindungan Nilai",
+                  },
+                  {
+                    id: "GLOBAL_WEALTH",
+                    title: "Lindung Nilai Global",
+                    desc: "Melindungi kekayaan dari inflasi lokal via ETF VT, Big Tech & Emas",
+                    value: "Proteksi Kekayaan Global, Emas & Pertumbuhan Tanpa Batas Negara",
+                  },
+                  {
+                    id: "EXPONENTIAL",
+                    title: "Pertumbuhan Eksponensial",
+                    desc: "Akumulasi aset high-conviction (Bitcoin & Tech Moat) jangka panjang",
+                    value: "Pertumbuhan Aset Agresif Jangka Panjang via Bitcoin & Wide-Moat",
+                  },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setInvestmentGoals(item.value)}
+                    className={`p-3 rounded-xl border text-left transition flex flex-col justify-between ${
+                      investmentGoals === item.value
+                        ? "bg-blue-600/20 border-blue-500/80 text-white shadow-md ring-1 ring-blue-400/40"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                    }`}
+                  >
+                    <div>
+                      <div className="text-xs font-bold text-slate-100">{item.title}</div>
+                      <div className="text-[11px] text-slate-400 mt-1 leading-relaxed">{item.desc}</div>
+                    </div>
+                    {investmentGoals === item.value && (
+                      <span className="text-[10px] font-mono text-blue-400 font-bold mt-2 flex items-center gap-1">
+                        <Check className="w-3 h-3" /> Target Terpilih
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
+              <input
+                type="text"
+                value={investmentGoals}
+                onChange={(e) => setInvestmentGoals(e.target.value)}
+                placeholder="Atau tulis target kustom Anda sendiri..."
+                className="w-full mt-2 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+              />
+            </div>
 
-              <div className="sm:col-span-2 space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-300">Tujuan & Visi Finansial Utama</label>
-                  <input
-                    type="text"
-                    value={investmentGoals}
-                    onChange={(e) => setInvestmentGoals(e.target.value)}
-                    placeholder="Financial Independence / Dana Pensiun & Dividen Pasif"
-                    className="w-full bg-[#131722] border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-emerald-500/60"
-                  />
-                </div>
+            {/* Quick Choice: Gaya / Strategi Investasi */}
+            <div className="space-y-2 pt-2 border-t border-slate-800">
+              <label className="text-xs font-mono font-medium text-slate-300">Gaya &amp; Preferensi Alokasi Portofolio</label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  {
+                    id: "SOVEREIGN_WIDE_MOAT",
+                    title: "Global Wide-Moat Monopoly",
+                    desc: "40% ETF Dunia (VT), 35% Big Tech (AAPL/MSFT/GOOGL), 15% BTC, 10% Emas.",
+                    value: "Global Wide-Moat Monopoly: 40% ETF VT/VOO, 35% US Mega-Cap AAPL/MSFT, 15% BTC, 10% Emas.",
+                    risk: "moderate",
+                  },
+                  {
+                    id: "ALL_WEATHER",
+                    title: "All-Weather Ray Dalio",
+                    desc: "Paling tahan banting di segala siklus ekonomi (Saham, Emas, Kas, Obligasi).",
+                    value: "All-Weather Seimbang: Diversifikasi tahan krisis ala Ray Dalio dengan proteksi emas dan obligasi.",
+                    risk: "conservative",
+                  },
+                  {
+                    id: "TECH_CRYPTO_MAX",
+                    title: "Asymmetric High Growth",
+                    desc: "Fokus aset moneter digital & disrupsi kecerdasan buatan dengan toleransi volatilitas tinggi.",
+                    value: "Pertumbuhan Asimetris Agresif: Dominasi Bitcoin, Semikonduktor, dan Big Tech disrupsi.",
+                    risk: "aggressive",
+                  },
+                ].map((strat) => (
+                  <button
+                    key={strat.id}
+                    type="button"
+                    onClick={() => {
+                      setStrategyPreference(strat.value);
+                      setRiskProfile(strat.risk as any);
+                    }}
+                    className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between ${
+                      strategyPreference === strat.value
+                        ? "bg-blue-600/20 border-blue-500/80 text-white shadow-md ring-1 ring-blue-400/40"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                    }`}
+                  >
+                    <div>
+                      <div className="text-xs font-bold text-slate-100 flex items-center justify-between">
+                        <span>{strat.title}</span>
+                        <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-slate-900 border border-slate-700 text-slate-400">
+                          {strat.risk}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-400 mt-1.5 leading-relaxed">{strat.desc}</div>
+                    </div>
+                    {strategyPreference === strat.value && (
+                      <span className="text-[10px] font-mono text-blue-400 font-bold mt-2 flex items-center gap-1">
+                        <Check className="w-3 h-3" /> Strategi Aktif
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                rows={2}
+                value={strategyPreference}
+                onChange={(e) => setStrategyPreference(e.target.value)}
+                placeholder="Catatan strategi kustom untuk AI..."
+                className="w-full mt-2 bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 focus:outline-none focus:border-blue-500 leading-relaxed font-sans"
+              />
+            </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-300">Horizon Waktu Investasi (Tahun)</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="range"
-                      min={1}
-                      max={30}
-                      value={timeHorizon}
-                      onChange={(e) => setTimeHorizon(Number(e.target.value))}
-                      className="flex-1 accent-emerald-500"
-                    />
-                    <span className="w-16 text-center font-bold text-sm bg-[#131722] border border-zinc-800 py-1 rounded-lg text-emerald-400">
-                      {timeHorizon} Thn
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-300">Preferensi & Catatan Strategi Investasi</label>
-                  <textarea
-                    rows={2}
-                    value={strategyPreference}
-                    onChange={(e) => setStrategyPreference(e.target.value)}
-                    placeholder="Pertumbuhan seimbang: DCA berkala di ETF Global VT, Saham Bluechip Dividen, Kripto terukur, dan Emas sebagai pelindung nilai."
-                    className="w-full bg-[#131722] border border-zinc-800 rounded-xl p-3 text-xs sm:text-sm text-zinc-100 focus:outline-none focus:border-emerald-500/60 leading-relaxed"
-                  />
-                </div>
+            {/* Horizon Waktu Investasi Slider */}
+            <div className="space-y-1.5 pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-between text-xs">
+                <label className="font-mono font-medium text-slate-300">Horizon Waktu Investasi Anda</label>
+                <span className="font-bold font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                  {timeHorizon} Tahun Ke Depan
+                </span>
+              </div>
+              <input
+                type="range"
+                min={1}
+                max={30}
+                value={timeHorizon}
+                onChange={(e) => setTimeHorizon(Number(e.target.value))}
+                className="w-full accent-blue-600"
+              />
+              <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                <span>1 Tahun (Jangka Pendek)</span>
+                <span>10 Tahun (Dekade Emas)</span>
+                <span>30 Tahun (Multi-Generasi)</span>
               </div>
             </div>
 
-            <div className="pt-2 flex justify-end">
+            <div className="pt-3 flex justify-end">
               <button
                 type="submit"
                 disabled={isSaving}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-zinc-950 font-bold text-sm shadow-[0_0_20px_rgba(16,185,129,0.3)] transition flex items-center gap-2 active:scale-[0.98] disabled:opacity-50"
+                className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs font-mono tracking-wider uppercase shadow-lg shadow-blue-500/25 transition flex items-center gap-2 active:scale-[0.98] disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                {isSaving ? "Menyimpan ke AI..." : "Simpan Jati Diri & Sinkronkan ke AI"}
+                {isSaving ? "Menyimpan ke AI..." : "Simpan Profil & Sinkronkan ke AI"}
               </button>
             </div>
           </div>

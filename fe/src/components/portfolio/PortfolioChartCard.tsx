@@ -238,19 +238,19 @@ export default function PortfolioChartCard({
     : `-${Math.abs(Number(changePercent)).toFixed(2)}%`;
 
   return (
-    <div className="bg-black text-white rounded-2xl p-5 md:p-6 border border-zinc-850 shadow-2xl space-y-4 select-none">
+    <div className="bg-[#0f172a]/80 backdrop-blur-xl text-slate-100 rounded-2xl p-5 md:p-7 border border-slate-800 shadow-2xl space-y-4 select-none">
       {/* 1. Header Label & Updated Clock */}
       <div className="flex items-center justify-between text-xs gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-zinc-400 font-semibold tracking-wide">Nilai Portofolio</span>
-          <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-full font-medium">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            Live 1 mnt
+          <span className="text-slate-400 font-semibold tracking-wide">Total Nilai Portofolio Konsolidasi</span>
+          <span className="inline-flex items-center gap-1.5 text-[10px] text-blue-400 bg-blue-950/60 border border-blue-500/30 px-2.5 py-0.5 rounded-full font-mono font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+            Live Market
           </span>
         </div>
         <div className="flex items-center gap-2">
           {headerRightSlot}
-          <span className="text-zinc-400 font-mono text-[11px] hidden sm:inline">
+          <span className="text-slate-400 font-mono text-[11px] hidden sm:inline">
             Diperbarui {chartData?.updated_at || lastUpdated}
           </span>
         </div>
@@ -259,11 +259,11 @@ export default function PortfolioChartCard({
       {/* 2. Big Live Amount & Profit/Loss Subtitle */}
       <div className="space-y-3">
         <div className="space-y-1">
-          <div className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white break-words">
+          <div className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white font-mono tabular-nums break-words">
             {isPrivate ? "Rp ••••••••" : formatIDR(displayValue)}
           </div>
           <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
-            <span className={`flex items-center gap-0.5 font-bold ${isPositive ? "text-emerald-400" : "text-red-400"}`}>
+            <span className={`flex items-center gap-0.5 font-bold font-mono tabular-nums ${isPositive ? "text-emerald-400" : "text-rose-400"}`}>
               {isPositive ? (
                 <ArrowUpRight className="w-3.5 h-3.5" />
               ) : (
@@ -454,10 +454,10 @@ export default function PortfolioChartCard({
               key={tf}
               type="button"
               onClick={() => setTimeframe(tf)}
-              className={`flex-1 py-1.5 px-2 rounded-full text-xs font-bold transition text-center ${
+              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-mono font-bold transition text-center ${
                 isActive
-                  ? activePillClass
-                  : "bg-zinc-900/90 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850"
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-400/40"
+                  : "bg-slate-900/90 text-slate-400 hover:text-slate-200 hover:bg-slate-850 border border-slate-800"
               }`}
             >
               {tf}
@@ -466,35 +466,35 @@ export default function PortfolioChartCard({
         })}
       </div>
 
-      {/* 5. Bottom Summary Collapsible Card (Matching screenshot) */}
-      <div className="rounded-xl bg-zinc-900/90 border border-zinc-800/80 overflow-hidden text-xs mt-3">
+      {/* 5. Bottom Summary Collapsible Card */}
+      <div className="rounded-xl bg-slate-900/90 border border-slate-800 overflow-hidden text-xs mt-3">
         <button
           type="button"
           onClick={() => setIsDetailsOpen(!isDetailsOpen)}
-          className="w-full p-4 flex items-center justify-between hover:bg-zinc-850/50 transition text-left"
+          className="w-full p-4 flex items-center justify-between hover:bg-slate-850/60 transition text-left"
         >
-          <div className="flex items-center gap-1.5 text-zinc-300 font-medium">
+          <div className="flex items-center gap-1.5 text-slate-300 font-medium">
             <span>Nilai Aset Bersih</span>
-            <Info className="w-3.5 h-3.5 text-zinc-500" />
+            <Info className="w-3.5 h-3.5 text-slate-500" />
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="font-bold text-white text-sm">
+            <span className="font-bold text-white text-sm font-mono tabular-nums">
               {isPrivate ? "Rp ••••••••" : formatIDR(displayValue)}
             </span>
             {isDetailsOpen ? (
-              <ChevronUp className="w-4 h-4 text-zinc-400" />
+              <ChevronUp className="w-4 h-4 text-slate-400" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-zinc-400" />
+              <ChevronDown className="w-4 h-4 text-slate-400" />
             )}
           </div>
         </button>
 
         {isDetailsOpen && (
-          <div className="px-4 pb-4 pt-1 border-t border-zinc-800/60 space-y-2.5">
-            <div className="p-3 rounded-lg bg-zinc-950/80 border border-zinc-800/70 flex items-center justify-between text-xs">
-              <span className="text-zinc-400">Jumlah Investasi</span>
-              <span className="font-bold text-zinc-200">
+          <div className="px-4 pb-4 pt-1 border-t border-slate-800/80 space-y-2.5">
+            <div className="p-3 rounded-lg bg-slate-950/80 border border-slate-800 flex items-center justify-between text-xs">
+              <span className="text-slate-400">Jumlah Investasi Riil</span>
+              <span className="font-bold text-slate-100 font-mono tabular-nums">
                 {isPrivate ? "••••" : formatIDR(totalInvested || 0)}
               </span>
             </div>

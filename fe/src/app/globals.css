@@ -13,13 +13,13 @@
 }
 
 html.dark {
-  --background: #09090b; /* Refined Deep Obsidian */
-  --foreground: #f4f4f5;
-  --card-bg: rgba(18, 20, 29, 0.75);
-  --card-border: rgba(255, 255, 255, 0.07);
-  --card-border-hover: rgba(255, 255, 255, 0.16);
-  --scrollbar-track: #09090b;
-  --scrollbar-thumb: #27272a;
+  --background: #0b0f19; /* Deep Slate Obsidian */
+  --foreground: #f8fafc;
+  --card-bg: rgba(15, 23, 42, 0.75);
+  --card-border: rgba(51, 65, 85, 0.45);
+  --card-border-hover: rgba(59, 130, 246, 0.4);
+  --scrollbar-track: #0b0f19;
+  --scrollbar-thumb: #1e293b;
 }
 
 body {
@@ -33,14 +33,14 @@ body {
 
 html.dark body {
   background-image: 
-    radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.035) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.025) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.045) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.025) 0px, transparent 50%);
 }
 
 html.light body {
   background-image: 
-    radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.04) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.03) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.04) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.025) 0px, transparent 50%);
 }
 
 /* Glassmorphic Fintech Cards - Refined & Subtle */

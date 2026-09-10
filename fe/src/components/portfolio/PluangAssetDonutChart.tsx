@@ -77,7 +77,7 @@ export default function PluangAssetDonutChart({
       </div>
 
       {/* Donut Chart & Legend Section */}
-      <div className="bg-[#090b0e] border border-white/[0.08] rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col md:flex-row items-center justify-around gap-6">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col md:flex-row items-center justify-around gap-6">
         {/* SVG Donut */}
         <div className="relative flex items-center justify-center shrink-0">
           <svg
@@ -91,7 +91,7 @@ export default function PluangAssetDonutChart({
               cy={size / 2}
               r={radius}
               fill="transparent"
-              stroke="#181b22"
+              stroke="#1e293b"
               strokeWidth={strokeWidth}
             />
             {/* Segments */}
@@ -116,11 +116,12 @@ export default function PluangAssetDonutChart({
             })}
           </svg>
 
-          {/* Center Text Label (Pluang style: "2,63Jt") */}
+          {/* Center Text Label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center select-none pointer-events-none">
-            <span className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+            <span className="text-xl sm:text-2xl font-black font-mono text-slate-100 tracking-tight">
               {isPrivate ? "••••" : (data?.center_label || "0")}
             </span>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">NET ASSET</span>
           </div>
         </div>
 
@@ -129,16 +130,16 @@ export default function PluangAssetDonutChart({
           {classes.map((c) => (
             <div
               key={c.key}
-              className="flex items-center justify-between text-xs sm:text-sm py-1 border-b border-white/[0.04] last:border-0"
+              className="flex items-center justify-between text-xs sm:text-sm py-1.5 border-b border-slate-800/80 last:border-0"
             >
               <div className="flex items-center gap-2.5">
                 <span
-                  className="w-3 h-3 rounded-full shrink-0 shadow-sm"
+                  className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
                   style={{ backgroundColor: c.color }}
                 />
-                <span className="font-semibold text-zinc-200">{c.label}</span>
+                <span className="font-semibold text-slate-200">{c.label}</span>
               </div>
-              <span className="font-bold text-zinc-300 font-mono">
+              <span className="font-bold text-slate-300 font-mono tabular-nums">
                 {c.formatted_percentage || `${c.percentage ?? c.percent ?? 0}%`}
               </span>
             </div>
@@ -153,22 +154,22 @@ export default function PluangAssetDonutChart({
           return (
             <div
               key={c.key}
-              className="rounded-2xl bg-[#090b0e] border border-white/[0.08] overflow-hidden shadow-md transition-all duration-200"
+              className="rounded-xl bg-slate-900 border border-slate-800 overflow-hidden shadow-md transition-all duration-200"
             >
               {/* Card Header */}
               <button
                 type="button"
                 onClick={() => toggleCard(c.key)}
-                className="w-full p-4 flex items-center justify-between hover:bg-white/[0.02] transition active:scale-[0.99]"
+                className="w-full p-4 flex items-center justify-between hover:bg-slate-800/40 transition active:scale-[0.99]"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-zinc-100">{c.label}</span>
+                  <span className="text-sm font-bold text-slate-100">{c.label}</span>
                   <span
                     className="w-2 h-2 rounded-full"
                     style={{ backgroundColor: c.color }}
                   />
                   <span
-                    className="text-xs font-bold"
+                    className="text-xs font-bold font-mono"
                     style={{ color: c.color }}
                   >
                     {c.formatted_percentage || `${c.percentage ?? c.percent ?? 0}%`}
@@ -185,46 +186,46 @@ export default function PluangAssetDonutChart({
 
               {/* Collapsible Content */}
               {isOpen && (
-                <div className="px-4 pb-4 pt-1 space-y-2.5 border-t border-white/[0.04]">
+                <div className="px-4 pb-4 pt-1 space-y-2.5 border-t border-slate-800">
                   {/* Total Nilai / Aset Row */}
                   <div
                     onClick={() => onSelectCategory && onSelectCategory(c.key)}
-                    className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/70 hover:bg-zinc-850/80 border border-white/[0.04] cursor-pointer transition group"
+                    className="flex items-center justify-between p-3 rounded-lg bg-slate-950/70 hover:bg-slate-800/80 border border-slate-800 cursor-pointer transition group"
                   >
-                    <span className="text-xs font-medium text-zinc-400">
-                      {c.key === "CASH" ? "Total Nilai Kas" : "Aset"}
+                    <span className="text-xs font-mono font-medium text-slate-400">
+                      {c.key === "CASH" ? "TOTAL SETTLED CASH" : "HOLDINGS VALUATION"}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs sm:text-sm font-bold text-zinc-100 font-mono">
+                      <span className="text-xs sm:text-sm font-bold text-slate-100 font-mono tabular-nums">
                         {maskValue(c.assets_value)}
                       </span>
-                      <ChevronRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-zinc-200 group-hover:translate-x-0.5 transition" />
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition" />
                     </div>
                   </div>
 
                   {/* Pocket Row (if non-cash) */}
                   {c.key !== "CASH" && (
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-zinc-900/40 border border-white/[0.02]">
-                      <span className="text-xs font-medium text-zinc-400">Pocket</span>
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-slate-950/40 border border-slate-800/60">
+                      <span className="text-xs font-mono font-medium text-slate-400">VAULT / POCKET</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-medium text-zinc-400 font-mono">
+                        <span className="text-xs font-medium text-slate-400 font-mono tabular-nums">
                           {maskValue(c.pocket_value)}
                         </span>
-                        <ChevronRight className="w-3.5 h-3.5 text-zinc-600" />
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
                       </div>
                     </div>
                   )}
 
-                  {/* Detailed Cash Sub-items (Pluang exact layout) */}
+                  {/* Detailed Cash Sub-items */}
                   {c.key === "CASH" && c.sub_items && (
-                    <div className="space-y-1.5 pt-1 pl-1">
+                    <div className="space-y-1.5 pt-1 pl-1 font-mono">
                       {c.sub_items.map((sub: any, idx: number) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-white/[0.02]"
+                          className="flex items-center justify-between text-xs py-1 px-2 rounded hover:bg-slate-800/30"
                         >
-                          <span className="text-zinc-400">{sub.label}</span>
-                          <span className="text-zinc-200 font-mono font-medium">
+                          <span className="text-slate-400">{sub.label}</span>
+                          <span className="text-slate-200 font-mono font-medium tabular-nums">
                             {maskValue(sub.value)}
                           </span>
                         </div>

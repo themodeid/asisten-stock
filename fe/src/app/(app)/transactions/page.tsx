@@ -173,24 +173,24 @@ export default function TransactionsPage() {
       <Header title="Riwayat Transaksi Multi-Waktu & Multi-Aset" />
 
       <main className="p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto">
-        {/* Multi-Dompet Selector Bar */}
-        <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-sm space-y-3">
+        {/* Multi-Vault & Execution Ledger Filter Bar (Sovereign Terminal Style) */}
+        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <div className="p-1.5 rounded-lg bg-blue-600/10 border border-blue-500/20 text-blue-400">
                 <Wallet className="w-4 h-4" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-bold text-zinc-100 uppercase tracking-wide">
-                    Multi-Dompet & Akun Platform
+                  <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider font-mono">
+                    TERMINAL EXECUTION LEDGER &bull; MULTI-VAULT
                   </h3>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-400 font-mono">
-                    {wallets.length} Dompet
+                  <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                    {wallets.length} VAULTS
                   </span>
                 </div>
-                <p className="text-[11px] text-zinc-400">
-                  Filter riwayat transaksi berdasarkan dompet atau exchange tertentu.
+                <p className="text-[11px] text-slate-400">
+                  Filter histori order dan transaksi institusional per entitas vault atau konsolidasi agregat.
                 </p>
               </div>
             </div>
@@ -203,14 +203,14 @@ export default function TransactionsPage() {
               onClick={() => setSelectedWalletId("all")}
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition shrink-0 ${
                 selectedWalletId === "all"
-                  ? "bg-zinc-100 text-zinc-950 border-zinc-200 shadow-md font-bold ring-2 ring-zinc-100/20"
-                  : "bg-zinc-950/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
+                  ? "bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/25 font-bold ring-1 ring-blue-400/40"
+                  : "bg-slate-950/80 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
               }`}
             >
-              <Globe className="w-3.5 h-3.5 text-blue-400" />
-              <span>Semua Dompet</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-800 text-zinc-300 font-medium">
-                Total Konsolidasi
+              <Globe className="w-3.5 h-3.5 text-blue-300" />
+              <span>Semua Vault</span>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${selectedWalletId === "all" ? "bg-blue-700/60 text-white" : "bg-slate-800 text-slate-400"}`}>
+                Konsolidasi
               </span>
             </button>
 
@@ -224,11 +224,11 @@ export default function TransactionsPage() {
                   onClick={() => setSelectedWalletId(w.id)}
                   className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition shrink-0 ${
                     isSelected
-                      ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300 shadow-md ring-2 ring-emerald-500/20 font-bold"
-                      : "bg-zinc-950/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
+                      ? "bg-blue-600/20 border-blue-500/50 text-blue-300 shadow-md ring-1 ring-blue-500/30 font-bold"
+                      : "bg-slate-950/80 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
                   }`}
                 >
-                  <Building2 className={`w-3.5 h-3.5 ${isSelected ? "text-emerald-400" : "text-zinc-500"}`} />
+                  <Building2 className={`w-3.5 h-3.5 ${isSelected ? "text-blue-400" : "text-slate-500"}`} />
                   <span className="capitalize">{w.name}</span>
                 </button>
               );
@@ -236,58 +236,58 @@ export default function TransactionsPage() {
           </div>
         </div>
 
-        {/* Top Summary Banner */}
+        {/* Top Metric Summary Cards (Terminal Style) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 shadow-lg flex items-center justify-between">
             <div>
-              <div className="text-[11px] text-zinc-400 uppercase font-semibold">Total Transaksi Terpilih</div>
-              <div className="text-xl font-bold text-zinc-100 mt-0.5">{stats.count} Transaksi</div>
+              <div className="text-[10px] font-mono tracking-wider text-slate-400 uppercase font-semibold">Total Order Tercatat</div>
+              <div className="text-xl font-bold font-mono tabular-nums text-slate-100 mt-1">{stats.count} Eksekusi</div>
             </div>
-            <Clock className="w-8 h-8 text-zinc-700" />
+            <Clock className="w-7 h-7 text-slate-700" />
           </div>
 
-          <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 shadow-lg flex items-center justify-between">
             <div>
-              <div className="text-[11px] text-zinc-400 uppercase font-semibold">Total Nilai Pembelian (BUY)</div>
-              <div className="text-xl font-bold text-emerald-400 mt-0.5">{formatIDR(stats.totalBuy)}</div>
+              <div className="text-[10px] font-mono tracking-wider text-slate-400 uppercase font-semibold">Akumulasi Pembelian (BUY)</div>
+              <div className="text-xl font-bold font-mono tabular-nums text-emerald-400 mt-1">{formatIDR(stats.totalBuy)}</div>
             </div>
-            <TrendingDown className="w-8 h-8 text-emerald-950/60" />
+            <TrendingDown className="w-7 h-7 text-emerald-500/30" />
           </div>
 
-          <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 shadow-lg flex items-center justify-between">
             <div>
-              <div className="text-[11px] text-zinc-400 uppercase font-semibold">Total Nilai Penjualan (SELL)</div>
-              <div className="text-xl font-bold text-amber-400 mt-0.5">{formatIDR(stats.totalSell)}</div>
+              <div className="text-[10px] font-mono tracking-wider text-slate-400 uppercase font-semibold">Realisasi Penjualan (SELL)</div>
+              <div className="text-xl font-bold font-mono tabular-nums text-amber-400 mt-1">{formatIDR(stats.totalSell)}</div>
             </div>
-            <TrendingUp className="w-8 h-8 text-amber-950/60" />
+            <TrendingUp className="w-7 h-7 text-amber-500/30" />
           </div>
         </div>
 
-        {/* Filter Controls Bar */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4 shadow-sm">
+        {/* Filter Controls Bar (Terminal Console Style) */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-xl">
           {/* Row 1: Time Range Presets */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-zinc-800/80 pb-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-4">
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-              <span className="text-zinc-400 text-xs font-semibold mr-1 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-zinc-400" /> Periode:
+              <span className="text-slate-400 text-xs font-mono font-semibold mr-1 flex items-center gap-1 uppercase tracking-wider">
+                <Calendar className="w-3.5 h-3.5 text-blue-400" /> TIMEFRAME:
               </span>
               {[
-                { id: "ALL", label: "Semua Waktu" },
-                { id: "TODAY", label: "Hari Ini" },
-                { id: "7D", label: "7 Hari Terakhir" },
-                { id: "30D", label: "30 Hari Terakhir" },
-                { id: "THIS_MONTH", label: "Bulan Ini" },
-                { id: "YTD", label: "Tahun Ini (YTD)" },
-                { id: "CUSTOM", label: "Rentang Kustom..." },
+                { id: "ALL", label: "ALL" },
+                { id: "TODAY", label: "TODAY" },
+                { id: "7D", label: "7D" },
+                { id: "30D", label: "30D" },
+                { id: "THIS_MONTH", label: "MTD" },
+                { id: "YTD", label: "YTD" },
+                { id: "CUSTOM", label: "CUSTOM..." },
               ].map((t) => (
                 <button
                   key={t.id}
                   type="button"
                   onClick={() => setTimeRange(t.id as TimeRangeFilter)}
-                  className={`px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap ${
+                  className={`px-3 py-1.5 rounded-lg font-mono text-xs font-semibold transition whitespace-nowrap ${
                     timeRange === t.id
-                      ? "bg-zinc-100 text-zinc-900 font-bold shadow-sm"
-                      : "bg-zinc-850 border border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-500/25 border border-blue-400/30"
+                      : "bg-slate-950/70 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
                   }`}
                 >
                   {t.label}
@@ -300,43 +300,43 @@ export default function TransactionsPage() {
               <button
                 type="button"
                 onClick={() => setSortOrder(sortOrder === "DESC" ? "ASC" : "DESC")}
-                className="px-3 py-1.5 rounded-lg bg-zinc-850 hover:bg-zinc-800 text-zinc-300 border border-zinc-700/80 text-xs font-medium transition flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-lg bg-slate-950/70 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-mono transition flex items-center gap-1.5"
                 title="Ubah Urutan Waktu"
               >
-                <ArrowUpDown className="w-3.5 h-3.5" />
-                {sortOrder === "DESC" ? "Waktu: Terbaru &rarr; Terlama" : "Waktu: Terlama &rarr; Terbaru"}
+                <ArrowUpDown className="w-3.5 h-3.5 text-blue-400" />
+                {sortOrder === "DESC" ? "TIMESTAMP: DESC" : "TIMESTAMP: ASC"}
               </button>
 
               <button
                 onClick={() => fetchTransactions()}
-                className="p-1.5 rounded-lg bg-zinc-850 hover:bg-zinc-800 text-zinc-300 border border-zinc-700/80 transition"
+                className="p-1.5 rounded-lg bg-slate-950/70 hover:bg-slate-800 text-slate-300 border border-slate-800 transition"
                 title="Refresh Riwayat"
               >
-                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-blue-400" : ""}`} />
               </button>
             </div>
           </div>
 
           {/* Row 2: Custom Date Picker Inputs (Shown if CUSTOM selected) */}
           {timeRange === "CUSTOM" && (
-            <div className="p-3.5 rounded-xl bg-zinc-950 border border-zinc-800 flex flex-wrap items-center gap-4 text-xs">
-              <span className="font-semibold text-zinc-300">Pilih Rentang Waktu:</span>
+            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex flex-wrap items-center gap-4 text-xs">
+              <span className="font-semibold text-slate-300 font-mono">Rentang Kustom:</span>
               <div className="flex items-center gap-2">
-                <span className="text-zinc-400">Dari:</span>
+                <span className="text-slate-400 font-mono">Dari:</span>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="bg-zinc-900 border border-zinc-700 text-zinc-100 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-zinc-400"
+                  className="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 font-mono"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-zinc-400">Sampai:</span>
+                <span className="text-slate-400 font-mono">Sampai:</span>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="bg-zinc-900 border border-zinc-700 text-zinc-100 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-zinc-400"
+                  className="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 font-mono"
                 />
               </div>
               {(startDate || endDate) && (
@@ -346,7 +346,7 @@ export default function TransactionsPage() {
                     setStartDate("");
                     setEndDate("");
                   }}
-                  className="text-zinc-400 hover:text-red-400 underline ml-auto"
+                  className="text-slate-400 hover:text-rose-400 underline ml-auto font-mono"
                 >
                   Reset Tanggal
                 </button>
@@ -358,13 +358,13 @@ export default function TransactionsPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
               <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Filter className="w-4 h-4 text-zinc-400" />
+                <Filter className="w-4 h-4 text-blue-400" />
                 <input
                   type="text"
-                  placeholder="Cari Simbol (BBCA, BTC, VT)..."
+                  placeholder="FILTER SIMBOL (BBCA, BTC, VT)..."
                   value={filterTicker}
                   onChange={(e) => setFilterTicker(e.target.value)}
-                  className="bg-zinc-950 border border-zinc-700 text-zinc-100 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-400 w-full sm:w-56 uppercase"
+                  className="bg-slate-950 border border-slate-800 text-slate-100 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 w-full sm:w-60 uppercase font-mono"
                 />
               </div>
 
@@ -372,15 +372,15 @@ export default function TransactionsPage() {
               <select
                 value={filterAsset}
                 onChange={(e) => setFilterAsset(e.target.value as any)}
-                className="bg-zinc-950 border border-zinc-700 text-zinc-300 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-zinc-400 w-full sm:w-auto"
+                className="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500 w-full sm:w-auto font-mono"
               >
-                <option value="ALL">Semua Kelas Aset</option>
-                <option value="STOCK">Saham (IDX)</option>
-                <option value="CRYPTO">Kripto (Crypto)</option>
-                <option value="ETF">ETF Global</option>
-                <option value="BOND">Obligasi / SBN</option>
-                <option value="GOLD">Emas</option>
-                <option value="MUTUAL_FUND">Reksadana</option>
+                <option value="ALL">SEMUA KELAS ASET</option>
+                <option value="STOCK">SAHAM (IDX)</option>
+                <option value="CRYPTO">KRIPTO (CRYPTO)</option>
+                <option value="ETF">ETF GLOBAL</option>
+                <option value="BOND">OBLIGASI / SBN</option>
+                <option value="GOLD">EMAS</option>
+                <option value="MUTUAL_FUND">REKSADANA</option>
               </select>
             </div>
 
@@ -389,37 +389,37 @@ export default function TransactionsPage() {
                 <button
                   key={t}
                   onClick={() => setFilterType(t)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition ${
                     filterType === t
-                      ? "bg-zinc-100 text-zinc-900 shadow-sm"
-                      : "bg-zinc-850 text-zinc-400 hover:text-zinc-200"
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-500/25 border border-blue-400/30"
+                      : "bg-slate-950/70 text-slate-400 border border-slate-800 hover:text-slate-200"
                   }`}
                 >
-                  {t === "ALL" ? "SEMUA TIPE" : t === "BUY" ? "BELI (BUY)" : "JUAL (SELL)"}
+                  {t === "ALL" ? "SEMUA ORDER" : t === "BUY" ? "BUY (BELI)" : "SELL (JUAL)"}
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Transactions Table */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+        {/* Transactions Table (Sovereign Order Ledger) */}
+        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-zinc-850 border-b border-zinc-800 text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
+              <thead className="bg-slate-950/80 border-b border-slate-800 text-[10px] text-slate-400 uppercase tracking-wider font-mono font-bold">
                 <tr>
-                  <th className="py-3.5 px-6">TANGGAL & WAKTU</th>
-                  <th className="py-3.5 px-4">TIPE</th>
-                  <th className="py-3.5 px-4">KELAS & ASET</th>
-                  <th className="py-3.5 px-4">DOMPET</th>
-                  <th className="py-3.5 px-4">KUANTITAS</th>
-                  <th className="py-3.5 px-4">HARGA / UNIT</th>
-                  <th className="py-3.5 px-4">TOTAL NILAI</th>
-                  <th className="py-3.5 px-4">CATATAN</th>
-                  <th className="py-3.5 px-6 text-right">AKSI</th>
+                  <th className="py-3.5 px-6">TIMESTAMP</th>
+                  <th className="py-3.5 px-4">SIDE</th>
+                  <th className="py-3.5 px-4">INSTRUMENT</th>
+                  <th className="py-3.5 px-4">VAULT</th>
+                  <th className="py-3.5 px-4">FILL QTY</th>
+                  <th className="py-3.5 px-4">AVG PRICE</th>
+                  <th className="py-3.5 px-4">SETTLEMENT VALUE</th>
+                  <th className="py-3.5 px-4">MEMO</th>
+                  <th className="py-3.5 px-6 text-right">ACTION</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/80">
+              <tbody className="divide-y divide-slate-800/60 font-mono">
                 {filtered.length > 0 ? (
                   filtered.map((tx) => {
                     const aType = tx.asset_type || "STOCK";
@@ -427,16 +427,16 @@ export default function TransactionsPage() {
                     const txDate = new Date(tx.transaction_date || tx.created_at);
 
                     return (
-                      <tr key={tx.id} className="hover:bg-zinc-800/40 transition">
-                        <td className="py-3.5 px-6 text-zinc-300 text-xs whitespace-nowrap">
-                          <div className="font-semibold text-zinc-100">
+                      <tr key={tx.id} className="hover:bg-slate-800/50 transition">
+                        <td className="py-3.5 px-6 text-slate-300 text-xs whitespace-nowrap font-mono">
+                          <div className="font-bold text-slate-100">
                             {txDate.toLocaleDateString("id-ID", {
                               day: "numeric",
                               month: "short",
                               year: "numeric",
                             })}
                           </div>
-                          <div className="text-[10px] text-zinc-500 font-mono mt-0.5">
+                          <div className="text-[10px] text-slate-500 font-mono mt-0.5">
                             {txDate.toLocaleTimeString("id-ID", {
                               hour: "2-digit",
                               minute: "2-digit",
@@ -444,60 +444,76 @@ export default function TransactionsPage() {
                           </div>
                         </td>
                         <td className="py-3.5 px-4">
-                          <Badge variant={tx.type === "BUY" ? "success" : "danger"}>
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold font-mono tracking-wide ${
+                              tx.type === "BUY"
+                                ? "bg-emerald-950/80 border border-emerald-800/60 text-emerald-400"
+                                : "bg-rose-950/80 border border-rose-800/60 text-rose-400"
+                            }`}
+                          >
                             {tx.type === "BUY" ? (
-                              <span className="flex items-center gap-1">
+                              <>
                                 <ArrowDownRight className="w-3 h-3" /> BUY
-                              </span>
+                              </>
                             ) : (
-                              <span className="flex items-center gap-1">
+                              <>
                                 <ArrowUpRight className="w-3 h-3" /> SELL
-                              </span>
+                              </>
                             )}
-                          </Badge>
+                          </span>
                         </td>
                         <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-1.5">
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-zinc-800 text-zinc-400 border border-zinc-700/60">
+                          <div className="flex items-center gap-2 font-sans">
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border ${
+                                aType === "ETF"
+                                  ? "bg-blue-950/60 text-blue-400 border-blue-800/50"
+                                  : aType === "CRYPTO"
+                                  ? "bg-amber-950/60 text-amber-400 border-amber-800/50"
+                                  : aType === "GOLD"
+                                  ? "bg-yellow-950/60 text-yellow-400 border-yellow-800/50"
+                                  : "bg-cyan-950/60 text-cyan-400 border-cyan-800/50"
+                              }`}
+                            >
                               {aType}
                             </span>
-                            <span className="font-bold text-zinc-100">{tx.ticker}</span>
+                            <span className="font-bold text-slate-100 font-mono tracking-tight">{tx.ticker}</span>
                           </div>
                         </td>
                         <td className="py-3.5 px-4">
                           {tx.wallet_name ? (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-950/60 border border-emerald-800/40 text-emerald-300 capitalize">
-                              <Building2 className="w-3 h-3 text-emerald-400" />
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-950 border border-slate-800 text-slate-300 capitalize">
+                              <Building2 className="w-3 h-3 text-blue-400" />
                               {tx.wallet_name}
                             </span>
                           ) : (
-                            <span className="text-zinc-500 text-[11px]">-</span>
+                            <span className="text-slate-600 text-[11px]">-</span>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 text-zinc-200">
+                        <td className="py-3.5 px-4 text-slate-200 tabular-nums">
                           {isStock ? (
                             <>
-                              {tx.lots} Lot{" "}
-                              <span className="text-[10px] text-zinc-500">
+                              <span className="font-bold">{tx.lots}</span> <span className="text-[10px] text-slate-500">Lot</span>{" "}
+                              <span className="text-[10px] text-slate-500">
                                 ({tx.shares || tx.quantity} lbr)
                               </span>
                             </>
                           ) : (
                             <>
-                              {tx.quantity || tx.shares}{" "}
-                              <span className="text-zinc-500 text-[10px]">
+                              <span className="font-bold">{tx.quantity || tx.shares}</span>{" "}
+                              <span className="text-slate-500 text-[10px]">
                                 {aType === "GOLD" ? "gram" : "unit"}
                               </span>
                             </>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 font-medium text-zinc-200">
+                        <td className="py-3.5 px-4 font-mono font-medium text-slate-200 tabular-nums">
                           {formatPriceVal(tx.price_per_share, tx.currency)}
                         </td>
-                        <td className="py-3.5 px-4 font-semibold text-zinc-100">
+                        <td className="py-3.5 px-4 font-mono font-bold text-slate-100 tabular-nums">
                           {formatIDR(tx.currency === "USD" ? tx.total_amount * fxRate : tx.total_amount)}
                           {tx.currency === "USD" && (
-                            <div className="text-[10px] text-zinc-500 font-normal">
+                            <div className="text-[10px] text-slate-500 font-normal">
                               ${Number(tx.total_amount).toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2,
@@ -505,13 +521,13 @@ export default function TransactionsPage() {
                             </div>
                           )}
                         </td>
-                        <td className="py-3.5 px-4 text-xs text-zinc-400 max-w-[200px] truncate">
+                        <td className="py-3.5 px-4 text-xs font-sans text-slate-400 max-w-[200px] truncate">
                           {tx.notes || "-"}
                         </td>
                         <td className="py-3.5 px-6 text-right">
                           <button
                             onClick={() => handleDelete(tx.id)}
-                            className="p-1 rounded-md text-zinc-500 hover:text-red-400 transition"
+                            className="p-1 rounded text-slate-500 hover:text-rose-400 transition"
                             title="Hapus Transaksi"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -522,10 +538,10 @@ export default function TransactionsPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={9} className="text-center py-12 text-zinc-500">
+                    <td colSpan={9} className="text-center py-14 text-slate-500 font-sans">
                       {loading
-                        ? "Memuat riwayat transaksi..."
-                        : "Tidak ada transaksi yang cocok dengan filter waktu atau simbol ini."}
+                        ? "Sinkronisasi riwayat eksekusi..."
+                        : "Tidak ada transaksi yang cocok dengan filter parameter ini."}
                     </td>
                   </tr>
                 )}

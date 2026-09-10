@@ -29,62 +29,62 @@ export default function PluangCashBreakdownCard({
   const usdTotal = (data?.usd_cash || 0) + (data?.usd_margin || 0);
 
   return (
-    <div className="rounded-2xl bg-[#090b0e] border border-white/[0.08] p-4 sm:p-5 shadow-lg space-y-3 transition-all duration-200">
+    <div className="rounded-xl bg-slate-900 border border-slate-800 p-4 sm:p-5 shadow-lg space-y-3 transition-all duration-200">
       {/* Header with toggle */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between text-left group"
       >
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm sm:text-base font-semibold text-zinc-200 group-hover:text-white transition">
-            Nilai Aset & Uang Tunai
+        <div className="flex items-center gap-2">
+          <span className="text-xs sm:text-sm font-mono font-bold uppercase tracking-wider text-slate-300 group-hover:text-blue-400 transition">
+            Nilai Aset &amp; Likuiditas Kas
           </span>
           {isOpen ? (
-            <ChevronUp className="w-4 h-4 text-zinc-400 group-hover:text-zinc-200 transition" />
+            <ChevronUp className="w-4 h-4 text-slate-400 group-hover:text-slate-200 transition" />
           ) : (
-            <ChevronDown className="w-4 h-4 text-zinc-400 group-hover:text-zinc-200 transition" />
+            <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-slate-200 transition" />
           )}
         </div>
-        <span className="text-sm sm:text-base font-bold text-zinc-100 font-mono">
+        <span className="text-sm sm:text-base font-bold text-slate-100 font-mono tabular-nums">
           {maskValue(total)}
         </span>
       </button>
 
-      {/* Inner breakdown container (Pluang dark grey box) */}
+      {/* Inner breakdown container (Terminal style) */}
       {isOpen && (
-        <div className="rounded-xl bg-[#14171f] border border-white/[0.05] p-3.5 space-y-2.5 text-xs">
+        <div className="rounded-lg bg-slate-950/80 border border-slate-800 p-3.5 space-y-2.5 text-xs font-mono">
           <div className="flex items-center justify-between">
-            <span className="text-zinc-400">Nilai Aset Bersih</span>
-            <span className="font-semibold text-zinc-100 font-mono">
+            <span className="text-slate-400 font-sans">Nilai Aset Bersih (NAV)</span>
+            <span className="font-semibold text-slate-100 tabular-nums">
               {maskValue(netAsset)}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-zinc-400">Saldo IDR Crypto</span>
-            <span className="font-semibold text-zinc-100 font-mono">
+            <span className="text-slate-400 font-sans">Saldo Kas Kripto (IDR)</span>
+            <span className="font-semibold text-slate-100 tabular-nums">
               {maskValue(idrCrypto)}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-zinc-400">Saldo IDR</span>
-            <span className="font-semibold text-zinc-100 font-mono">
+            <span className="text-slate-400 font-sans">Saldo IDR Tunai</span>
+            <span className="font-semibold text-slate-100 tabular-nums">
               {maskValue(idrCash)}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-zinc-400">Kas Investasi / Sekuritas</span>
-            <span className="font-semibold text-zinc-100 font-mono">
+            <span className="text-slate-400 font-sans">Kas RDN Sekuritas</span>
+            <span className="font-semibold text-slate-100 tabular-nums">
               {maskValue(rdn)}
             </span>
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-zinc-400">Saldo USD & USD Margin</span>
-            <span className="font-semibold text-zinc-100 font-mono">
+            <span className="text-slate-400 font-sans">Kas Valas USD &amp; Margin</span>
+            <span className="font-semibold text-slate-100 tabular-nums">
               {maskValue(usdTotal)}
             </span>
           </div>

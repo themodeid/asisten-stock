@@ -64,18 +64,18 @@ export default function PluangProfitLossChart({
   const fxSharePct = 100 - assetSharePct;
 
   return (
-    <div className="rounded-3xl bg-[#090b0e] border border-white/[0.08] p-4 sm:p-6 shadow-2xl space-y-5 text-white">
+    <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4 sm:p-6 shadow-2xl space-y-5 text-slate-100">
       {/* 1. Header: Judul Komponen & Toggle Persentase / Nominal */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-xl bg-zinc-900 border border-white/[0.08] flex items-center justify-center">
-            <Scale className="w-3.5 h-3.5 text-zinc-300" />
+          <div className="w-7 h-7 rounded-xl bg-slate-850 border border-slate-700/80 flex items-center justify-center">
+            <Scale className="w-3.5 h-3.5 text-blue-400" />
           </div>
           <div>
-            <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
+            <h3 className="text-base sm:text-lg font-bold text-slate-100 tracking-tight">
               Laba &amp; Rugi Bersih (Net P&amp;L)
             </h3>
-            <p className="text-[11px] text-zinc-400">
+            <p className="text-[11px] text-slate-400">
               Kalkulasi perolehan riil dari performa aset dan pengaruh kurs valas
             </p>
           </div>
@@ -85,11 +85,11 @@ export default function PluangProfitLossChart({
         <button
           type="button"
           onClick={() => setViewMode(viewMode === "PERCENT" ? "NOMINAL" : "PERCENT")}
-          className="px-3 py-1.5 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-xs font-bold text-[#c6f022] hover:text-lime-300 transition flex items-center gap-1.5 shadow-sm active:scale-95"
+          className="px-3 py-1.5 rounded-lg bg-slate-950/80 hover:bg-slate-800 border border-slate-700 text-xs font-mono font-bold text-blue-400 hover:text-blue-300 transition flex items-center gap-1.5 shadow-sm active:scale-95"
           title="Beralih tampilan Persentase (%) atau Nominal (Rp)"
         >
-          <span>{viewMode === "PERCENT" ? "Persentase (%)" : "Nominal (Rp)"}</span>
-          <ArrowUpDown className="w-3 h-3 text-[#c6f022]" />
+          <span>{viewMode === "PERCENT" ? "PERCENT (%)" : "NOMINAL (Rp)"}</span>
+          <ArrowUpDown className="w-3 h-3 text-blue-400" />
         </button>
       </div>
 
@@ -102,8 +102,8 @@ export default function PluangProfitLossChart({
             </span>
             <div className="flex items-baseline gap-2.5">
               <span
-                className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${
-                  isNetProfit ? "text-[#00e676]" : "text-[#ff5252]"
+                className={`text-2xl sm:text-3xl font-black font-mono tracking-tight tabular-nums ${
+                  isNetProfit ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
                 {isPrivate
@@ -114,26 +114,26 @@ export default function PluangProfitLossChart({
               </span>
 
               <span
-                className={`text-xs px-2 py-0.5 rounded-md font-bold flex items-center gap-1 ${
+                className={`text-xs px-2.5 py-0.5 rounded font-bold font-mono flex items-center gap-1 ${
                   isNetProfit
-                    ? "bg-emerald-950/80 text-emerald-300 border border-emerald-800/50"
-                    : "bg-red-950/80 text-red-300 border border-red-800/50"
+                    ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/50"
+                    : "bg-rose-950/80 text-rose-400 border border-rose-800/50"
                 }`}
               >
                 {isNetProfit ? (
                   <>
                     <TrendingUp className="w-3 h-3 text-emerald-400" />
-                    <span>Laba Bersih</span>
+                    <span>NET PROFIT</span>
                   </>
                 ) : (
                   <>
-                    <TrendingDown className="w-3 h-3 text-red-400" />
-                    <span>Rugi Bersih</span>
+                    <TrendingDown className="w-3 h-3 text-rose-400" />
+                    <span>NET LOSS</span>
                   </>
                 )}
               </span>
             </div>
-            <div className="text-[11px] text-zinc-400 font-mono">
+            <div className="text-[11px] text-slate-400 font-mono">
               {isPrivate
                 ? "••••"
                 : viewMode === "PERCENT"
@@ -142,33 +142,33 @@ export default function PluangProfitLossChart({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-zinc-400 sm:text-right">
+          <div className="flex items-center gap-2 text-xs text-slate-400 sm:text-right font-mono">
             <span className="hidden sm:inline">•</span>
-            <span>Periode holding: <strong className="text-zinc-200">{holdingPeriodText}</strong></span>
+            <span>Holding Period: <strong className="text-slate-200">{holdingPeriodText}</strong></span>
           </div>
         </div>
 
         {/* 3 Metric Mini Cards: Modal, Nilai Pasar, Hasil Bersih */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-          <div className="p-3 rounded-xl bg-black/40 border border-white/[0.05]">
-            <span className="text-[11px] text-zinc-400 block">Total Modal Disetor</span>
-            <span className="text-sm font-bold font-mono text-zinc-100 mt-0.5 block">
+          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">Total Capital Invested</span>
+            <span className="text-sm font-bold font-mono text-slate-100 mt-0.5 block tabular-nums">
               {isPrivate ? "••••••••" : formatIDR(totalInvested)}
             </span>
           </div>
 
-          <div className="p-3 rounded-xl bg-black/40 border border-white/[0.05]">
-            <span className="text-[11px] text-zinc-400 block">Nilai Pasar Saat Ini</span>
-            <span className="text-sm font-bold font-mono text-zinc-100 mt-0.5 block">
+          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">Current Market Valuation</span>
+            <span className="text-sm font-bold font-mono text-slate-100 mt-0.5 block tabular-nums">
               {isPrivate ? "••••••••" : formatIDR(currentMarketValue)}
             </span>
           </div>
 
-          <div className="p-3 rounded-xl bg-black/40 border border-white/[0.05]">
-            <span className="text-[11px] text-zinc-400 block">Keuntungan/Kerugian</span>
+          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">Net Gain / Drawdown</span>
             <span
-              className={`text-sm font-bold font-mono mt-0.5 block ${
-                isNetProfit ? "text-emerald-400" : "text-red-400"
+              className={`text-sm font-bold font-mono mt-0.5 block tabular-nums ${
+                isNetProfit ? "text-emerald-400" : "text-rose-400"
               }`}
             >
               {isPrivate
@@ -179,29 +179,29 @@ export default function PluangProfitLossChart({
         </div>
 
         {/* Visual Contribution Split: Pengaruh Harga Aset vs Selisih Kurs */}
-        <div className="space-y-2 pt-1 border-t border-white/[0.05]">
+        <div className="space-y-2 pt-1 border-t border-slate-800">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-400 font-medium flex items-center gap-1.5">
-              <span>Dekomposisi Hasil Bersih:</span>
+            <span className="text-slate-400 font-mono font-medium flex items-center gap-1.5">
+              <span>RETURN DECOMPOSITION:</span>
             </span>
-            <span className="text-[11px] text-zinc-500 font-mono">
-              Harga Pasar vs Kurs IDR/USD
+            <span className="text-[11px] text-slate-500 font-mono">
+              Asset Drift vs FX Hedging
             </span>
           </div>
 
           {/* Dual Segmented Progress Bar */}
-          <div className="h-2 w-full bg-zinc-800 rounded-full overflow-hidden flex">
+          <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex">
             <div
               style={{ width: `${assetSharePct}%` }}
               className={`h-full transition-all duration-500 ${
-                isUnrealizedAssetUp ? "bg-emerald-500" : "bg-red-500"
+                isUnrealizedAssetUp ? "bg-emerald-500" : "bg-rose-500"
               }`}
               title={`Fluktuasi Harga Aset: ${assetSharePct}%`}
             />
             <div
               style={{ width: `${fxSharePct}%` }}
               className={`h-full transition-all duration-500 ${
-                isUnrealizedFxUp ? "bg-teal-400" : "bg-orange-500"
+                isUnrealizedFxUp ? "bg-blue-500" : "bg-amber-500"
               }`}
               title={`Selisih Kurs Valas: ${fxSharePct}%`}
             />
@@ -212,13 +212,13 @@ export default function PluangProfitLossChart({
             <div className="flex items-center gap-1.5">
               <span
                 className={`w-2 h-2 rounded-full ${
-                  isUnrealizedAssetUp ? "bg-emerald-500" : "bg-red-500"
+                  isUnrealizedAssetUp ? "bg-emerald-500" : "bg-rose-500"
                 }`}
               />
-              <span className="text-zinc-400">Harga Aset Murni:</span>
+              <span className="text-slate-400">Pure Asset Price:</span>
               <span
-                className={`font-semibold ${
-                  isUnrealizedAssetUp ? "text-emerald-400" : "text-red-400"
+                className={`font-semibold tabular-nums ${
+                  isUnrealizedAssetUp ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
                 {isPrivate ? "••••" : `${isUnrealizedAssetUp ? "+" : ""}${formatIDR(unrealizedAsset)}`}
@@ -228,13 +228,13 @@ export default function PluangProfitLossChart({
             <div className="flex items-center gap-1.5">
               <span
                 className={`w-2 h-2 rounded-full ${
-                  isUnrealizedFxUp ? "bg-teal-400" : "bg-orange-500"
+                  isUnrealizedFxUp ? "bg-blue-500" : "bg-amber-500"
                 }`}
               />
-              <span className="text-zinc-400">Selisih Kurs (USD/IDR):</span>
+              <span className="text-slate-400">USD/IDR FX Drift:</span>
               <span
-                className={`font-semibold ${
-                  isUnrealizedFxUp ? "text-teal-300" : "text-orange-400"
+                className={`font-semibold tabular-nums ${
+                  isUnrealizedFxUp ? "text-blue-300" : "text-amber-400"
                 }`}
               >
                 {isPrivate ? "••••" : `${isUnrealizedFxUp ? "+" : ""}${formatIDR(unrealizedFx)}`}
@@ -245,25 +245,25 @@ export default function PluangProfitLossChart({
       </div>
 
       {/* 3. Unrealized P&L Accordion Card */}
-      <div className="rounded-2xl bg-[#12161f] border border-white/[0.06] overflow-hidden transition-all">
+      <div className="rounded-xl bg-slate-950/70 border border-slate-800 overflow-hidden transition-all">
         <button
           type="button"
           onClick={() => setIsUnrealizedOpen(!isUnrealizedOpen)}
-          className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.02] transition"
+          className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-800/40 transition"
         >
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-zinc-200">
+            <span className="text-sm font-bold text-slate-200">
               Unrealized P&amp;L (Aset Aktif)
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 font-medium">
-              Mengambang
+            <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              MARK-TO-MARKET
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             <span
-              className={`text-sm font-bold font-mono ${
-                unrealizedTotal >= 0 ? "text-[#00e676]" : "text-[#ff5252]"
+              className={`text-sm font-bold font-mono tabular-nums ${
+                unrealizedTotal >= 0 ? "text-emerald-400" : "text-rose-400"
               }`}
             >
               {isPrivate
@@ -271,9 +271,9 @@ export default function PluangProfitLossChart({
                 : `${unrealizedTotal >= 0 ? "+" : ""}${formatIDR(unrealizedTotal)}`}
             </span>
             {isUnrealizedOpen ? (
-              <ChevronUp className="w-4 h-4 text-zinc-400" />
+              <ChevronUp className="w-4 h-4 text-slate-400" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-zinc-400" />
+              <ChevronDown className="w-4 h-4 text-slate-400" />
             )}
           </div>
         </button>
@@ -298,12 +298,12 @@ export default function PluangProfitLossChart({
 
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-zinc-300 font-medium block">Laba Rugi Selisih Kurs Valas</span>
-                <span className="text-[11px] text-zinc-500">Pengaruh perubahan nilai tukar USD terhadap Rupiah</span>
+                <span className="text-slate-300 font-medium block">Laba Rugi Selisih Kurs Valas</span>
+                <span className="text-[11px] text-slate-500">Pengaruh perubahan nilai tukar USD terhadap Rupiah</span>
               </div>
               <span
-                className={`font-semibold font-mono ${
-                  isUnrealizedFxUp ? "text-[#00e676]" : "text-[#ff5252]"
+                className={`font-semibold font-mono tabular-nums ${
+                  isUnrealizedFxUp ? "text-emerald-400" : "text-rose-400"
                 }`}
               >
                 {isPrivate
@@ -315,26 +315,26 @@ export default function PluangProfitLossChart({
         )}
       </div>
 
-      {/* 4. Realized P&L Accordion Card (Opsi 3: Bersih dari Clutter Rp 0) */}
-      <div className="rounded-2xl bg-[#12161f] border border-white/[0.06] overflow-hidden transition-all">
+      {/* 4. Realized P&L Accordion Card */}
+      <div className="rounded-xl bg-slate-950/70 border border-slate-800 overflow-hidden transition-all">
         <button
           type="button"
           onClick={() => setIsRealizedOpen(!isRealizedOpen)}
-          className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.02] transition"
+          className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-800/40 transition"
         >
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-zinc-200">
+            <span className="text-sm font-bold text-slate-200">
               Realized P&amp;L (Sudah Direalisasikan)
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 font-medium">
-              Dicairkan
+            <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-slate-800 text-slate-400 border border-slate-700">
+              SETTLED
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             <span
-              className={`text-sm font-bold font-mono ${
-                realizedTotal >= 0 ? "text-zinc-300" : "text-[#ff5252]"
+              className={`text-sm font-bold font-mono tabular-nums ${
+                realizedTotal >= 0 ? "text-slate-300" : "text-rose-400"
               }`}
             >
               {isPrivate
@@ -342,45 +342,44 @@ export default function PluangProfitLossChart({
                 : `${realizedTotal > 0 ? "+" : ""}${formatIDR(realizedTotal)}`}
             </span>
             {isRealizedOpen ? (
-              <ChevronUp className="w-4 h-4 text-zinc-400" />
+              <ChevronUp className="w-4 h-4 text-slate-400" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-zinc-400" />
+              <ChevronDown className="w-4 h-4 text-slate-400" />
             )}
           </div>
         </button>
 
         {isRealizedOpen && (
-          <div className="px-4 pb-4 pt-2 text-xs border-t border-white/[0.04]">
+          <div className="px-4 pb-4 pt-2 text-xs border-t border-slate-800 font-mono">
             {!hasRealizedTransactions ? (
-              // Tampilan bersih saat belum ada transaksi jual / dividen terealisasi
-              <div className="p-3 rounded-xl bg-zinc-950/60 border border-white/[0.04] flex items-center gap-2.5 text-zinc-400">
-                <Info className="w-4 h-4 text-zinc-500 shrink-0" />
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center gap-2.5 text-slate-400 font-sans">
+                <Info className="w-4 h-4 text-blue-400 shrink-0" />
                 <span>
-                  Belum ada laba atau rugi yang dicairkan. Semua hasil saat ini masih bersifat mengambang (*unrealized*) pada aset aktif Anda.
+                  Belum ada laba atau rugi yang dicairkan. Semua hasil saat ini masih bersifat mengambang (*unrealized mark-to-market*) pada aset aktif Anda.
                 </span>
               </div>
             ) : (
               <div className="space-y-2.5">
                 {realizedAsset !== 0 && (
                   <div className="flex items-center justify-between">
-                    <span className="text-zinc-400">Laba Rugi Penjualan Aset</span>
-                    <span className="font-semibold font-mono text-[#00e676]">
+                    <span className="text-slate-400 font-sans">Laba Rugi Penjualan Aset</span>
+                    <span className="font-semibold font-mono text-emerald-400 tabular-nums">
                       {isPrivate ? "••••" : `+${formatIDR(realizedAsset)}`}
                     </span>
                   </div>
                 )}
                 {realizedFx !== 0 && (
                   <div className="flex items-center justify-between">
-                    <span className="text-zinc-400">Realisasi Selisih Kurs</span>
-                    <span className="font-semibold font-mono text-zinc-300">
+                    <span className="text-slate-400 font-sans">Realisasi Selisih Kurs</span>
+                    <span className="font-semibold font-mono text-slate-300 tabular-nums">
                       {isPrivate ? "••••" : formatIDR(realizedFx)}
                     </span>
                   </div>
                 )}
                 {realizedDividend > 0 && (
                   <div className="flex items-center justify-between">
-                    <span className="text-zinc-400">Dividen Diterima</span>
-                    <span className="font-semibold font-mono text-[#00e676]">
+                    <span className="text-slate-400 font-sans">Dividen Diterima</span>
+                    <span className="font-semibold font-mono text-emerald-400 tabular-nums">
                       {isPrivate ? "••••" : `+${formatIDR(realizedDividend)}`}
                     </span>
                   </div>
@@ -392,8 +391,8 @@ export default function PluangProfitLossChart({
       </div>
 
       {/* 5. Catatan Kaki */}
-      <div className="text-[11px] text-zinc-500 italic pt-1">
-        *Data dihitung secara otomatis berdasarkan transaksi modal beli, kurs referensi USD/IDR, dan valuasi pasar *live*.
+      <div className="text-[11px] text-slate-500 font-mono italic pt-1">
+        *Data dihitung secara deterministik berdasarkan settlement modal, kurs referensi USD/IDR live, dan mark-to-market ledger.
       </div>
     </div>
   );

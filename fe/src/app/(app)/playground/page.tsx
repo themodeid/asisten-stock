@@ -18,17 +18,17 @@ interface Message {
 const DEFAULT_WELCOME: Message = {
   id: "welcome",
   role: "assistant",
-  text: "🤖 **Halo! Saya Asisten+Stock Multi-Asset Assistant.**\n\nAnda dapat mencatat dan memantau berbagai aset:\n1. **Saham**: *\"Beli BBCA 5 juta\"* atau *\"Beli BBCA 10 lot di 9850\"*\n2. **Kripto (Crypto)**: *\"Beli BTC 1.100.000 rupiah\"* atau *\"Beli BTC 0.05 di 64500 USD\"*\n3. **Emas / Logam Mulia**: *\"Beli Emas Antam 2 juta\"*\n4. **Obligasi / SBN**: *\"Beli ORI024 10000000\"*\n5. **Cek Portofolio**: *\"Cek portofolio & alokasi aset saya\"*\n\nAda yang ingin dicatat atau dicek saat ini?",
+  text: "🏛️ **Asisten+Stock Sovereign Terminal Advisor**\n\nSelamat datang di terminal eksekutif portofolio Anda. Saya siap membantu Anda menganalisis pasar modal global, mengeksekusi rebalancing, mencatat order multi-aset, maupun mendiskusikan dinamika makroekonomi:\n\n• **Diskusi Makro & Pasar**: *\"Apakah sekarang bursa saham Amerika akan turun karena bubble AI seperti tahun 98?\"*\n• **Riset Fundamental & Moat**: *\"Analisa fundamental Apple (AAPL) dan Microsoft\"*\n• **Saran Rebalancing**: *\"Saya ada modal dingin 2 juta, sarankan alokasi seimbang\"*\n• **Pencatatan Order Cepat**: *\"Beli VT 600 ribu\"* atau *\"Beli BTC 1.500.000\"*\n\nTopik atau aset apa yang ingin Anda eksplorasi hari ini?",
   timestamp: new Date("2026-01-01T00:00:00Z"),
 };
 
 const SAMPLE_PROMPTS = [
+  "Apakah bursa saham AS akan turun karena bubble AI seperti tahun 98?",
   "Analisa ETF VT (Vanguard Total World)",
   "Beli VT 630 ribu rupiah",
   "Beli BTC 1.100.000 rupiah",
   "Beli Emas Antam 3 juta",
-  "Cek portofolio & alokasi aset",
-  "Beli BBCA 5 juta",
+  "Alokasi modal dingin 2 juta rupiah",
 ];
 
 const LOCAL_STORAGE_KEY = "asisten_stock_chat_history_v2";

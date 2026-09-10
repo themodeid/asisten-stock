@@ -5,7 +5,7 @@ export interface MarketNewsItem {
   source: string;
   url: string;
   published_at: string;
-  category: "STOCK" | "CRYPTO" | "MACRO" | "GOLD" | "GLOBAL";
+  category: "HOT" | "GLOBAL_EQUITIES" | "CRYPTO" | "MACRO_GLOBAL" | "SAFE_HAVEN";
   tickers: string[];
   sentiment: "BULLISH" | "BEARISH" | "NEUTRAL";
   sentiment_score: number; // -1.0 to 1.0
@@ -14,82 +14,82 @@ export interface MarketNewsItem {
 
 const NEWS_CACHE: MarketNewsItem[] = [
   {
-    id: "news-1",
-    title: "Bank Indonesia Pertahankan BI-Rate di 6.00% untuk Stabilitas Nilai Tukar Rupiah",
-    summary: "Rapat Dewan Gubernur Bank Indonesia memutuskan mempertahankan BI-Rate pada level 6.00%. Keputusan ini konsisten dengan fokus kebijakan moneter yang pro-stability memperkuat stabilitas nilai tukar Rupiah dari ketidakpastian geopolitik global.",
-    source: "Bank Indonesia (Resmi)",
-    url: "https://www.bi.go.id/id/publikasi/ruang-media/news-release/Pages/sp_2615424.aspx",
-    published_at: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
-    category: "MACRO",
-    tickers: ["IHSG", "USDIDR"],
-    sentiment: "NEUTRAL",
-    sentiment_score: 0.15,
-    impact_summary: "Menjaga stabilitas yield obligasi dan menahan pelemahan Rupiah lebih lanjut. Netral-positif untuk perbankan (BBCA, BBRI, BMRI).",
+    id: "news-hot-1",
+    title: "Bursa Saham Korsel & Nikkei Terguncang: Kekhawatiran Bubble Valuasi AI Picu Aksi Jual Masif Semikonduktor",
+    summary: "Indeks KOSPI Korea Selatan dan Nikkei Jepang anjlok tajam dipimpin aksi jual agresif pada saham chip memori (Samsung Electronics, SK Hynix). Investor institusi global mulai mempertanyakan rasio ROI belanja modal (Capex) infrastruktur AI raksasa teknologi AS yang dinilai belum sebanding dengan monetisasi jangka pendek.",
+    source: "Bloomberg Asia Markets",
+    url: "https://www.bloomberg.com/markets",
+    published_at: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+    category: "HOT",
+    tickers: ["KOSPI", "NVDA", "TSM", "VT"],
+    sentiment: "BEARISH",
+    sentiment_score: -0.72,
+    impact_summary: "Menciptakan tekanan volatilitas jangka pendek pada ETF saham dunia (VT) dan sektor hardware, namun membuka peluang akumulasi (buy the dip) pada emiten semikonduktor dengan parit lebar (moat) terkuat.",
   },
   {
-    id: "news-2",
-    title: "Bitcoin Tembus Rekor Akumulasi Baru Dipicu Arus Masuk Bersih ETF Spot Global",
-    summary: "Arus modal masuk ke instrumen spot Bitcoin ETF mencatat rekor mingguan baru. Investor institusi terus meningkatkan alokasi kas mereka ke aset digital sebagai lindung nilai alternatif terhadap inflasi fiat jangka panjang.",
-    source: "CoinDesk",
-    url: "https://www.coindesk.com/markets",
+    id: "news-hot-2",
+    title: "The Fed Tahan Suku Bunga Tinggi Lebih Lama: Yield US Treasury 10-Tahun Naik Menguji Ketahanan Likuiditas Global",
+    summary: "Ketua Federal Reserve Jerome Powell menegaskan bahwa pemangkasan suku bunga acuan akan bergantung penuh pada data inflasi jasa AS. Yield obligasi pemerintah AS tenor 10-tahun bertahan di atas level krusial, memicu penguatan indeks Dolar AS (DXY) terhadap seluruh mata uang dunia.",
+    source: "Reuters Global Finance",
+    url: "https://www.reuters.com/markets",
     published_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-    category: "CRYPTO",
-    tickers: ["BTC", "USDT"],
-    sentiment: "BULLISH",
-    sentiment_score: 0.82,
-    impact_summary: "Sentimen sangat kuat untuk pasar kripto. Support teknikal BTC menguat di atas MA-50.",
+    category: "MACRO_GLOBAL",
+    tickers: ["DXY", "US10Y", "USDIDR", "SPY"],
+    sentiment: "NEUTRAL",
+    sentiment_score: -0.15,
+    impact_summary: "Mendukung daya lindung nilai (hedging) aset yang berdenominasi USD dalam portofolio Anda terhadap pelemahan nilai tukar Rupiah.",
   },
   {
-    id: "news-3",
-    title: "Kinerja Sektor Perbankan RI Tetap Solid: Pertumbuhan Kredit Capai Dobel Digit",
-    summary: "OJK melaporkan intermediasi perbankan nasional terus berekspansi dengan pertumbuhan kredit double digit. Kualitas kredit tetap terjaga dengan rasio NPL gross yang rendah serta bantalan pencadangan modal yang tebal.",
-    source: "Bisnis.com Pasar",
-    url: "https://market.bisnis.com",
-    published_at: new Date(Date.now() - 4 * 3600 * 1000).toISOString(),
-    category: "STOCK",
-    tickers: ["BBCA", "BBRI", "BMRI", "BBNI"],
+    id: "news-hot-3",
+    title: "Arus Masuk Institusional Bitcoin ETF Tembus Rekor Kuartalan: BlackRock IBIT Pimpin Akumulasi Cadangan Global",
+    summary: "Alokasi dana pensiun, endowment fund, dan manajer investasi global ke instrumen Spot Bitcoin ETF terus mencatatkan net inflow konsisten. Bitcoin semakin diakui sebagai 'Digital Gold' dengan rasio suplai likuid di exchange yang menyentuh titik terendah dalam 6 tahun.",
+    source: "CoinDesk Institutional",
+    url: "https://www.coindesk.com",
+    published_at: new Date(Date.now() - 3 * 3600 * 1000).toISOString(),
+    category: "CRYPTO",
+    tickers: ["BTC", "IBIT", "ETH"],
+    sentiment: "BULLISH",
+    sentiment_score: 0.84,
+    impact_summary: "Memperkuat fundamental jangka panjang alokasi Bitcoin 15% pada portofolio Stateless Hedgefund Anda.",
+  },
+  {
+    id: "news-hot-4",
+    title: "Monopoli Big Tech Berlanjut: Apple & Microsoft Laporkan Arus Kas Operasional Raksasa Ditopang Ekosistem Enterprise",
+    summary: "Hasil kinerja keuangan Apple dan Microsoft membuktikan kekuatan penetapan harga (*pricing power*) dan parit ekonomi (*economic moat*) yang tak tergoyahkan. Bisnis komputasi awan Azure dan ekosistem perangkat Apple berhasil menyerap tekanan makroekonomi global.",
+    source: "Financial Times",
+    url: "https://www.ft.com",
+    published_at: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
+    category: "GLOBAL_EQUITIES",
+    tickers: ["AAPL", "MSFT", "GOOGL", "VOO"],
+    sentiment: "BULLISH",
+    sentiment_score: 0.78,
+    impact_summary: "Mengonfirmasi keunggulan strategi alokasi Wide-Moat Monopoly; perusahaan raksasa ini terus mencetak margin laba superior tanpa terikat risiko sovereign satu negara berkembang.",
+  },
+  {
+    id: "news-hot-5",
+    title: "Bank Sentral Dunia Lanjutkan Aksi Borong Emas Fisik: Harga Emas Bertengger Kuat Menuju Target Baru",
+    summary: "Laporan World Gold Council mengindikasikan bank-bank sentral negara berkembang terus mendiversifikasi cadangan devisa mereka dari US Dollar ke emas batangan fisik. Tingginya tensi geopolitik dan fragmentasi rantai pasok global menjadikan emas pilar pertahanan modal paling kokoh.",
+    source: "Wall Street Journal Commodities",
+    url: "https://www.wsj.com/market-data",
+    published_at: new Date(Date.now() - 7 * 3600 * 1000).toISOString(),
+    category: "SAFE_HAVEN",
+    tickers: ["GOLD", "XAUUSD", "GLD"],
     sentiment: "BULLISH",
     sentiment_score: 0.75,
-    impact_summary: "Katalis fundamental positif bagi portofolio dividen perbankan Indonesia.",
+    impact_summary: "Menjaga stabilitas total kekayaan (Net Worth) portofolio saat pasar ekuitas global mengalami turbulensi rotasi sektor.",
   },
   {
-    id: "news-4",
-    title: "Harga Emas Dunia Bertahan Dekat All-Time High di Tengah Ketegangan Geopolitik",
-    summary: "Permintaan emas batangan fisik dan cadangan devisa bank-bank sentral dunia terus meningkat. Ketidakpastian arah kebijakan The Fed dan ketegangan politik global mendorong safe-haven buying.",
-    source: "Reuters Markets",
-    url: "https://www.reuters.com/markets/commodities",
-    published_at: new Date(Date.now() - 6 * 3600 * 1000).toISOString(),
-    category: "GOLD",
-    tickers: ["ANTAM", "XAUUSD", "GOLD"],
-    sentiment: "BULLISH",
-    sentiment_score: 0.68,
-    impact_summary: "Memperkuat fungsi Emas sebagai peredam risiko (hedging) dalam portofolio all-weather.",
-  },
-  {
-    id: "news-5",
-    title: "Vanguard Total World Stock ETF (VT) Cetak Rekor Tertinggi Baru Berkat Saham AI",
-    summary: "Indeks saham dunia mencatat reli dipimpin sektor kecerdasan buatan, teknologi semikonduktor, dan ketahanan laba emiten skala global di Amerika Serikat, Eropa, dan Asia Pasifik.",
-    source: "Financial Times",
-    url: "https://www.ft.com/markets",
-    published_at: new Date(Date.now() - 10 * 3600 * 1000).toISOString(),
-    category: "GLOBAL",
-    tickers: ["VT", "SPY"],
-    sentiment: "BULLISH",
-    sentiment_score: 0.70,
-    impact_summary: "Menguntungkan eksposur portofolio ETF global yang berdenominasi USD.",
-  },
-  {
-    id: "news-6",
-    title: "Volatilitas Harga Minyak Mentah Global dan Tekanan Biaya Logistik Emiten Komoditas",
-    summary: "Pasar energi dunia bergerak fluktuatif menyusul keputusan kuota produksi OPEC+ dan dinamika rute pengapalan laut merah. Sebagian emiten manufaktur mencatat peningkatan tipis biaya logistik.",
-    source: "CNBC Indonesia Market",
-    url: "https://www.cnbcindonesia.com/market",
-    published_at: new Date(Date.now() - 14 * 3600 * 1000).toISOString(),
-    category: "MACRO",
-    tickers: ["IHSG", "ASII"],
+    id: "news-hot-6",
+    title: "Perdebatan Valuasi AI: Apakah Belanja Cloud Senilai Ratusan Miliar Dolar Akan Menemui Titik Jenuh?",
+    summary: "Analisis dari Sequoia Capital dan Goldman Sachs memperdebatkan 'The $600B AI Question'—apakah pendapatan dari software aplikasi berbasis kecerdasan buatan mampu menjustifikasi belanja chip Nvidia dan data center yang masif. Rotasi modal mulai bergerak ke emiten yang menghasilkan arus kas riil.",
+    source: "TechCrunch Enterprise",
+    url: "https://techcrunch.com",
+    published_at: new Date(Date.now() - 11 * 3600 * 1000).toISOString(),
+    category: "HOT",
+    tickers: ["NVDA", "MSFT", "AMZN", "QQQ"],
     sentiment: "BEARISH",
-    sentiment_score: -0.35,
-    impact_summary: "Sedikit menekan margin emiten consumer non-cyclical dan manufaktur.",
+    sentiment_score: -0.45,
+    impact_summary: "Menekankan pentingnya diversifikasi seimbang melalui ETF Global (VT) ketimbang hanya berspekulasi pada satu saham AI semikonduktor.",
   },
 ];
 
@@ -104,30 +104,34 @@ function decodeHtmlEntities(str: string): string {
     .replace(/&apos;/g, "'");
 }
 
-// Live financial news fetcher via verified Google News RSS queries
+// Live financial news fetcher via verified Google News RSS queries (Global Focus)
 async function fetchLiveRssNews(category?: string): Promise<MarketNewsItem[]> {
   try {
-    let query = "saham IHSG bursa efek indonesia";
-    let catEnum: MarketNewsItem["category"] = "STOCK";
+    let query = "global stock market Wall Street AI semiconductor bubble selloff";
+    let catEnum: MarketNewsItem["category"] = "HOT";
 
     if (category) {
       const c = category.toUpperCase();
-      if (c === "CRYPTO") {
-        query = "bitcoin crypto cryptocurrency ethereum";
+      if (c === "HOT") {
+        query = "stock market selloff AI bubble semiconductor tech crash KOSPI Nikkei";
+        catEnum = "HOT";
+      } else if (c === "GLOBAL_EQUITIES") {
+        query = "Wall Street S&P 500 Apple Microsoft Google Nvidia Big Tech earnings";
+        catEnum = "GLOBAL_EQUITIES";
+      } else if (c === "CRYPTO") {
+        query = "bitcoin crypto spot ETF BlackRock institutional Ethereum liquidity";
         catEnum = "CRYPTO";
-      } else if (c === "MACRO") {
-        query = "Bank Indonesia suku bunga BI rate inflasi rupiah";
-        catEnum = "MACRO";
-      } else if (c === "GOLD") {
-        query = "harga emas antam logam mulia bullion";
-        catEnum = "GOLD";
-      } else if (c === "GLOBAL") {
-        query = "Wall Street S&P 500 Nasdaq The Fed US economy";
-        catEnum = "GLOBAL";
+      } else if (c === "MACRO_GLOBAL") {
+        query = "Federal Reserve interest rate Powell US Treasury inflation DXY dollar";
+        catEnum = "MACRO_GLOBAL";
+      } else if (c === "SAFE_HAVEN") {
+        query = "gold price all time high central bank gold reserves safe haven bullion";
+        catEnum = "SAFE_HAVEN";
       }
     }
 
-    const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=id&gl=ID&ceid=ID:id`;
+    // Use English/Global international edition for authentic world financial news
+    const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
     const res = await fetch(rssUrl, {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
       signal: AbortSignal.timeout(5000),
@@ -147,8 +151,7 @@ async function fetchLiveRssNews(category?: string): Promise<MarketNewsItem[]> {
       const sourceMatch = raw.match(/<source[^>]*>(.*?)<\/source>/)?.[1];
 
       title = decodeHtmlEntities(title);
-      // Clean up title format "Title - Source"
-      let sourceName = sourceMatch ? decodeHtmlEntities(sourceMatch) : "Google News Financial";
+      let sourceName = sourceMatch ? decodeHtmlEntities(sourceMatch) : "Global Financial Terminal";
       if (title.includes(" - ")) {
         const parts = title.split(" - ");
         if (parts.length > 1) {
@@ -159,36 +162,43 @@ async function fetchLiveRssNews(category?: string): Promise<MarketNewsItem[]> {
 
       if (!title || !link) continue;
 
-      // Extract potential tickers
+      // Extract potential global tickers
       const tickers: string[] = [];
-      const commonSymbols = ["BBCA", "BBRI", "BMRI", "BBNI", "ASII", "TLKM", "IHSG", "BTC", "ETH", "ANTAM", "AAPL", "GOOGL", "NVDA"];
+      const commonSymbols = [
+        "NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "TSM",
+        "BTC", "ETH", "IBIT", "VT", "VOO", "SPY", "QQQ", "GLD", "GOLD", "KOSPI"
+      ];
       const upperTitle = title.toUpperCase();
       for (const sym of commonSymbols) {
         if (upperTitle.includes(sym)) tickers.push(sym);
       }
       if (tickers.length === 0) {
-        tickers.push(catEnum === "CRYPTO" ? "BTC" : catEnum === "GOLD" ? "ANTAM" : "IHSG");
+        if (catEnum === "HOT") tickers.push("AI", "NVDA");
+        else if (catEnum === "CRYPTO") tickers.push("BTC");
+        else if (catEnum === "SAFE_HAVEN") tickers.push("GOLD");
+        else if (catEnum === "GLOBAL_EQUITIES") tickers.push("VT", "SPY");
+        else tickers.push("DXY", "FED");
       }
 
-      // Quick sentiment estimation from keywords
+      // Quick sentiment estimation from global keywords
       let sentiment: MarketNewsItem["sentiment"] = "NEUTRAL";
       let sentimentScore = 0.1;
-      const bullishWords = ["menguat", "naik", "rekor", "melesat", "kinerja positif", "laba", "cuan", "bullish", "tumbuh", "lonjakan", "rebound"];
-      const bearishWords = ["anjlok", "turun", "melemah", "rugi", "tekanan", "bearish", "waspada", "merosot", "drop", "ambruk"];
+      const bullishWords = ["surge", "rally", "record", "jump", "bullish", "profit", "gain", "boom", "high", "rebound", "soar"];
+      const bearishWords = ["plunge", "drop", "selloff", "crash", "slump", "bubble", "sink", "fall", "warning", "retreat", "fears", "loss"];
 
       const lowerTitle = title.toLowerCase();
       if (bullishWords.some((w) => lowerTitle.includes(w))) {
         sentiment = "BULLISH";
-        sentimentScore = 0.72;
+        sentimentScore = 0.75;
       } else if (bearishWords.some((w) => lowerTitle.includes(w))) {
         sentiment = "BEARISH";
-        sentimentScore = -0.65;
+        sentimentScore = -0.70;
       }
 
       items.push({
-        id: `rss-${i + 1}-${Date.now()}`,
+        id: `rss-global-${i + 1}-${Date.now()}`,
         title,
-        summary: `Berita langsung dari ${sourceName}: Pantau pergerakan pasar dan pengaruhnya terhadap sentimen aset. Klik artikel untuk membaca selengkapnya.`,
+        summary: `Dispatch dari ${sourceName}: Pantau perkembangan volatilitas pasar dunia, likuiditas bank sentral, dan pergeseran narasi sektor global.`,
         source: sourceName,
         url: link,
         published_at: new Date(pubDate).toISOString(),
@@ -196,7 +206,7 @@ async function fetchLiveRssNews(category?: string): Promise<MarketNewsItem[]> {
         tickers,
         sentiment,
         sentiment_score: sentimentScore,
-        impact_summary: `Memengaruhi volatilitas jangka pendek pada ticker ${tickers.join(", ")}.`,
+        impact_summary: `Memengaruhi persepsi risiko institusional dan likuiditas pada ticker ${tickers.join(", ")}.`,
       });
     }
 

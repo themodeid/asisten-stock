@@ -908,14 +908,14 @@ export default function PortfolioPage() {
                 <Wallet className="w-4 h-4 text-emerald-400" />
               </div>
               <div>
-                <h3 className="text-xs sm:text-sm font-bold text-zinc-100 flex items-center gap-1.5">
-                  Multi-Dompet & Akun Platform
-                  <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-zinc-800 text-zinc-400 font-normal">
-                    {wallets.length} Dompet
+                <h3 className="text-xs sm:text-sm font-bold text-slate-100 flex items-center gap-2">
+                  Sovereign Multi-Vaults & Platform Ledgers
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-blue-300 font-mono border border-slate-700/60 font-semibold">
+                    {wallets.length} Vaults
                   </span>
                 </h3>
-                <p className="text-[11px] text-zinc-400">
-                  Kelola dan pisahkan aset Anda di berbagai exchange/sekuritas (Indodax, Tokocrypto, Pluang, dll.)
+                <p className="text-[11px] text-slate-400">
+                  Konsolidasi kekayaan lintas platform dan exchange (Pluang, Ajaib, Indodax, Gotrade, dll.)
                 </p>
               </div>
             </div>
@@ -925,10 +925,10 @@ export default function PortfolioPage() {
                 setWalletMsg(null);
                 setIsAddWalletModalOpen(true);
               }}
-              className="text-xs px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 font-semibold flex items-center gap-1.5 transition"
+              className="text-xs px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold flex items-center gap-1.5 transition shadow-sm shadow-blue-500/20 active:scale-95"
             >
               <Plus className="w-3.5 h-3.5" />
-              Tambah Dompet
+              Tambah Vault
             </button>
           </div>
 
@@ -939,13 +939,13 @@ export default function PortfolioPage() {
               onClick={() => setSelectedWalletId("all")}
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition shrink-0 ${
                 selectedWalletId === "all"
-                  ? "bg-zinc-100 text-zinc-950 border-zinc-200 shadow-md font-bold ring-2 ring-zinc-100/20"
-                  : "bg-zinc-950/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
+                  ? "bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/25 font-bold ring-1 ring-blue-400/40"
+                  : "bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700"
               }`}
             >
-              <Globe className="w-3.5 h-3.5 text-blue-400" />
-              <span>Semua Dompet</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-800 text-zinc-300 font-medium">
+              <Globe className="w-3.5 h-3.5 text-blue-300" />
+              <span>Semua Vault</span>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${selectedWalletId === "all" ? "bg-blue-700/60 text-white" : "bg-slate-800 text-slate-400"}`}>
                 Total Konsolidasi
               </span>
             </button>
@@ -961,17 +961,17 @@ export default function PortfolioPage() {
                     onClick={() => setSelectedWalletId(w.id)}
                     className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition ${
                       isSelected
-                        ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300 shadow-md ring-2 ring-emerald-500/20"
-                        : "bg-zinc-950/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
+                        ? "bg-blue-600/20 border-blue-500/50 text-blue-300 shadow-md ring-1 ring-blue-500/30 font-bold"
+                        : "bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700"
                     }`}
                   >
-                    <Building2 className={`w-3.5 h-3.5 ${isSelected ? "text-emerald-400" : "text-zinc-500"}`} />
-                    <span>{w.name}</span>
-                    <span className={`text-[11px] font-bold ${isPnlUp ? "text-emerald-400" : "text-red-400"}`}>
+                    <Building2 className={`w-3.5 h-3.5 ${isSelected ? "text-blue-400" : "text-slate-500"}`} />
+                    <span className="capitalize">{w.name}</span>
+                    <span className={`text-[11px] font-bold font-mono tabular-nums ${isPnlUp ? "text-emerald-400" : "text-rose-400"}`}>
                       {formatIDR(w.total_market_value || w.total_net_worth || 0)}
                     </span>
                     {w.floating_pnl_percent !== 0 && (
-                      <span className={`text-[9px] px-1 py-0.2 rounded ${isPnlUp ? "bg-emerald-950 text-emerald-400 border border-emerald-800/40" : "bg-red-950 text-red-400 border border-red-800/40"}`}>
+                      <span className={`text-[9px] px-1 py-0.2 rounded font-mono font-semibold ${isPnlUp ? "bg-emerald-950/60 text-emerald-400 border border-emerald-800/40" : "bg-rose-950/60 text-rose-400 border border-rose-800/40"}`}>
                         {isPnlUp ? "+" : ""}{w.floating_pnl_percent}%
                       </span>
                     )}
@@ -983,7 +983,7 @@ export default function PortfolioPage() {
                         e.stopPropagation();
                         handleDeleteWallet(w.id, w.name);
                       }}
-                      className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-zinc-800 hover:bg-red-600 text-zinc-400 hover:text-white items-center justify-center hidden group-hover:flex text-[9px] border border-zinc-700 transition"
+                      className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white items-center justify-center hidden group-hover:flex text-[9px] border border-slate-700 transition"
                       title={`Hapus dompet ${w.name}`}
                     >
                       ×
@@ -1049,22 +1049,22 @@ export default function PortfolioPage() {
                       setCurrency("IDR");
                       setIsTxModalOpen(true);
                     }}
-                    className="px-4 py-1.5 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 font-bold text-xs shadow-md transition flex items-center gap-1.5 active:scale-95"
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-500/25 transition flex items-center gap-1.5 active:scale-95"
                     title="Catat transaksi Beli (Buy) atau Jual (Sell)"
                   >
-                    <Plus className="w-3.5 h-3.5 text-zinc-950" />
-                    <span>+ Transaksi</span>
+                    <Plus className="w-3.5 h-3.5 text-white" />
+                    <span>+ Catat Order</span>
                   </button>
 
                   {/* Secondary Action: Nilai Awal */}
                   <button
                     type="button"
                     onClick={() => handleOpenAddInitialAsset(Number(selectedWalletId))}
-                    className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-emerald-400 border border-emerald-500/25 text-xs font-semibold transition flex items-center gap-1.5 active:scale-95"
+                    className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-850 text-blue-400 border border-blue-500/30 text-xs font-semibold transition flex items-center gap-1.5 active:scale-95"
                     title="Catat saldo awal aset dari exchange ini"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>+ Nilai Awal</span>
+                    <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                    <span>+ Saldo Awal</span>
                   </button>
 
                   {/* Tertiary Action: Scan OCR */}
@@ -1076,18 +1076,18 @@ export default function PortfolioPage() {
                       setOcrResult(null);
                       setIsOcrModalOpen(true);
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-700/60 text-xs font-medium transition flex items-center gap-1.5 active:scale-95"
+                    className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-850 text-slate-300 border border-slate-700/80 text-xs font-medium transition flex items-center gap-1.5 active:scale-95"
                     title="Scan struk pembelian dengan AI OCR"
                   >
-                    <Camera className="w-3.5 h-3.5 text-blue-400" />
+                    <Camera className="w-3.5 h-3.5 text-slate-400" />
                     <span>Scan Struk</span>
                   </button>
                 </>
               ) : (
                 /* Jika di Dompet Global: Mode Konsolidasi & Rekapitulasi Murni */
-                <div className="px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 text-[11px] text-zinc-400 flex items-center gap-2 shadow-inner">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Mode Rekapitulasi Semua Dompet (Pilih salah satu dompet di atas untuk mencatat transaksi)</span>
+                <div className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2 shadow-inner">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span>Mode Rekapitulasi Konsolidasi (Pilih salah satu vault di atas untuk mencatat transaksi)</span>
                 </div>
               )}
 
@@ -1096,7 +1096,7 @@ export default function PortfolioPage() {
                 <button
                   type="button"
                   onClick={() => setIsOptionsMenuOpen(!isOptionsMenuOpen)}
-                  className="p-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-700/60 transition"
+                  className="p-2 rounded-xl bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-700/80 transition"
                   title="Alat & Opsi Lainnya"
                 >
                   <MoreVertical className="w-4 h-4" />
@@ -1108,7 +1108,7 @@ export default function PortfolioPage() {
                       className="fixed inset-0 z-40"
                       onClick={() => setIsOptionsMenuOpen(false)}
                     />
-                    <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-52 rounded-2xl bg-[#0d1015] border border-white/[0.1] shadow-2xl p-1.5 z-50 divide-y divide-white/[0.06] backdrop-blur-xl">
+                    <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-52 rounded-2xl bg-[#0b0f19] border border-slate-800 shadow-2xl p-1.5 z-50 divide-y divide-slate-800 backdrop-blur-xl">
                       <div className="py-1">
                         <button
                           type="button"
@@ -1116,9 +1116,9 @@ export default function PortfolioPage() {
                             setIsOptionsMenuOpen(false);
                             handleExportCsv();
                           }}
-                          className="w-full text-left px-3 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] rounded-xl transition flex items-center gap-2.5"
+                          className="w-full text-left px-3 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-850 rounded-xl transition flex items-center gap-2.5"
                         >
-                          <Download className="w-3.5 h-3.5 text-zinc-400" />
+                          <Download className="w-3.5 h-3.5 text-slate-400" />
                           <span>Ekspor CSV</span>
                         </button>
                         <button
@@ -1127,9 +1127,9 @@ export default function PortfolioPage() {
                             setIsOptionsMenuOpen(false);
                             setIsReportModalOpen(true);
                           }}
-                          className="w-full text-left px-3 py-2 text-xs font-medium text-zinc-300 hover:text-white hover:bg-white/[0.06] rounded-xl transition flex items-center gap-2.5"
+                          className="w-full text-left px-3 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-850 rounded-xl transition flex items-center gap-2.5"
                         >
-                          <FileText className="w-3.5 h-3.5 text-zinc-400" />
+                          <FileText className="w-3.5 h-3.5 text-slate-400" />
                           <span>Unduh Factsheet PDF</span>
                         </button>
                       </div>
@@ -1141,54 +1141,59 @@ export default function PortfolioPage() {
           }
         />
 
-        {/* Pluang Primary 3-Pillar Tab Switcher: [ Ringkasan | Aset | Pocket & Rebalance ] */}
-        <div className="border-b border-zinc-800/80 pt-2">
+        {/* Sovereign Terminal 3-Pillar Tab Switcher: [ Ikhtisar Eksekutif | Buku Aset (Ledger) | Alokasi Makro & Inflow ] */}
+        <div className="border-b border-slate-800 pt-2">
           <div className="flex items-center gap-6 sm:gap-8 text-sm sm:text-base font-bold overflow-x-auto no-scrollbar">
             <button
               type="button"
               onClick={() => setPluangPrimaryTab("RINGKASAN")}
-              className={`pb-3 relative transition-colors shrink-0 ${
+              className={`pb-3 relative transition-colors shrink-0 flex items-center gap-2 ${
                 pluangPrimaryTab === "RINGKASAN"
-                  ? "text-white font-extrabold"
-                  : "text-zinc-500 hover:text-zinc-300 font-semibold"
+                  ? "text-white font-bold"
+                  : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              Ringkasan
+              <span>Ikhtisar Eksekutif</span>
               {pluangPrimaryTab === "RINGKASAN" && (
-                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-white rounded-full shadow-sm" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full shadow-sm shadow-blue-400/50" />
               )}
             </button>
 
             <button
               type="button"
               onClick={() => setPluangPrimaryTab("ASET")}
-              className={`pb-3 relative transition-colors shrink-0 ${
+              className={`pb-3 relative transition-colors shrink-0 flex items-center gap-2 ${
                 pluangPrimaryTab === "ASET"
-                  ? "text-white font-extrabold"
-                  : "text-zinc-500 hover:text-zinc-300 font-semibold"
+                  ? "text-white font-bold"
+                  : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              Aset
+              <span>Buku Aset (Holdings Ledger)</span>
+              {(currentPortfolio?.holdings?.length ?? 0) > 0 && (
+                <span className="text-[10px] px-2 py-0.2 rounded-full font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold">
+                  {currentPortfolio.holdings.length}
+                </span>
+              )}
               {pluangPrimaryTab === "ASET" && (
-                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-white rounded-full shadow-sm" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full shadow-sm shadow-blue-400/50" />
               )}
             </button>
 
             <button
               type="button"
               onClick={() => setPluangPrimaryTab("POCKET")}
-              className={`pb-3 relative transition-colors flex items-center gap-1.5 shrink-0 ${
+              className={`pb-3 relative transition-colors flex items-center gap-2 shrink-0 ${
                 pluangPrimaryTab === "POCKET"
-                  ? "text-white font-extrabold"
-                  : "text-zinc-500 hover:text-zinc-300 font-semibold"
+                  ? "text-white font-bold"
+                  : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              Pocket & Rebalance
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-mono font-bold">
-                AI
+              <span>Alokasi Makro & Inflow</span>
+              <span className="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                TERMINAL
               </span>
               {pluangPrimaryTab === "POCKET" && (
-                <span className="absolute bottom-0 inset-x-0 h-0.5 bg-white rounded-full shadow-sm" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full shadow-sm shadow-blue-400/50" />
               )}
             </button>
           </div>
