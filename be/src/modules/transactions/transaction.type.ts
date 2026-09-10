@@ -22,6 +22,7 @@ export interface StockTransaction {
   fee: number;
   transaction_date: Date;
   notes?: string;
+  wallet_name?: string;
   created_at: Date;
 }
 

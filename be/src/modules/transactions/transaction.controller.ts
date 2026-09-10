@@ -47,7 +47,16 @@ export const getTransactions = async (
   next: NextFunction
 ) => {
   try {
-    const portfolioId = Number(req.params.portfolioId || req.query.portfolioId || 1);
+    const rawPid = req.params.portfolioId ?? req.query.portfolioId;
+    let portfolioId: number | undefined = undefined;
+
+    if (rawPid && rawPid !== "all" && rawPid !== "0") {
+      const parsed = Number(rawPid);
+      if (!isNaN(parsed) && parsed > 0) {
+        portfolioId = parsed;
+      }
+    }
+
     const ticker = req.query.ticker as string | undefined;
 
     const data = await transactionService.getTransactions(portfolioId, ticker);

@@ -16,6 +16,9 @@ import {
   RefreshCw,
   TrendingDown,
   TrendingUp,
+  Wallet,
+  Globe,
+  Building2,
 } from "lucide-react";
 import { AssetType } from "@/types";
 
@@ -29,18 +32,39 @@ export default function TransactionsPage() {
   const [filterType, setFilterType] = useState<"ALL" | "BUY" | "SELL">("ALL");
   const [filterAsset, setFilterAsset] = useState<"ALL" | AssetType>("ALL");
   
+  // Multi-Dompet Filter State
+  const [wallets, setWallets] = useState<any[]>([]);
+  const [selectedWalletId, setSelectedWalletId] = useState<number | "all">("all");
+
   // Time filters & sorting
   const [timeRange, setTimeRange] = useState<TimeRangeFilter>("ALL");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"DESC" | "ASC">("DESC");
 
-  const fetchTransactions = async () => {
+  const fetchWallets = async () => {
+    try {
+      const res = await api.get("/portfolio/wallets");
+      if (res.data?.data) {
+        setWallets(res.data.data);
+      }
+    } catch (err) {
+      console.warn("Failed fetching wallets:", err);
+    }
+  };
+
+  const fetchTransactions = async (targetWalletId = selectedWalletId) => {
     try {
       setLoading(true);
-      const res = await api.get("/transactions/1");
+      const endpoint =
+        targetWalletId === "all" || !targetWalletId
+          ? "/transactions"
+          : `/transactions/${targetWalletId}`;
+      const res = await api.get(endpoint);
       if (res.data?.data) {
         setTransactions(res.data.data);
+      } else {
+        setTransactions([]);
       }
     } catch (err) {
       console.warn("Failed fetching transactions:", err);
@@ -50,14 +74,18 @@ export default function TransactionsPage() {
   };
 
   useEffect(() => {
-    fetchTransactions();
+    fetchWallets();
   }, []);
+
+  useEffect(() => {
+    fetchTransactions(selectedWalletId);
+  }, [selectedWalletId]);
 
   const handleDelete = async (id: number) => {
     if (!confirm("Hapus catatan transaksi ini?")) return;
     try {
       await api.delete(`/transactions/${id}`);
-      fetchTransactions();
+      fetchTransactions(selectedWalletId);
     } catch (err) {
       alert("Gagal menghapus transaksi");
     }
@@ -145,6 +173,69 @@ export default function TransactionsPage() {
       <Header title="Riwayat Transaksi Multi-Waktu & Multi-Aset" />
 
       <main className="p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto">
+        {/* Multi-Dompet Selector Bar */}
+        <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                <Wallet className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-bold text-zinc-100 uppercase tracking-wide">
+                    Multi-Dompet & Akun Platform
+                  </h3>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-400 font-mono">
+                    {wallets.length} Dompet
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-400">
+                  Filter riwayat transaksi berdasarkan dompet atau exchange tertentu.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+            {/* Pill: Semua Dompet (Total Konsolidasi) */}
+            <button
+              type="button"
+              onClick={() => setSelectedWalletId("all")}
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition shrink-0 ${
+                selectedWalletId === "all"
+                  ? "bg-zinc-100 text-zinc-950 border-zinc-200 shadow-md font-bold ring-2 ring-zinc-100/20"
+                  : "bg-zinc-950/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5 text-blue-400" />
+              <span>Semua Dompet</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-zinc-800 text-zinc-300 font-medium">
+                Total Konsolidasi
+              </span>
+            </button>
+
+            {/* Individual Wallets */}
+            {wallets.map((w: any) => {
+              const isSelected = selectedWalletId === w.id;
+              return (
+                <button
+                  key={w.id}
+                  type="button"
+                  onClick={() => setSelectedWalletId(w.id)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition shrink-0 ${
+                    isSelected
+                      ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300 shadow-md ring-2 ring-emerald-500/20 font-bold"
+                      : "bg-zinc-950/80 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:border-zinc-700"
+                  }`}
+                >
+                  <Building2 className={`w-3.5 h-3.5 ${isSelected ? "text-emerald-400" : "text-zinc-500"}`} />
+                  <span className="capitalize">{w.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Top Summary Banner */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm flex items-center justify-between">
@@ -217,7 +308,7 @@ export default function TransactionsPage() {
               </button>
 
               <button
-                onClick={fetchTransactions}
+                onClick={() => fetchTransactions()}
                 className="p-1.5 rounded-lg bg-zinc-850 hover:bg-zinc-800 text-zinc-300 border border-zinc-700/80 transition"
                 title="Refresh Riwayat"
               >
@@ -320,6 +411,7 @@ export default function TransactionsPage() {
                   <th className="py-3.5 px-6">TANGGAL & WAKTU</th>
                   <th className="py-3.5 px-4">TIPE</th>
                   <th className="py-3.5 px-4">KELAS & ASET</th>
+                  <th className="py-3.5 px-4">DOMPET</th>
                   <th className="py-3.5 px-4">KUANTITAS</th>
                   <th className="py-3.5 px-4">HARGA / UNIT</th>
                   <th className="py-3.5 px-4">TOTAL NILAI</th>
@@ -372,6 +464,16 @@ export default function TransactionsPage() {
                             <span className="font-bold text-zinc-100">{tx.ticker}</span>
                           </div>
                         </td>
+                        <td className="py-3.5 px-4">
+                          {tx.wallet_name ? (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-950/60 border border-emerald-800/40 text-emerald-300 capitalize">
+                              <Building2 className="w-3 h-3 text-emerald-400" />
+                              {tx.wallet_name}
+                            </span>
+                          ) : (
+                            <span className="text-zinc-500 text-[11px]">-</span>
+                          )}
+                        </td>
                         <td className="py-3.5 px-4 text-zinc-200">
                           {isStock ? (
                             <>
@@ -420,7 +522,7 @@ export default function TransactionsPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={8} className="text-center py-12 text-zinc-500">
+                    <td colSpan={9} className="text-center py-12 text-zinc-500">
                       {loading
                         ? "Memuat riwayat transaksi..."
                         : "Tidak ada transaksi yang cocok dengan filter waktu atau simbol ini."}

@@ -1435,30 +1435,36 @@ export default function PortfolioPage() {
                 <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
                   1. Pilih Model Portofolio Target
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
                   {[
                     {
                       id: "STATELESS_GLOBAL",
                       name: "Stateless Global Macro",
-                      desc: "60% ETF Global (VT), 20% Emas, 20% Bitcoin. 0% Keterikatan Saham Lokal.",
+                      desc: "60% ETF Global (VT), 20% Emas, 20% Bitcoin. 0% Keterikatan Saham Satu Negara.",
                       tag: "Bebas Risiko Negara",
+                    },
+                    {
+                      id: "WIDE_MOAT_GLOBAL",
+                      name: "Global Wide-Moat Monopoly",
+                      desc: "40% ETF Global (VT/VOO), 35% Saham Wide-Moat (MSFT, AAPL, GOOGL), 15% Bitcoin, 10% Emas.",
+                      tag: "Big Tech & Parit Ekonomi",
                     },
                     {
                       id: "ALL_WEATHER_GLOBAL",
                       name: "Classic All-Weather Global",
-                      desc: "50% ETF Global (VT), 30% Emas Logam Mulia, 15% Bitcoin, 5% Saham Pilihan.",
+                      desc: "45% ETF Global (VT), 25% Emas Logam Mulia, 15% Saham Wide-Moat Global, 15% Bitcoin.",
                       tag: "Tahan Segala Siklus",
                     },
                     {
                       id: "HIGH_ALPHA_GLOBAL",
                       name: "Aggressive Global Alpha",
-                      desc: "55% ETF Global (VT), 35% Bitcoin & Kripto, 10% Emas. 0% Saham Domestik.",
+                      desc: "45% ETF Global (VT), 35% Bitcoin & Kripto, 10% Saham Tech Global, 10% Emas.",
                       tag: "Maksimal Pertumbuhan",
                     },
                     {
                       id: "CAPITAL_DEFENSE",
                       name: "Global Capital Preservation",
-                      desc: "45% Emas Logam Mulia, 40% ETF Global (VT), 10% Kripto, 5% Saham.",
+                      desc: "45% Emas Logam Mulia, 40% ETF Global (VT), 10% Kripto, 5% Saham Wide-Moat.",
                       tag: "Pelindung Nilai Inflasi",
                     },
                   ].map((strat) => {

@@ -36,14 +36,25 @@ export const recordTransaction = async (
   }
 
   // 2. Currency detection & asset quote currency
-  const isAssetUSD =
-    liveQuote?.currency === "USD" ||
-    assetType === "CRYPTO" ||
-    assetType === "ETF" ||
-    ticker.endsWith("-USD") ||
-    ["VT", "VOO", "SPY", "QQQ", "AAPL", "NVDA", "TSLA", "MSFT", "VTI"].includes(ticker);
+  let currency = input.currency || "IDR";
+  if (!input.currency) {
+    if (price > 500000) {
+      currency = "IDR";
+    } else if (
+      liveQuote?.currency === "USD" ||
+      assetType === "ETF" ||
+      ["VT", "VOO", "SPY", "QQQ", "AAPL", "NVDA", "TSLA", "MSFT", "VTI"].includes(ticker)
+    ) {
+      currency = "USD";
+    } else {
+      currency = "IDR";
+    }
+  } else if (input.currency === "USD" && price > 1000000) {
+    // Sanity check: Jika harga per unit jelas-jelas bernilai jutaan/miliaran rupiah, pastikan tetap IDR
+    currency = "IDR";
+  }
 
-  let currency = isAssetUSD ? "USD" : (input.currency || "IDR");
+  const isAssetUSD = currency === "USD";
 
   // 3. Determine quantity and lots (supports Budget / Nominal Uang Input)
   let quantity = 0;
@@ -64,16 +75,11 @@ export const recordTransaction = async (
   if (input.total_budget && Number(input.total_budget) > 0) {
     const budget = Number(input.total_budget);
 
-    // If asset is USD-denominated but budget is given in IDR (e.g. 4.325.000 IDR for BTC)
+    // If asset is USD-denominated but budget is given in IDR (e.g. 4.325.000 IDR for US Stocks/ETF)
     const effectiveBudget =
       isAssetUSD && (input.currency === "IDR" || budget > 10000)
         ? budget / 15800
         : budget;
-
-    // The holding currency for USD assets should be USD
-    if (isAssetUSD) {
-      currency = "USD";
-    }
 
     if (assetType === "STOCK" && currency === "IDR") {
       const pricePerLot = price * 100;
@@ -276,24 +282,34 @@ export const recordTransaction = async (
 };
 
 export const getTransactions = async (
-  portfolioId: number,
+  portfolioId?: number,
   ticker?: string,
   assetType?: AssetType
 ): Promise<StockTransaction[]> => {
-  let query = "SELECT * FROM stock_transactions WHERE portfolio_id = $1";
-  const params: any[] = [portfolioId];
+  let query = `
+    SELECT t.*, p.name as wallet_name 
+    FROM stock_transactions t
+    LEFT JOIN portfolios p ON t.portfolio_id = p.id
+    WHERE 1=1
+  `;
+  const params: any[] = [];
+
+  if (portfolioId !== undefined && !isNaN(portfolioId) && portfolioId > 0) {
+    params.push(portfolioId);
+    query += ` AND t.portfolio_id = $${params.length}`;
+  }
 
   if (ticker) {
     params.push(formatTicker(ticker, assetType));
-    query += ` AND ticker = $${params.length}`;
+    query += ` AND t.ticker = $${params.length}`;
   }
 
   if (assetType) {
     params.push(assetType);
-    query += ` AND asset_type = $${params.length}`;
+    query += ` AND t.asset_type = $${params.length}`;
   }
 
-  query += " ORDER BY transaction_date DESC, id DESC;";
+  query += " ORDER BY t.transaction_date DESC, t.id DESC;";
   const { rows } = await pool.query(query, params);
   return rows;
 };

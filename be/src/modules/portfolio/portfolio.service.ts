@@ -245,22 +245,27 @@ export const calculateRebalancePlan = async (
   const STRATEGIES: Record<string, { name: string; desc: string; targets: Record<string, number> }> = {
     STATELESS_GLOBAL: {
       name: "Stateless Global Macro (Anti-Fragile)",
-      desc: "Bebas risiko satu negara: 60% ETF Global VT (USD), 20% Emas (Safe Haven), 20% Bitcoin (BTC). 0% Saham Domestik.",
+      desc: "Bebas risiko satu negara: 60% ETF Global VT (USD), 20% Emas (Safe Haven), 20% Bitcoin (BTC). 0% Keterikatan Saham Satu Negara.",
       targets: { ETF: 60, GOLD: 20, CRYPTO: 20, STOCK: 0 },
+    },
+    WIDE_MOAT_GLOBAL: {
+      name: "Global Wide-Moat Monopoly",
+      desc: "Raksasa ekonomi dunia dengan parit kokoh: 40% ETF Global (VT/VOO), 35% Saham Wide-Moat (MSFT, AAPL, GOOGL), 15% Bitcoin, 10% Emas.",
+      targets: { ETF: 40, STOCK: 35, CRYPTO: 15, GOLD: 10 },
     },
     ALL_WEATHER_GLOBAL: {
       name: "Classic All-Weather Global (Ray Dalio Style)",
-      desc: "Tahan segala siklus ekonomi dunia: 50% ETF Global VT, 30% Emas Logam Mulia, 15% Bitcoin, 5% Saham Pilihan.",
-      targets: { ETF: 50, GOLD: 30, CRYPTO: 15, STOCK: 5 },
+      desc: "Tahan segala siklus ekonomi dunia: 45% ETF Global (VT), 25% Emas Logam Mulia, 15% Saham Wide-Moat Global, 15% Bitcoin.",
+      targets: { ETF: 45, GOLD: 25, STOCK: 15, CRYPTO: 15 },
     },
     HIGH_ALPHA_GLOBAL: {
       name: "Aggressive Global Alpha (Maksimal Pertumbuhan)",
-      desc: "Akumulasi ekspansi kekayaan global: 55% ETF Global VT, 35% Bitcoin & Kripto, 10% Emas. 0% Saham Domestik.",
-      targets: { ETF: 55, CRYPTO: 35, GOLD: 10, STOCK: 0 },
+      desc: "Maksimal pertumbuhan jangka panjang: 45% ETF Global (VT), 35% Bitcoin & Kripto, 10% Saham Tech Global, 10% Emas.",
+      targets: { ETF: 45, CRYPTO: 35, STOCK: 10, GOLD: 10 },
     },
     CAPITAL_DEFENSE: {
       name: "Global Capital Preservation (Pelindung Modal)",
-      desc: "Prioritas lindung nilai kekayaan terhadap inflasi & krisis mata uang: 45% Emas Logam Mulia, 40% ETF Global VT, 10% Kripto, 5% Saham.",
+      desc: "Prioritas lindung nilai kekayaan terhadap inflasi: 45% Emas Logam Mulia, 40% ETF Global VT, 10% Kripto, 5% Saham Wide-Moat.",
       targets: { GOLD: 45, ETF: 40, CRYPTO: 10, STOCK: 5 },
     },
   };
@@ -271,6 +276,7 @@ export const calculateRebalancePlan = async (
     ALL_WEATHER: "ALL_WEATHER_GLOBAL",
     HIGH_ALPHA: "HIGH_ALPHA_GLOBAL",
     CONSERVATIVE: "CAPITAL_DEFENSE",
+    WIDE_MOAT: "WIDE_MOAT_GLOBAL",
   };
   const resolvedStrategyKey = strategyAlias[strategy] || strategy;
   const selectedStrategy = STRATEGIES[resolvedStrategyKey] || STRATEGIES.STATELESS_GLOBAL;
@@ -293,17 +299,17 @@ export const calculateRebalancePlan = async (
   // Calculate gaps and target amounts
   const assetTypes = ["ETF", "GOLD", "CRYPTO", "STOCK"] as const;
   const representativeTickers: Record<string, string> = {
-    ETF: "VT (Vanguard Total World ETF / Pluang)",
+    ETF: "VT / VOO (Vanguard Total World / S&P 500 ETF - Pluang)",
     GOLD: "EMAS (Emas Logam Mulia / Fisik / PAXG)",
     CRYPTO: "BTC (Bitcoin Sovereign / Ajaib & Pluang)",
-    STOCK: "Saham IDX (0% Alokasi)",
+    STOCK: "Saham Wide-Moat Global (AAPL, MSFT, GOOGL, NVDA - Pluang & Gotrade)",
   };
 
   const assetLabels: Record<string, string> = {
-    ETF: "ETF Global Dunia (VT)",
+    ETF: "ETF Global Dunia (VT / VOO)",
     GOLD: "Emas Safe Haven (XAU)",
     CRYPTO: "Kripto & Bitcoin (BTC)",
-    STOCK: "Saham Domestik (IDX)",
+    STOCK: "Saham Global Wide-Moat (Big Tech & Moat)",
   };
 
   // Find underweight classes and their deficit amounts
@@ -354,8 +360,8 @@ export const calculateRebalancePlan = async (
     let recommended_action = `Pertahankan alokasi wajar.`;
     if (targetPct === 0) {
       recommended_action = currentVal > 0
-        ? `Target 0%: Jangan tambah modal baru (biarkan aset global berkembang).`
-        : `Target 0%: Diabaikan untuk menghindari risiko pasar domestik.`;
+        ? `Target 0%: Jangan tambah modal baru (fokuskan dana masuk ke instrumen global terpilih).`
+        : `Target 0%: Diabaikan untuk fokus penuh ke instrumen global pilihan.`;
     } else if (roundedInflow > 0) {
       recommended_action = `Beli ${representativeTickers[type]} senilai Rp ${roundedInflow.toLocaleString("id-ID")}`;
     } else if (status === "OVERWEIGHT") {
