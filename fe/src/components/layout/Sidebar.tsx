@@ -16,12 +16,14 @@ import {
   Shield,
   LogOut,
   User,
+  Wallet,
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 
 export const navigation = [
   { name: "Portofolio", href: "/portfolio", icon: LayoutDashboard },
+  { name: "Keuangan & Kas", href: "/cashflow", icon: Wallet },
   { name: "Riwayat Transaksi", href: "/transactions", icon: History },
   { name: "AI Analyst", href: "/analytics", icon: TrendingUp },
   { name: "Berita & Sentimen", href: "/news", icon: Newspaper },
@@ -44,7 +46,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     <div className="flex flex-col justify-between h-full">
       <div>
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-zinc-200/80 dark:border-slate-800/80">
+        <div className="h-16 flex items-center justify-between px-5 border-b border-zinc-200/80 dark:border-white/[0.08]">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-lg shadow-blue-500/25 ring-1 ring-blue-400/30">
               AS
@@ -100,12 +102,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs transition-all relative ${
                   isActive
-                    ? "bg-blue-500/10 text-white border border-blue-500/30 font-semibold shadow-sm"
-                    : "text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-slate-100 hover:bg-zinc-100 dark:hover:bg-slate-800/40"
+                    ? "bg-gradient-to-r from-blue-500/15 via-emerald-500/10 to-transparent border border-blue-500/30 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] backdrop-blur-md font-semibold"
+                    : "text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-slate-100 hover:bg-zinc-100 dark:hover:bg-white/[0.04] border border-transparent dark:hover:border-white/[0.05]"
                 }`}
               >
                 {isActive && (
-                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-blue-500 shadow-sm shadow-blue-400/60" />
+                  <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-gradient-to-b from-blue-400 to-emerald-400 shadow-[0_0_10px_#3b82f6]" />
                 )}
                 <Icon
                   className={`w-4 h-4 transition-colors ${isActive ? "text-blue-400" : "text-zinc-400 dark:text-slate-500"}`}
@@ -119,7 +121,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {/* Footer Info & User Session */}
       <div className="p-3 m-3 space-y-2">
-        <div className="p-3 rounded-2xl bg-zinc-100 dark:bg-slate-900/80 border border-zinc-200/80 dark:border-slate-800 shadow-sm">
+        <div className="p-3 rounded-2xl bg-zinc-100 dark:bg-white/[0.03] backdrop-blur-md border border-zinc-200/80 dark:border-white/[0.06] shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-zinc-800 dark:text-slate-200 font-semibold">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-sm shadow-emerald-400/50" />
@@ -136,7 +138,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* User Card with Quick Lock */}
         {user && (
-          <div className="p-2.5 rounded-2xl bg-zinc-100/80 dark:bg-slate-900/60 border border-zinc-200/80 dark:border-slate-800 flex items-center justify-between gap-2">
+          <div className="p-2.5 rounded-2xl bg-zinc-100/80 dark:bg-white/[0.03] backdrop-blur-md border border-zinc-200/80 dark:border-white/[0.06] flex items-center justify-between gap-2">
             <Link
               href="/profile"
               onClick={onClose}
@@ -171,7 +173,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   return (
     <>
       {/* 1. Desktop Fixed Sidebar */}
-      <aside className="hidden lg:flex w-64 bg-white/95 dark:bg-[#0b0f19]/95 backdrop-blur-xl border-r border-zinc-200/80 dark:border-slate-800/80 flex-col justify-between shrink-0 h-screen sticky top-0 left-0 z-30 select-none overflow-y-auto transition-colors duration-200">
+      <aside className="hidden lg:flex w-64 bg-white/95 dark:bg-[#07090e]/80 backdrop-blur-xl border-r border-zinc-200/80 dark:border-white/[0.08] flex-col justify-between shrink-0 h-screen sticky top-0 left-0 z-30 select-none overflow-y-auto transition-colors duration-200">
         {content}
       </aside>
 

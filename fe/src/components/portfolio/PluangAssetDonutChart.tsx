@@ -77,7 +77,7 @@ export default function PluangAssetDonutChart({
       </div>
 
       {/* Donut Chart & Legend Section */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl flex flex-col md:flex-row items-center justify-around gap-6">
+      <div className="bg-[#0d111d]/70 backdrop-blur-2xl border border-white/[0.08] shadow-[0_15px_45px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.08)] rounded-2xl p-4 sm:p-6 flex flex-col md:flex-row items-center justify-around gap-6">
         {/* SVG Donut */}
         <div className="relative flex items-center justify-center shrink-0">
           <svg
@@ -91,7 +91,7 @@ export default function PluangAssetDonutChart({
               cy={size / 2}
               r={radius}
               fill="transparent"
-              stroke="#1e293b"
+              stroke="rgba(255,255,255,0.06)"
               strokeWidth={strokeWidth}
             />
             {/* Segments */}
@@ -154,7 +154,7 @@ export default function PluangAssetDonutChart({
           return (
             <div
               key={c.key}
-              className="rounded-xl bg-slate-900 border border-slate-800 overflow-hidden shadow-md transition-all duration-200"
+              className="rounded-xl bg-[#0a0e18]/60 hover:bg-[#0e1322]/80 backdrop-blur-xl border border-white/[0.07] hover:border-white/[0.14] overflow-hidden shadow-md transition-all duration-200"
             >
               {/* Card Header */}
               <button
@@ -190,7 +190,7 @@ export default function PluangAssetDonutChart({
                   {/* Total Nilai / Aset Row */}
                   <div
                     onClick={() => onSelectCategory && onSelectCategory(c.key)}
-                    className="flex items-center justify-between p-3 rounded-lg bg-slate-950/70 hover:bg-slate-800/80 border border-slate-800 cursor-pointer transition group"
+                    className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] cursor-pointer transition group"
                   >
                     <span className="text-xs font-mono font-medium text-slate-400">
                       {c.key === "CASH" ? "TOTAL SETTLED CASH" : "HOLDINGS VALUATION"}

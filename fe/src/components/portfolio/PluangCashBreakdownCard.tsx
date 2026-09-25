@@ -29,7 +29,7 @@ export default function PluangCashBreakdownCard({
   const usdTotal = (data?.usd_cash || 0) + (data?.usd_margin || 0);
 
   return (
-    <div className="rounded-xl bg-slate-900 border border-slate-800 p-4 sm:p-5 shadow-lg space-y-3 transition-all duration-200">
+    <div className="rounded-3xl bg-[#0e1322]/60 backdrop-blur-2xl border border-white/[0.08] hover:border-white/[0.15] shadow-xl p-4 sm:p-5 space-y-3 transition-all duration-200">
       {/* Header with toggle */}
       <button
         type="button"
@@ -53,7 +53,7 @@ export default function PluangCashBreakdownCard({
 
       {/* Inner breakdown container (Terminal style) */}
       {isOpen && (
-        <div className="rounded-lg bg-slate-950/80 border border-slate-800 p-3.5 space-y-2.5 text-xs font-mono">
+        <div className="rounded-2xl bg-black/40 backdrop-blur-xl border border-white/[0.06] shadow-inner p-3.5 space-y-2.5 text-xs font-mono">
           <div className="flex items-center justify-between">
             <span className="text-slate-400 font-sans">Nilai Aset Bersih (NAV)</span>
             <span className="font-semibold text-slate-100 tabular-nums">

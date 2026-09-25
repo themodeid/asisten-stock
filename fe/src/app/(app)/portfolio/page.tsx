@@ -96,7 +96,7 @@ export default function PortfolioPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Rebalance State
-  const [rebalanceStrategy, setRebalanceStrategy] = useState<string>("STATELESS_GLOBAL");
+  const [rebalanceStrategy, setRebalanceStrategy] = useState<string>("FUNDAMENTAL_TRI_PILLAR");
   const [freshCapitalInput, setFreshCapitalInput] = useState<string>("2000000");
   const [rebalancePlan, setRebalancePlan] = useState<any>(null);
   const [rebalanceLoading, setRebalanceLoading] = useState(false);
@@ -901,7 +901,7 @@ export default function PortfolioPage() {
 
       <main className="p-3.5 sm:p-5 md:p-8 space-y-5 sm:space-y-6 max-w-7xl w-full mx-auto">
         {/* Multi-Dompet Modern Segmented Bar (Urutan A: Posisi Teratas) */}
-        <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-3 sm:p-4 backdrop-blur-md shadow-lg shadow-black/20">
+        <div className="bg-[#0e1322]/60 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-3 sm:p-4 backdrop-blur-md shadow-lg shadow-black/20">
           <div className="flex items-center justify-between gap-2 mb-3">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
@@ -940,7 +940,7 @@ export default function PortfolioPage() {
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition shrink-0 ${
                 selectedWalletId === "all"
                   ? "bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/25 font-bold ring-1 ring-blue-400/40"
-                  : "bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700"
+                  : "bg-slate-900 border-white/[0.08] text-slate-300 hover:text-white hover:border-slate-700"
               }`}
             >
               <Globe className="w-3.5 h-3.5 text-blue-300" />
@@ -962,7 +962,7 @@ export default function PortfolioPage() {
                     className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border transition ${
                       isSelected
                         ? "bg-blue-600/20 border-blue-500/50 text-blue-300 shadow-md ring-1 ring-blue-500/30 font-bold"
-                        : "bg-slate-900 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700"
+                        : "bg-slate-900 border-white/[0.08] text-slate-300 hover:text-white hover:border-slate-700"
                     }`}
                   >
                     <Building2 className={`w-3.5 h-3.5 ${isSelected ? "text-blue-400" : "text-slate-500"}`} />
@@ -1085,7 +1085,7 @@ export default function PortfolioPage() {
                 </>
               ) : (
                 /* Jika di Dompet Global: Mode Konsolidasi & Rekapitulasi Murni */
-                <div className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2 shadow-inner">
+                <div className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-white/[0.08] text-[11px] text-slate-400 flex items-center gap-2 shadow-inner">
                   <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                   <span>Mode Rekapitulasi Konsolidasi (Pilih salah satu vault di atas untuk mencatat transaksi)</span>
                 </div>
@@ -1108,7 +1108,7 @@ export default function PortfolioPage() {
                       className="fixed inset-0 z-40"
                       onClick={() => setIsOptionsMenuOpen(false)}
                     />
-                    <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-52 rounded-2xl bg-[#0b0f19] border border-slate-800 shadow-2xl p-1.5 z-50 divide-y divide-slate-800 backdrop-blur-xl">
+                    <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-52 rounded-2xl bg-[#0b0f19] border border-white/[0.08] shadow-2xl p-1.5 z-50 divide-y divide-slate-800 backdrop-blur-xl">
                       <div className="py-1">
                         <button
                           type="button"
@@ -1142,7 +1142,7 @@ export default function PortfolioPage() {
         />
 
         {/* Sovereign Terminal 3-Pillar Tab Switcher: [ Ikhtisar Eksekutif | Buku Aset (Ledger) | Alokasi Makro & Inflow ] */}
-        <div className="border-b border-slate-800 pt-2">
+        <div className="border-b border-white/[0.08] pt-2">
           <div className="flex items-center gap-6 sm:gap-8 text-sm sm:text-base font-bold overflow-x-auto no-scrollbar">
             <button
               type="button"
@@ -1155,7 +1155,7 @@ export default function PortfolioPage() {
             >
               <span>Ikhtisar Eksekutif</span>
               {pluangPrimaryTab === "RINGKASAN" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full shadow-sm shadow-blue-400/50" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full shadow-[0_0_10px_#3b82f6]" />
               )}
             </button>
 
@@ -1175,7 +1175,7 @@ export default function PortfolioPage() {
                 </span>
               )}
               {pluangPrimaryTab === "ASET" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full shadow-sm shadow-blue-400/50" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full shadow-[0_0_10px_#3b82f6]" />
               )}
             </button>
 
@@ -1193,7 +1193,7 @@ export default function PortfolioPage() {
                 TERMINAL
               </span>
               {pluangPrimaryTab === "POCKET" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-full shadow-sm shadow-blue-400/50" />
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-500 to-emerald-400 rounded-full shadow-[0_0_10px_#3b82f6]" />
               )}
             </button>
           </div>
@@ -1264,8 +1264,8 @@ export default function PortfolioPage() {
                   onClick={() => setPluangAssetFilter(f.key as any)}
                   className={`px-3.5 sm:px-4 py-1.5 rounded-full text-xs font-semibold transition whitespace-nowrap border ${
                     pluangAssetFilter === f.key
-                      ? "bg-white text-zinc-950 border-white shadow-sm font-bold"
-                      : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                      ? "bg-white/90 text-zinc-950 border-white/80 shadow-sm font-bold"
+                      : "bg-[#0e1322]/60 border-white/[0.08] text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
                   {f.label}
@@ -1413,7 +1413,7 @@ export default function PortfolioPage() {
         {pocketSubTab === "REBALANCE" && (
           <div className="space-y-6">
             {/* Strategy & Capital Inflow Controls Card */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm space-y-5">
+            <div className="bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] rounded-xl p-6 shadow-sm space-y-5">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800/80 pb-5">
                 <div>
                   <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
@@ -1435,13 +1435,61 @@ export default function PortfolioPage() {
                 </button>
               </div>
 
+              {/* Fundamental 3-Pillar Philosophy Callout */}
+              <div className="p-4 rounded-xl bg-white/[0.03] backdrop-blur-md border border-blue-500/30 text-xs text-slate-300 space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 font-semibold text-blue-400 text-sm">
+                    <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
+                    <span>Prinsip Investasi: Tri-Pilar Fundamental Bebas Volatilitas</span>
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 uppercase tracking-wider w-fit">
+                    Anti-Permanent Loss of Capital
+                  </span>
+                </div>
+                <p className="text-slate-400 leading-relaxed text-xs">
+                  Volatilitas dan fluktuasi harga harian bukanlah risiko fundamental. Risiko sejati adalah <strong>kehancuran modal permanen</strong> atau tergerusnya daya beli oleh inflasi fiat. Rebalancing modal segar diarahkan murni menutup defisit nilai intrinsik 3 pilar:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1">
+                  <div className="p-3 rounded-lg bg-slate-950/70 border border-white/[0.08] space-y-1">
+                    <p className="font-semibold text-blue-300 flex items-center gap-1.5">
+                      <span>🏛️</span> Pilar 1: Ekuitas Produktif (40%)
+                    </p>
+                    <p className="text-[11px] text-slate-400 leading-normal">
+                      <strong>Mesin Pertumbuhan:</strong> Laba & Free Cash Flow ribuan korporasi dunia yang terus bertumbuh (VT / S&P 500).
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-slate-950/70 border border-white/[0.08] space-y-1">
+                    <p className="font-semibold text-amber-300 flex items-center gap-1.5">
+                      <span>⚡</span> Pilar 2: Moneter Digital (40%)
+                    </p>
+                    <p className="text-[11px] text-slate-400 leading-normal">
+                      <strong>Penyimpan Nilai Mutlak:</strong> Kelangkaan absolut (hard cap 21 juta BTC matematis), bebas risiko devaluasi fiat.
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-slate-950/70 border border-white/[0.08] space-y-1">
+                    <p className="font-semibold text-emerald-300 flex items-center gap-1.5">
+                      <span>🛡️</span> Pilar 3: Jangkar Solvabilitas (20%)
+                    </p>
+                    <p className="text-[11px] text-slate-400 leading-normal">
+                      <strong>Pertahanan Likuiditas:</strong> Emas fisik & kas bebas risiko pihak ketiga (Zero Counterparty Risk) saat sistem kredit macet.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Strategy Presets */}
               <div className="space-y-2">
                 <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
                   1. Pilih Model Portofolio Target
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
                   {[
+                    {
+                      id: "FUNDAMENTAL_TRI_PILLAR",
+                      name: "Tri-Pilar Fundamental",
+                      desc: "40% Ekuitas VT, 40% Moneter Keras BTC, 20% Emas/Kas. Fokus penciptaan nilai riil & kelangkaan mutlak.",
+                      tag: "Anti-Fragile Utama",
+                    },
                     {
                       id: "STATELESS_GLOBAL",
                       name: "Stateless Global Macro",
@@ -1485,7 +1533,7 @@ export default function PortfolioPage() {
                         className={`p-3.5 rounded-xl border text-left transition flex flex-col justify-between ${
                           isSelected
                             ? "bg-emerald-950/30 border-emerald-500/70 shadow-sm ring-1 ring-emerald-500/40"
-                            : "bg-zinc-850/60 border-zinc-800 hover:border-zinc-700 text-zinc-400"
+                            : "bg-white/[0.02]/60 border-zinc-800 hover:border-zinc-700 text-zinc-400"
                         }`}
                       >
                         <div>
@@ -1523,7 +1571,7 @@ export default function PortfolioPage() {
                       value={freshCapitalInput}
                       onChange={(e) => setFreshCapitalInput(e.target.value)}
                       placeholder="2000000"
-                      className="w-full bg-zinc-950 border border-zinc-700 rounded-lg pl-10 pr-4 py-2 text-sm font-semibold text-zinc-100 focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 rounded-lg pl-10 pr-4 py-2 text-sm font-semibold text-zinc-100 focus:outline-none focus:border-emerald-500"
                     />
                   </div>
 
@@ -1559,7 +1607,7 @@ export default function PortfolioPage() {
 
             {/* Inflow Summary Banner Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+              <div className="p-5 rounded-xl bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] shadow-sm">
                 <div className="text-xs text-zinc-400 uppercase font-semibold">Nilai Portofolio Saat Ini</div>
                 <div className="text-xl font-bold text-zinc-100 mt-1">
                   {formatIDR(rebalancePlan?.current_total_value_idr || portfolio?.total_market_value || 0)}
@@ -1569,7 +1617,7 @@ export default function PortfolioPage() {
                 </div>
               </div>
 
-              <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+              <div className="p-5 rounded-xl bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] shadow-sm">
                 <div className="text-xs text-zinc-400 uppercase font-semibold">Modal Baru yang Dialokasikan</div>
                 <div className="text-xl font-bold text-emerald-400 mt-1">
                   {formatIDR(rebalancePlan?.fresh_capital_idr || Number(freshCapitalInput) || 0)}
@@ -1579,7 +1627,7 @@ export default function PortfolioPage() {
                 </div>
               </div>
 
-              <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+              <div className="p-5 rounded-xl bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] shadow-sm">
                 <div className="text-xs text-zinc-400 uppercase font-semibold">Estimasi Portofolio Pasca-Inflow</div>
                 <div className="text-xl font-bold text-zinc-100 mt-1">
                   {formatIDR(rebalancePlan?.projected_total_value_idr || 0)}
@@ -1591,8 +1639,8 @@ export default function PortfolioPage() {
             </div>
 
             {/* Rebalance Plan Allocation Table */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm">
-              <div className="p-4 bg-zinc-850/60 border-b border-zinc-800">
+            <div className="bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] rounded-xl overflow-hidden shadow-sm">
+              <div className="p-4 bg-white/[0.02]/60 border-b border-zinc-800">
                 <h4 className="font-bold text-sm text-zinc-100">
                   Rincian Alokasi Dana Masuk ke Setiap Kelas Aset
                 </h4>
@@ -1603,7 +1651,7 @@ export default function PortfolioPage() {
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-zinc-850 border-b border-zinc-800 text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
+                  <thead className="bg-white/[0.02] border-b border-zinc-800 text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
                     <tr>
                       <th className="py-3 px-6">KELAS ASET & TARGET INSTRUMEN</th>
                       <th className="py-3 px-4">NILAI SAAT INI</th>
@@ -1613,6 +1661,9 @@ export default function PortfolioPage() {
                       <th className="py-3 px-6 bg-emerald-950/20 text-emerald-300 font-bold">
                         ALOKASI MODAL BARU (RP)
                       </th>
+                      <th className="py-3 px-4 text-blue-300 font-bold">
+                        EFISIENSI TEKNIKAL & TRANCHE
+                      </th>
                       <th className="py-3 px-6 text-right">PROYEKSI AKSI</th>
                     </tr>
                   </thead>
@@ -1621,6 +1672,7 @@ export default function PortfolioPage() {
                       rebalancePlan.items.map((item: any) => {
                         const isUnder = item.status === "UNDERWEIGHT";
                         const isOver = item.status === "OVERWEIGHT";
+                        const tech = item.technical_entry;
                         return (
                           <tr key={item.asset_type} className="hover:bg-zinc-800/40 transition">
                             <td className="py-4 px-6">
@@ -1668,6 +1720,33 @@ export default function PortfolioPage() {
                                 </div>
                               )}
                             </td>
+                            <td className="py-4 px-4">
+                              {tech ? (
+                                <div className="space-y-1.5 max-w-xs">
+                                  <span
+                                    className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border ${
+                                      tech.status === "OPTIMAL_DIP_BUY"
+                                        ? "bg-emerald-950/80 text-emerald-300 border-emerald-500/50"
+                                        : tech.status === "OVEREXTENDED_WAIT"
+                                        ? "bg-rose-950/80 text-rose-300 border-rose-500/50"
+                                        : "bg-amber-950/80 text-amber-300 border-amber-500/50"
+                                    }`}
+                                  >
+                                    {tech.badge_label}
+                                  </span>
+                                  <p className="text-[11px] text-zinc-400 leading-tight">
+                                    {tech.technical_note}
+                                  </p>
+                                  {item.recommended_inflow_idr > 0 && (
+                                    <p className="text-[10px] font-mono text-blue-300 font-semibold bg-blue-950/40 p-1.5 rounded border border-blue-800/50">
+                                      💼 {tech.tranche_advice}
+                                    </p>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-zinc-500 text-[11px]">-</span>
+                              )}
+                            </td>
                             <td className="py-4 px-6 text-right">
                               <div className="text-xs font-semibold text-zinc-200">
                                 {item.recommended_action}
@@ -1678,8 +1757,8 @@ export default function PortfolioPage() {
                       })
                     ) : (
                       <tr>
-                        <td colSpan={7} className="text-center py-8 text-zinc-500">
-                          {rebalanceLoading ? "Menghitung skema rebalancing..." : "Klik Hitung Alokasi untuk melihat rekomendasi."}
+                        <td colSpan={8} className="text-center py-8 text-zinc-500">
+                          {rebalanceLoading ? "Menghitung skema rebalancing & timing teknikal..." : "Klik Hitung Alokasi untuk melihat rekomendasi."}
                         </td>
                       </tr>
                     )}
@@ -1690,7 +1769,7 @@ export default function PortfolioPage() {
 
             {/* AI Advisor Guidance Note */}
             {rebalancePlan?.summary_advice && (
-              <div className="p-4 rounded-xl bg-zinc-850/80 border border-zinc-700/80 flex items-start gap-3 text-xs leading-relaxed text-zinc-300">
+              <div className="p-4 rounded-xl bg-white/[0.02]/80 border border-zinc-700/80 flex items-start gap-3 text-xs leading-relaxed text-zinc-300">
                 <Info className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-zinc-100 block mb-1">Panduan Eksekusi AI Portofolio Advisor:</strong>
@@ -1698,6 +1777,24 @@ export default function PortfolioPage() {
                 </div>
               </div>
             )}
+
+            {/* Money Management & Technical Discipline Callout */}
+            <div className="p-4 rounded-xl bg-white/[0.03] backdrop-blur-md border border-blue-500/30 flex items-start gap-3 text-xs leading-relaxed text-slate-300">
+              <Sparkles className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+              <div>
+                <strong className="text-slate-100 block mb-1 font-mono uppercase tracking-wider text-xs flex items-center gap-2">
+                  <span>Sinergi 3 Dimensi: Fundamental + Analisa Teknikal + Manajemen Kas</span>
+                  <span className="px-2 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                    Disiplin Eksekusi
+                  </span>
+                </strong>
+                <p className="text-slate-400">
+                  <strong>1. Fundamental</strong> memastikan Anda <em>hanya membeli aset yang nilainya tidak akan menuju nol</em> (VT, BTC, Emas).<br />
+                  <strong>2. Analisa Teknikal</strong> memantau <em>diskon 52-Week &amp; titik support</em> agar uang Anda tidak masuk di harga pucuk euforia.<br />
+                  <strong>3. Manajemen Kas</strong> membagi eksekusi modal dingin ke dalam <em>tranche bertahap (50% masuk sekarang, 50% limit order)</em> sehingga Anda tidak kehabisan amunisi tunai dan kebutuhan darurat harian tetap aman 100%.
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -1705,7 +1802,7 @@ export default function PortfolioPage() {
         {pocketSubTab === "TAX" && (
           <div className="space-y-6">
             {/* Header / Intro Card */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm">
+            <div className="bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] rounded-xl p-6 shadow-sm">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
@@ -1730,7 +1827,7 @@ export default function PortfolioPage() {
             {/* Interactive Calculator Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Left Column: Simulation Inputs */}
-              <div className="lg:col-span-5 bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4 shadow-sm">
+              <div className="lg:col-span-5 bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] rounded-xl p-5 space-y-4 shadow-sm">
                 <h4 className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-1.5 border-b border-zinc-800 pb-3">
                   <Sliders className="w-4 h-4 text-amber-400" />
                   Parameter Simulasi Penjualan
@@ -1750,7 +1847,7 @@ export default function PortfolioPage() {
                         className={`p-2 rounded-lg text-left border transition text-xs ${
                           taxSelectedTicker === h.ticker
                             ? "bg-amber-950/40 border-amber-500 text-zinc-100 font-semibold"
-                            : "bg-zinc-850 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                            : "bg-white/[0.02] border-zinc-800 text-zinc-400 hover:text-zinc-200"
                         }`}
                       >
                         <div className="font-bold text-zinc-100">{h.ticker}</div>
@@ -1770,7 +1867,7 @@ export default function PortfolioPage() {
                   <select
                     value={taxAssetType}
                     onChange={(e) => setTaxAssetType(e.target.value as any)}
-                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-100 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-100 focus:outline-none focus:border-amber-500"
                   >
                     <option value="CRYPTO">Kripto (PMK 68/2022 - PPh Final 0.1% / 0.2%)</option>
                     <option value="STOCK">Saham BEI (PP 41/1994 - PPh Final 0.1%)</option>
@@ -1791,7 +1888,7 @@ export default function PortfolioPage() {
                     value={taxQuantity}
                     onChange={(e) => setTaxQuantity(e.target.value)}
                     placeholder="0.001"
-                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-100 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-100 focus:outline-none focus:border-amber-500"
                   />
                 </div>
 
@@ -1806,7 +1903,7 @@ export default function PortfolioPage() {
                     value={taxSellPrice}
                     onChange={(e) => setTaxSellPrice(e.target.value)}
                     placeholder="1450000000"
-                    className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-100 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 rounded-lg px-3 py-2 text-xs font-semibold text-zinc-100 focus:outline-none focus:border-amber-500"
                   />
                 </div>
 
@@ -1846,7 +1943,7 @@ export default function PortfolioPage() {
               {/* Right Column: Tax Breakdown & SPT Guide */}
               <div className="lg:col-span-7 space-y-4">
                 {taxSimResult ? (
-                  <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 space-y-6 shadow-sm">
+                  <div className="bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] rounded-xl p-6 space-y-6 shadow-sm">
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
@@ -1863,28 +1960,28 @@ export default function PortfolioPage() {
 
                     {/* Big Summary Grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      <div className="p-3.5 rounded-lg bg-zinc-850 border border-zinc-800">
+                      <div className="p-3.5 rounded-lg bg-white/[0.02] border border-zinc-800">
                         <div className="text-[10px] text-zinc-400 uppercase font-semibold">Nilai Jual Kotor</div>
                         <div className="text-sm font-bold text-zinc-100 mt-1">
                           {formatIDR(taxSimResult.gross_sell_amount_idr)}
                         </div>
                       </div>
 
-                      <div className="p-3.5 rounded-lg bg-zinc-850 border border-zinc-800">
+                      <div className="p-3.5 rounded-lg bg-white/[0.02] border border-zinc-800">
                         <div className="text-[10px] text-zinc-400 uppercase font-semibold">Potongan PPh Final ({taxSimResult.tax_rate_percent}%)</div>
                         <div className="text-sm font-bold text-red-400 mt-1">
                           -{formatIDR(taxSimResult.estimated_tax_withheld_idr)}
                         </div>
                       </div>
 
-                      <div className="p-3.5 rounded-lg bg-zinc-850 border border-zinc-800">
+                      <div className="p-3.5 rounded-lg bg-white/[0.02] border border-zinc-800">
                         <div className="text-[10px] text-zinc-400 uppercase font-semibold">Estimasi Biaya Transaksi</div>
                         <div className="text-sm font-bold text-zinc-300 mt-1">
                           -{formatIDR(taxSimResult.estimated_exchange_fee_idr)}
                         </div>
                       </div>
 
-                      <div className="p-3.5 rounded-lg bg-zinc-850 border border-zinc-800">
+                      <div className="p-3.5 rounded-lg bg-white/[0.02] border border-zinc-800">
                         <div className="text-[10px] text-zinc-400 uppercase font-semibold">Modal Pokok (Cost Basis)</div>
                         <div className="text-sm font-bold text-zinc-200 mt-1">
                           {formatIDR(taxSimResult.estimated_cost_basis_idr)}
@@ -1898,7 +1995,7 @@ export default function PortfolioPage() {
                         </div>
                       </div>
 
-                      <div className="p-3.5 rounded-lg bg-zinc-850 border border-zinc-800">
+                      <div className="p-3.5 rounded-lg bg-white/[0.02] border border-zinc-800">
                         <div className="text-[10px] text-zinc-400 uppercase font-semibold">Profit / Rugi Bersih Realisasi</div>
                         <div className={`text-sm font-black mt-1 ${
                           taxSimResult.net_realized_profit_idr >= 0 ? "text-emerald-400" : "text-red-400"
@@ -1927,14 +2024,14 @@ export default function PortfolioPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-12 text-center text-zinc-500 text-xs">
+                  <div className="bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] rounded-xl p-12 text-center text-zinc-500 text-xs">
                     Pilih instrumen dan klik &quot;Hitung Realisasi & Pajak&quot; untuk menampilkan rincian.
                   </div>
                 )}
 
                 {/* Portfolio-Wide Exit Tax Summary */}
                 {taxSummary && (
-                  <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-3 shadow-sm">
+                  <div className="bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] rounded-xl p-5 space-y-3 shadow-sm">
                     <h4 className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center justify-between">
                       <span>Estimasi Beban Pajak Likuidasi Portofolio Penuh</span>
                       <span className="text-[10px] text-zinc-400 font-normal">
@@ -1943,21 +2040,21 @@ export default function PortfolioPage() {
                     </h4>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                      <div className="p-3 rounded-lg bg-zinc-850 border border-zinc-800">
+                      <div className="p-3 rounded-lg bg-white/[0.02] border border-zinc-800">
                         <div className="text-[10px] text-zinc-400">Total Nilai Aset Saat Ini</div>
                         <div className="text-sm font-bold text-zinc-100 mt-0.5">
                           {formatIDR(taxSummary.total_portfolio_market_value_idr)}
                         </div>
                       </div>
 
-                      <div className="p-3 rounded-lg bg-zinc-850 border border-zinc-800">
+                      <div className="p-3 rounded-lg bg-white/[0.02] border border-zinc-800">
                         <div className="text-[10px] text-zinc-400">Total Estimasi Pajak Terutang</div>
                         <div className="text-sm font-bold text-amber-400 mt-0.5">
                           {formatIDR(taxSummary.total_potential_exit_tax_idr)}
                         </div>
                       </div>
 
-                      <div className="p-3 rounded-lg bg-zinc-850 border border-zinc-800">
+                      <div className="p-3 rounded-lg bg-white/[0.02] border border-zinc-800">
                         <div className="text-[10px] text-zinc-400">Estimasi Bersih Setelah Pajak & Fee</div>
                         <div className="text-sm font-bold text-emerald-400 mt-0.5">
                           {formatIDR(taxSummary.total_net_cash_after_tax_idr)}
@@ -1984,7 +2081,7 @@ export default function PortfolioPage() {
           <div className="space-y-6">
             {/* Top Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+              <div className="p-5 rounded-xl bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] shadow-sm">
                 <div className="text-xs text-zinc-400 uppercase font-semibold">Total Dividen Tahunan (Est.)</div>
                 <div className="text-2xl font-bold text-emerald-400 mt-1">
                   {formatIDR(dividendData?.annual_passive_income_idr || 0)}
@@ -1994,7 +2091,7 @@ export default function PortfolioPage() {
                 </div>
               </div>
 
-              <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+              <div className="p-5 rounded-xl bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] shadow-sm">
                 <div className="text-xs text-zinc-400 uppercase font-semibold">Rata-rata Cash Flow Bulanan</div>
                 <div className="text-2xl font-bold text-zinc-100 mt-1">
                   {formatIDR(dividendData?.average_monthly_income_idr || 0)}
@@ -2004,7 +2101,7 @@ export default function PortfolioPage() {
                 </div>
               </div>
 
-              <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+              <div className="p-5 rounded-xl bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] shadow-sm">
                 <div className="text-xs text-zinc-400 uppercase font-semibold">Aset Penghasil Dividen</div>
                 <div className="text-2xl font-bold text-amber-300 mt-1">
                   {dividendData?.holdings?.length || 0} Instrumen
@@ -2016,7 +2113,7 @@ export default function PortfolioPage() {
             </div>
 
             {/* 12-Month Distribution Timeline Bar Chart */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm">
+            <div className="bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] rounded-xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-base font-semibold text-zinc-100 flex items-center gap-2">
@@ -2037,7 +2134,7 @@ export default function PortfolioPage() {
                       key={m.month}
                       className={`p-3 rounded-lg border flex flex-col justify-between transition ${
                         hasPayout
-                          ? "bg-zinc-850 border-emerald-800/40 text-zinc-100"
+                          ? "bg-white/[0.02] border-emerald-800/40 text-zinc-100"
                           : "bg-zinc-950/40 border-zinc-800/60 text-zinc-500"
                       }`}
                     >
@@ -2063,13 +2160,13 @@ export default function PortfolioPage() {
             </div>
 
             {/* Dividend Yield Holdings List */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-sm">
+            <div className="bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] rounded-xl p-6 shadow-sm">
               <h3 className="text-base font-semibold text-zinc-100 mb-3">
                 Rincian Aset Penghasil Dividen
               </h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-zinc-850 border-b border-zinc-800 text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
+                  <thead className="bg-white/[0.02] border-b border-zinc-800 text-[11px] text-zinc-400 uppercase tracking-wider font-semibold">
                     <tr>
                       <th className="py-3 px-4">SIMBOL & NAMA</th>
                       <th className="py-3 px-4">KELAS ASET</th>
@@ -2242,28 +2339,28 @@ export default function PortfolioPage() {
 
               {/* Key Metrics Executive Summary */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 print:border-zinc-300 print:bg-zinc-50">
+                <div className="p-3 rounded-lg bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] print:border-zinc-300 print:bg-zinc-50">
                   <div className="text-[10px] text-zinc-400 uppercase font-semibold">Total Kekayaan Bersih</div>
                   <div className="text-base font-black text-zinc-100 print:text-black mt-0.5">
                     {formatIDR((portfolio?.total_market_value || 0) + (portfolio?.cash_balance || 0))}
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 print:border-zinc-300 print:bg-zinc-50">
+                <div className="p-3 rounded-lg bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] print:border-zinc-300 print:bg-zinc-50">
                   <div className="text-[10px] text-zinc-400 uppercase font-semibold">Total Nilai Investasi</div>
                   <div className="text-base font-black text-emerald-400 print:text-emerald-700 mt-0.5">
                     {formatIDR(portfolio?.total_market_value || 0)}
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 print:border-zinc-300 print:bg-zinc-50">
+                <div className="p-3 rounded-lg bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] print:border-zinc-300 print:bg-zinc-50">
                   <div className="text-[10px] text-zinc-400 uppercase font-semibold">Modal Pokok Disetor</div>
                   <div className="text-base font-black text-zinc-200 print:text-black mt-0.5">
                     {formatIDR(portfolio?.total_invested || 0)}
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 print:border-zinc-300 print:bg-zinc-50">
+                <div className="p-3 rounded-lg bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] print:border-zinc-300 print:bg-zinc-50">
                   <div className="text-[10px] text-zinc-400 uppercase font-semibold">Indeks Kesehatan AI</div>
                   <div className="text-base font-black text-blue-400 print:text-blue-700 mt-0.5">
                     {healthData?.health_score || "--"}/100 ({healthData?.rating || "Prima"})
@@ -2328,7 +2425,7 @@ export default function PortfolioPage() {
                   <span className="text-[10px] font-normal text-zinc-500">Kolom Daftar Harta Akhir Tahun</span>
                 </div>
 
-                <div className="p-3 rounded-lg bg-zinc-900 border border-zinc-800 print:bg-white print:border-zinc-300 space-y-2 text-[10px]">
+                <div className="p-3 rounded-lg bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] print:bg-white print:border-zinc-300 space-y-2 text-[10px]">
                   <div className="grid grid-cols-3 gap-2 font-semibold text-zinc-400 print:text-zinc-600">
                     <div>Kode Harta SPT</div>
                     <div>Klasifikasi Aset</div>
@@ -2376,7 +2473,7 @@ export default function PortfolioPage() {
             {/* Header Identity Card */}
             {calibratingHolding ? (
               /* Editing existing holding */
-              <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] flex items-center justify-between">
                 <div>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-semibold border border-zinc-700/60">
                     {calibratingHolding.asset_type || "ASET"}
@@ -2434,7 +2531,7 @@ export default function PortfolioPage() {
                       }}
                       placeholder="Ketik simbol, misal: BTC, ETH, BBCA, VT"
                       required
-                      className="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-lg px-3 py-2 text-zinc-100 font-bold text-xs uppercase focus:outline-none"
+                      className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 focus:border-emerald-500 rounded-lg px-3 py-2 text-zinc-100 font-bold text-xs uppercase focus:outline-none"
                     />
                   </div>
                   <button
@@ -2465,7 +2562,7 @@ export default function PortfolioPage() {
                       className={`text-[10px] px-2.5 py-0.5 rounded-lg border transition ${
                         calibAssetType === item.type
                           ? "bg-emerald-500/20 text-emerald-300 font-bold border-emerald-500/50 shadow-sm"
-                          : "bg-zinc-950 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                          : "bg-white/[0.04] border-white/[0.08] text-zinc-400 hover:bg-white/[0.07] hover:text-zinc-200"
                       }`}
                     >
                       {item.label}
@@ -2535,7 +2632,7 @@ export default function PortfolioPage() {
               <select
                 value={calibTargetWalletId}
                 onChange={(e) => setCalibTargetWalletId(Number(e.target.value))}
-                className="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none"
+                className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 focus:border-emerald-500 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none"
               >
                 {wallets.map((w: any) => (
                   <option key={w.id} value={w.id}>
@@ -2606,7 +2703,7 @@ export default function PortfolioPage() {
                       placeholder="4300000"
                       required
                       min={0}
-                      className="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-lg pl-9 pr-3 py-2 text-zinc-100 text-xs font-bold focus:outline-none"
+                      className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 focus:border-emerald-500 rounded-lg pl-9 pr-3 py-2 text-zinc-100 text-xs font-bold focus:outline-none"
                     />
                   </div>
                   <div className="text-[10px] text-zinc-400 mt-1">
@@ -2641,7 +2738,7 @@ export default function PortfolioPage() {
                       }}
                       placeholder="-18.87"
                       required
-                      className="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-lg pr-9 pl-3 py-2 text-zinc-100 text-xs font-bold focus:outline-none"
+                      className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 focus:border-emerald-500 rounded-lg pr-9 pl-3 py-2 text-zinc-100 text-xs font-bold focus:outline-none"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-500">
                       %
@@ -2687,13 +2784,13 @@ export default function PortfolioPage() {
                       <span className="text-emerald-400">Bebas Hitung Manual</span>
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div className="p-2 rounded-lg bg-zinc-900 border border-zinc-800">
+                      <div className="p-2 rounded-lg bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08]">
                         <div className="text-[10px] text-zinc-500">Modal Ditanam (Otomatis)</div>
                         <div className="font-bold text-zinc-100 text-sm mt-0.5">
                           {formatIDR(Math.round(Number(calibInvested)) || 0)}
                         </div>
                       </div>
-                      <div className="p-2 rounded-lg bg-zinc-900 border border-zinc-800">
+                      <div className="p-2 rounded-lg bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08]">
                         <div className="text-[10px] text-zinc-500">Estimasi Untung/Rugi</div>
                         <div className={`font-bold text-sm mt-0.5 ${
                           Number(calibCurrentVal) - Number(calibInvested) >= 0 ? "text-emerald-400" : "text-red-400"
@@ -2726,7 +2823,7 @@ export default function PortfolioPage() {
                       onChange={(e) => setCalibInvested(e.target.value)}
                       required
                       min={1}
-                      className="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-lg pl-9 pr-3 py-2 text-zinc-100 text-xs focus:outline-none"
+                      className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 focus:border-emerald-500 rounded-lg pl-9 pr-3 py-2 text-zinc-100 text-xs focus:outline-none"
                     />
                   </div>
                 </div>
@@ -2751,7 +2848,7 @@ export default function PortfolioPage() {
                         }
                       }}
                       min={0}
-                      className="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-lg pl-9 pr-3 py-2 text-zinc-100 text-xs focus:outline-none"
+                      className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 focus:border-emerald-500 rounded-lg pl-9 pr-3 py-2 text-zinc-100 text-xs focus:outline-none"
                     />
                   </div>
                 </div>
@@ -2774,7 +2871,7 @@ export default function PortfolioPage() {
                     }}
                     required
                     min="0.00000001"
-                    className="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none"
+                    className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 focus:border-emerald-500 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none"
                   />
                 </div>
               </div>
@@ -2853,7 +2950,7 @@ export default function PortfolioPage() {
                     className={`py-1.5 rounded-lg text-xs font-medium border transition ${
                       assetType === a.key
                         ? "bg-zinc-100 text-zinc-900 font-semibold border-zinc-200"
-                        : "bg-zinc-850 border-zinc-700/80 text-zinc-400 hover:text-zinc-200"
+                        : "bg-white/[0.02] border-zinc-700/80 text-zinc-400 hover:text-zinc-200"
                     }`}
                   >
                     {a.label}
@@ -2884,7 +2981,7 @@ export default function PortfolioPage() {
                   <select
                     value={txTargetWalletId}
                     onChange={(e) => setTxTargetWalletId(Number(e.target.value))}
-                    className="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none"
+                    className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 focus:border-emerald-500 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none"
                   >
                     {wallets.map((w: any) => (
                       <option key={w.id} value={w.id}>
@@ -3007,7 +3104,7 @@ export default function PortfolioPage() {
                     }
                   }}
                   required
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 uppercase font-semibold"
+                  className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 uppercase font-semibold"
                 />
               </div>
               <div>
@@ -3039,7 +3136,7 @@ export default function PortfolioPage() {
                       }
                     }
                   }}
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 font-semibold"
+                  className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400 font-semibold"
                 >
                   <option value="IDR">IDR (Rp)</option>
                   <option value="USD">USD ($)</option>
@@ -3121,7 +3218,7 @@ export default function PortfolioPage() {
                           }
                         }}
                         required
-                        className="w-full bg-zinc-950 border border-zinc-700 rounded-lg pl-9 pr-3 py-2 text-zinc-100 text-xs font-mono focus:outline-none focus:border-zinc-400"
+                        className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 rounded-lg pl-9 pr-3 py-2 text-zinc-100 text-xs font-mono focus:outline-none focus:border-zinc-400"
                       />
                     </div>
                   </div>
@@ -3200,7 +3297,7 @@ export default function PortfolioPage() {
                         }
                       }}
                       required
-                      className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
+                      className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
                     />
                   </div>
                 </div>
@@ -3262,7 +3359,7 @@ export default function PortfolioPage() {
                     }
                   }}
                   required
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs font-mono focus:outline-none focus:border-zinc-400"
+                  className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 rounded-lg px-3 py-2 text-zinc-100 text-xs font-mono focus:outline-none focus:border-zinc-400"
                 />
               </div>
             </div>
@@ -3277,7 +3374,7 @@ export default function PortfolioPage() {
                 value={txDate}
                 onChange={(e) => setTxDate(e.target.value)}
                 required
-                className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
+                className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
               />
             </div>
 
@@ -3291,7 +3388,7 @@ export default function PortfolioPage() {
                 placeholder="Misal: DCA bulanan, rebalancing, target yield 6%, dll"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
+                className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none focus:border-zinc-400"
               />
             </div>
 
@@ -3315,7 +3412,7 @@ export default function PortfolioPage() {
           title="Tambah Dompet / Akun Platform Baru"
         >
           <form onSubmit={handleCreateWallet} className="space-y-4 text-xs sm:text-sm">
-            <div className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-[#0e1322]/60 backdrop-blur-xl border border-white/[0.08] flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center shrink-0">
                 <Wallet className="w-5 h-5 text-emerald-400" />
               </div>
@@ -3347,7 +3444,7 @@ export default function PortfolioPage() {
                 value={newWalletName}
                 onChange={(e) => setNewWalletName(e.target.value)}
                 required
-                className="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none font-semibold"
+                className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 focus:border-emerald-500 rounded-lg px-3 py-2 text-zinc-100 text-xs focus:outline-none font-semibold"
               />
             </div>
 
@@ -3365,7 +3462,7 @@ export default function PortfolioPage() {
                   value={newWalletCash}
                   onChange={(e) => setNewWalletCash(e.target.value)}
                   min={0}
-                  className="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-lg pl-9 pr-3 py-2 text-zinc-100 text-xs focus:outline-none"
+                  className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 focus:border-emerald-500 rounded-lg pl-9 pr-3 py-2 text-zinc-100 text-xs focus:outline-none"
                 />
               </div>
               <p className="text-[10px] text-zinc-500 mt-1">

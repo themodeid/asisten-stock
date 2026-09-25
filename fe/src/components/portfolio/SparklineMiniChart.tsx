@@ -77,8 +77,8 @@ export default function SparklineMiniChart({
     const firstX = coords[0].x.toFixed(1);
     const area = `${d} L ${lastX} ${height} L ${firstX} ${height} Z`;
 
-    const stroke = isPositive ? "#00D09C" : "#EF4444";
-    const fill = isPositive ? "rgba(0, 208, 156, 0.12)" : "rgba(239, 68, 68, 0.12)";
+    const stroke = isPositive ? "#10b981" : "#f43f5e";
+    const fill = isPositive ? "rgba(16, 185, 129, 0.12)" : "rgba(244, 63, 94, 0.12)";
 
     return { pathD: d, areaD: area, strokeColor: stroke, fillColor: fill };
   }, [ticker, isPositive, points, width, height]);
@@ -91,6 +91,7 @@ export default function SparklineMiniChart({
             <stop offset="0%" stopColor={strokeColor} stopOpacity="0.25" />
             <stop offset="100%" stopColor={strokeColor} stopOpacity="0.0" />
           </linearGradient>
+          <filter id={`glow-${ticker}`} x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="0" stdDeviation="1.5" floodColor={isPositive ? '#10b981' : '#f43f5e'} floodOpacity="0.6" /></filter>
         </defs>
         <path d={areaD} fill={`url(#grad-${ticker})`} />
         <path
@@ -100,6 +101,7 @@ export default function SparklineMiniChart({
           strokeWidth="1.75"
           strokeLinecap="round"
           strokeLinejoin="round"
+          filter={`url(#glow-${ticker})`}
         />
       </svg>
     </div>

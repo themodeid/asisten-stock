@@ -7,6 +7,7 @@ import * as marketService from "../market-data/market.service";
 import * as portfolioService from "../portfolio/portfolio.service";
 import * as alertService from "../watchlist-alert/alert.service";
 import * as authService from "../auth/auth.service";
+import * as cashflowService from "../cashflow/cashflow.service";
 import { formatRupiah, parseIndonesianMoneyString, detectAssetSymbolFromText } from "../../utils/stockHelper";
 import { pool } from "../../config/database";
 
@@ -166,7 +167,7 @@ export const processUserMessage = async (
           toolResult = await portfolioService.calculateRebalancePlan(
             portfolio.id,
             args.fresh_capital ? Number(args.fresh_capital) : 1000000,
-            args.strategy || "ALL_WEATHER"
+            args.strategy || "FUNDAMENTAL_TRI_PILLAR"
           );
         } else if (toolName === "simulate_indonesian_tax") {
           const portfolio = await portfolioService.getPrimaryPortfolioByUserId(userId);
@@ -205,6 +206,16 @@ export const processUserMessage = async (
             args.portfolio_id ? Number(args.portfolio_id) : portfolio.id,
             args.scenario_key || "market_crash_30"
           );
+        } else if (toolName === "log_cashflow_transaction") {
+          toolResult = await cashflowService.createCashflowTransaction(userId, {
+            type: args.type,
+            amount: Number(args.amount),
+            category: args.category || "LAINNYA",
+            wallet_name: args.wallet_name,
+            to_wallet_name: args.to_wallet_name,
+            description: args.description,
+            source: "AI_CHAT",
+          });
         }
 
         executedTools.push({ toolName, args, result: toolResult });
@@ -228,7 +239,7 @@ export const processUserMessage = async (
           },
         ],
         config: {
-          systemInstruction: SYSTEM_PROMPT,
+          systemInstruction: activeSystemPrompt,
         },
       });
 
@@ -447,6 +458,56 @@ async function handleRuleBasedFallback(
     }
   }
 
+  // 0. TRI-PILAR FUNDAMENTAL & STRATEGI BEBAS VOLATILITAS
+  const isExplicitFundamentalQuery =
+    lower.includes("fundamental") ||
+    lower.includes("tiga pilar") ||
+    lower.includes("3 pilar") ||
+    lower.includes("pilar") ||
+    lower.includes("permanent loss") ||
+    lower.includes("kehancuran modal") ||
+    lower.includes("hilang modal") ||
+    lower.includes("kerugian modal") ||
+    lower.includes("bebas volatilitas") ||
+    lower.includes("disingkirkan") ||
+    lower.includes("mengabaikan volatilitas") ||
+    lower.includes("tidak mempedulikan volatilitas") ||
+    lower.includes("tanpa mempedulikan volatilitas");
+
+  if (isExplicitFundamentalQuery) {
+    return {
+      replyText: `🏛️ **Filosofi & Kerangka Kerja: Tri-Pilar Fundamental Bebas Volatilitas**
+
+Risiko sejati bukanlah fluktuasi harga harian (volatilitas), melainkan **kehancuran modal permanen (*permanent loss of capital*)** dan **pengikisan daya beli oleh inflasi sistemik/devaluasi fiat**. 
+
+Portofolio dengan fundamental paling tangguh dibangun di atas tiga pilar utama tanpa perlu menebak arah harga harian:
+
+---
+
+### 1. 🏛️ Pilar 1: Ekuitas Produktif (Target 40% - ETF Global VT / S&P 500)
+• **Penggerak Fundamental (*Value Driver*)**: Pertumbuhan laba korporasi dunia, inovasi teknologi, dan arus kas riil (*free cash flow*) dari ribuan bisnis nyata yang menjual produk & jasa setiap hari.
+• **Peran Struktural**: **Mesin Pertumbuhan**. Mengubah produktivitas manusia menjadi dividen dan apresiasi modal majemuk tanpa risiko kebangkrutan satu emiten.
+
+### 2. ⚡ Pilar 2: Moneter Terdesentralisasi (Target 40% - Bitcoin / BTC)
+• **Penggerak Fundamental (*Value Driver*)**: Kelangkaan absolut matematis (*hard cap* 21 juta koin), desentralisasi komputasi terverifikasi, dan kepastian suplai tanpa kompromi.
+• **Peran Struktural**: **Penyimpan Nilai Digital & Jaminan Keras (*Hard Collateral*)**. Melindungi hasil jerih payah dari risiko intervensi otoritas sentral dan pengenceran pasokan uang fiat yang rusak.
+
+### 3. 🛡️ Pilar 3: Jangkar Likuiditas Bebas Risiko Mitra (Target 20% - Emas Fisik & Kas)
+• **Penggerak Fundamental (*Value Driver*)**: Ketiadaan risiko pihak ketiga (*zero counterparty risk*), rekam jejak moneter ribuan tahun, dan daya beli likuid instan.
+• **Peran Struktural**: **Pertahanan Modal & Solvabilitas**. Menjaga Anda tetap solvabel saat sistem kredit macet, mencegah penjualan terpaksa (*forced selling*) pada aset produktif di harga bawah.
+
+---
+
+### 💡 Karakteristik Kombinasi Fundamental:
+1. **Memiliki Mesin Penghasil Nilai Sendiri**: Ribuan bisnis global menghasilkan laba yang terus diinvestasikan kembali.
+2. **Tahan Terhadap Moneter yang Rusak**: Mengamankan kekayaan pada aset yang pasokannya tidak bisa dicetak semena-mena.
+3. **Asimetri Fundamental Positif**: Rebalancing modal dingin baru (*inflow routing*) diarahkan murni menutup pilar yang tertinggal, tanpa memusingkan grafik harga harian.
+
+Kunci utamanya bukan menebak harga bulan depan, melainkan **memastikan Anda tidak memegang aset yang nilai intrinsiknya menuju nol** akibat mismanagement internal atau pengenceran pasokan tanpa batas.`,
+      toolCallsExecuted: [],
+    };
+  }
+
   // 1. REBALANCING & SARAN ALOKASI MODAL BARU
   if (
     lower.includes("alokasi") ||
@@ -458,24 +519,30 @@ async function handleRuleBasedFallback(
     (money && money.amount > 0 && (lower.includes("bagus") || lower.includes("kemana") || lower.includes("ke mana") || lower.includes("beli apa") || lower.includes("saran")))
   ) {
     const freshCapital = money?.amount || 2000000;
-    const plan = await portfolioService.calculateRebalancePlan(portfolio.id, freshCapital, "ALL_WEATHER");
-    executedTools.push({ toolName: "rebalance_portfolio", args: { fresh_capital: freshCapital, strategy: "ALL_WEATHER" }, result: plan });
+    const plan = await portfolioService.calculateRebalancePlan(portfolio.id, freshCapital, "FUNDAMENTAL_TRI_PILLAR");
+    executedTools.push({ toolName: "rebalance_portfolio", args: { fresh_capital: freshCapital, strategy: "FUNDAMENTAL_TRI_PILLAR" }, result: plan });
 
     const allocationItems = plan.items
-      .map((item: any) => `• **${item.label}** (Target: ${item.target_weight_percent}% | Saat ini: ${item.current_weight_percent}%)\n  👉 **Rekomendasi Alokasi:** ${item.recommended_inflow_idr > 0 ? `Beli senilai **${formatRupiah(item.recommended_inflow_idr)}** (${item.recommended_inflow_percent}%)` : `Tahan / Hold (Sudah mencukupi)`}`)
+      .map((item: any) => {
+        if (item.recommended_inflow_idr > 0) {
+          const tech = item.technical_entry;
+          return `• **${item.label}** (Target: ${item.target_weight_percent}% | Saat ini: ${item.current_weight_percent}%)\n  👉 **Alokasi Modal:** Beli senilai **${formatRupiah(item.recommended_inflow_idr)}** (${item.recommended_inflow_percent}%)\n  📊 **Efisiensi Teknikal:** ${tech?.badge_label || "🟡 Netral"}\n     *${tech?.technical_note || ""}*\n  💼 **Manajemen Modal (Tranche):** ${tech?.tranche_advice || "Eksekusi bertahap"}`;
+        }
+        return `• **${item.label}** (Target: ${item.target_weight_percent}% | Saat ini: ${item.current_weight_percent}%)\n  👉 **Status:** Tahan / Hold (Porsi saat ini sudah mencukupi target)`;
+      })
       .join("\n\n");
 
     return {
-      replyText: `Saran Alokasi Modal Baru & Rebalancing Portofolio
+      replyText: `🏛️ **Alokasi Modal Baru: Tri-Pilar Fundamental & Filter Efisiensi Teknikal**
 
-Target Strategi: All-Weather Seimbang (Ray Dalio & Bogle Style)
+Target Model: Tri-Pilar Fundamental (40% Ekuitas VT, 40% Moneter BTC, 20% Emas/Kas)
 Total Nilai Portofolio Saat Ini: ${formatRupiah(plan.current_total_value_idr)}
 Dana Segar Baru: ${formatRupiah(plan.fresh_capital_idr)}
 
-Rencana Pembagian Dana Baru:
+Rencana Penyaluran Modal & Panduan Waktu Masuk (Entry Efficiency):
 ${allocationItems}
 
-Strategi Eksekusi:
+Strategi & Filosofi Eksekusi:
 ${plan.summary_advice}`,
       toolCallsExecuted: executedTools,
     };
@@ -867,24 +934,30 @@ ${holdingsList || "Belum ada aset"}`,
     (money && money.amount > 0 && (lower.includes("bagus") || lower.includes("kemana") || lower.includes("ke mana") || lower.includes("beli apa")))
   ) {
     const freshCapital = money?.amount || 2000000;
-    const plan = await portfolioService.calculateRebalancePlan(portfolio.id, freshCapital, "ALL_WEATHER");
-    executedTools.push({ toolName: "rebalance_portfolio", args: { fresh_capital: freshCapital, strategy: "ALL_WEATHER" }, result: plan });
+    const plan = await portfolioService.calculateRebalancePlan(portfolio.id, freshCapital, "FUNDAMENTAL_TRI_PILLAR");
+    executedTools.push({ toolName: "rebalance_portfolio", args: { fresh_capital: freshCapital, strategy: "FUNDAMENTAL_TRI_PILLAR" }, result: plan });
 
     const allocationItems = plan.items
-      .map((item: any) => `• **${item.label}** (Target: ${item.target_weight_percent}% | Saat ini: ${item.current_weight_percent}%)\n  👉 **Rekomendasi Alokasi:** ${item.recommended_inflow_idr > 0 ? `Beli senilai **${formatRupiah(item.recommended_inflow_idr)}** (${item.recommended_inflow_percent}%)` : `Tahan / Hold (Sudah mencukupi)`}`)
+      .map((item: any) => {
+        if (item.recommended_inflow_idr > 0) {
+          const tech = item.technical_entry;
+          return `• **${item.label}** (Target: ${item.target_weight_percent}% | Saat ini: ${item.current_weight_percent}%)\n  👉 **Alokasi Modal:** Beli senilai **${formatRupiah(item.recommended_inflow_idr)}** (${item.recommended_inflow_percent}%)\n  📊 **Efisiensi Teknikal:** ${tech?.badge_label || "🟡 Netral"}\n     *${tech?.technical_note || ""}*\n  💼 **Manajemen Modal (Tranche):** ${tech?.tranche_advice || "Eksekusi bertahap"}`;
+        }
+        return `• **${item.label}** (Target: ${item.target_weight_percent}% | Saat ini: ${item.current_weight_percent}%)\n  👉 **Status:** Tahan / Hold (Porsi saat ini sudah mencukupi target)`;
+      })
       .join("\n\n");
 
     return {
-      replyText: `Saran Alokasi Modal Baru & Rebalancing Portofolio
+      replyText: `🏛️ **Alokasi Modal Baru: Tri-Pilar Fundamental & Filter Efisiensi Teknikal**
 
-Target Strategi: All-Weather Seimbang (Ray Dalio & Bogle Style)
+Target Model: Tri-Pilar Fundamental (40% Ekuitas VT, 40% Moneter BTC, 20% Emas/Kas)
 Total Nilai Portofolio Saat Ini: ${formatRupiah(plan.current_total_value_idr)}
 Dana Segar Baru: ${formatRupiah(plan.fresh_capital_idr)}
 
-Rencana Pembagian Dana Baru:
+Rencana Penyaluran Modal & Panduan Waktu Masuk (Entry Efficiency):
 ${allocationItems}
 
-Strategi Eksekusi:
+Strategi & Filosofi Eksekusi:
 ${plan.summary_advice}`,
       toolCallsExecuted: executedTools,
     };
@@ -1046,6 +1119,51 @@ ${quote.valuationSummary ? `Diagnostik: ${quote.valuationSummary}` : ""}`,
     lower.includes("ai") ||
     lower.includes("semikonduktor") ||
     lower.includes("nvidia");
+
+  const isFundamentalQuestion =
+    lower.includes("volatilitas") ||
+    lower.includes("tiga pilar") ||
+    lower.includes("3 pilar") ||
+    lower.includes("pilar") ||
+    lower.includes("fundamental") ||
+    lower.includes("permanent loss") ||
+    lower.includes("hilang modal") ||
+    lower.includes("kerugian modal") ||
+    lower.includes("devaluasi");
+
+  if (isFundamentalQuestion) {
+    return {
+      replyText: `🏛️ **Filosofi & Kerangka Kerja: Tri-Pilar Fundamental Bebas Volatilitas**
+
+Risiko sejati bukanlah fluktuasi harga harian (volatilitas), melainkan **kehancuran modal permanen (*permanent loss of capital*)** dan **pengikisan daya beli oleh inflasi sistemik/devaluasi fiat**. 
+
+Portofolio dengan fundamental paling tangguh dibangun di atas tiga pilar utama tanpa perlu menebak arah harga harian:
+
+---
+
+### 1. 🏛️ Pilar 1: Ekuitas Produktif (Target 40% - ETF Global VT / S&P 500)
+• **Penggerak Fundamental (*Value Driver*)**: Pertumbuhan laba korporasi dunia, inovasi teknologi, dan arus kas riil (*free cash flow*) dari ribuan bisnis nyata yang menjual produk & jasa setiap hari.
+• **Peran Struktural**: **Mesin Pertumbuhan**. Mengubah produktivitas manusia menjadi dividen dan apresiasi modal majemuk tanpa risiko kebangkrutan satu emiten.
+
+### 2. ⚡ Pilar 2: Moneter Terdesentralisasi (Target 40% - Bitcoin / BTC)
+• **Penggerak Fundamental (*Value Driver*)**: Kelangkaan absolut matematis (*hard cap* 21 juta koin), desentralisasi komputasi terverifikasi, dan kepastian suplai tanpa kompromi.
+• **Peran Struktural**: **Penyimpan Nilai Digital & Jaminan Keras (*Hard Collateral*)**. Melindungi hasil jerih payah dari risiko intervensi otoritas sentral dan pengenceran pasokan uang fiat yang rusak.
+
+### 3. 🛡️ Pilar 3: Jangkar Likuiditas Bebas Risiko Mitra (Target 20% - Emas Fisik & Kas)
+• **Penggerak Fundamental (*Value Driver*)**: Ketiadaan risiko pihak ketiga (*zero counterparty risk*), rekam jejak moneter ribuan tahun, dan daya beli likuid instan.
+• **Peran Struktural**: **Pertahanan Modal & Solvabilitas**. Menjaga Anda tetap solvabel saat sistem kredit macet, mencegah penjualan terpaksa (*forced selling*) pada aset produktif di harga bawah.
+
+---
+
+### 💡 Karakteristik Kombinasi Fundamental:
+1. **Memiliki Mesin Penghasil Nilai Sendiri**: Ribuan bisnis global menghasilkan laba yang terus diinvestasikan kembali.
+2. **Tahan Terhadap Moneter yang Rusak**: Mengamankan kekayaan pada aset yang pasokannya tidak bisa dicetak semena-mena.
+3. **Asimetri Fundamental Positif**: Rebalancing modal dingin baru (inflow routing) diarahkan murni menutup pilar yang tertinggal, tanpa memusingkan grafik harga harian.
+
+Kunci utamanya bukan menebak harga bulan depan, melainkan **memastikan Anda tidak memegang aset yang nilai intrinsiknya menuju nol** akibat mismanagement internal atau pengenceran pasokan tanpa batas.`,
+      toolCallsExecuted: [],
+    };
+  }
 
   if (isMacroOrBubbleQuestion) {
     if (lower.includes("bubble") || lower.includes("98") || lower.includes("1998") || lower.includes("2000") || lower.includes("dotcom")) {

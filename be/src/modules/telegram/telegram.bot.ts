@@ -62,6 +62,49 @@ export const handleTelegramMessage = async (msg: TelegramBot.Message) => {
     // Show typing status
     bot.sendChatAction(chatId, "typing");
 
+    // Check if user sent a photo (receipt / m-banking transfer screenshot)
+    if (msg.photo && msg.photo.length > 0) {
+      try {
+        const cashflowService = await import("../cashflow/cashflow.service");
+        const highestPhoto = msg.photo[msg.photo.length - 1];
+        const fileStream = bot.getFileStream(highestPhoto.file_id);
+        const chunks: Buffer[] = [];
+        for await (const chunk of fileStream) {
+          chunks.push(chunk as Buffer);
+        }
+        const imageBuffer = Buffer.concat(chunks);
+
+        bot.sendMessage(chatId, "🔍 *Sedang memindai gambar struk / bukti transfer dengan AI...*", {
+          parse_mode: "Markdown",
+        });
+
+        const parsed = await cashflowService.parseReceiptImageWithGemini(imageBuffer, "image/jpeg");
+        if (parsed && parsed.amount > 0) {
+          const recorded = await cashflowService.createCashflowTransaction(user.id, {
+            type: parsed.type || "EXPENSE",
+            amount: parsed.amount,
+            category: parsed.category || "LAINNYA",
+            description: parsed.merchant_or_notes || "Scan Struk AI",
+            wallet_name: parsed.suggested_wallet,
+            source: "AI_RECEIPT",
+          });
+
+          const reply = `📸 *Bukti Struk Berhasil Dipindai & Disimpan!*\n\n` +
+            `• *Jenis:* ${recorded.type}\n` +
+            `• *Nominal:* Rp ${Number(recorded.amount).toLocaleString("id-ID")}\n` +
+            `• *Kategori:* ${recorded.category}\n` +
+            `• *Keterangan:* ${recorded.description || "-"}\n` +
+            `• *Dompet:* ${recorded.wallet_name || "Kas Umum"}\n\n` +
+            `✅ Transaksi sudah otomatis dicatat ke akun keuangan Anda!`;
+
+          await bot.sendMessage(chatId, reply, { parse_mode: "Markdown" });
+          return;
+        }
+      } catch (err: any) {
+        console.warn("Gagal memindai foto struk via Telegram:", err.message);
+      }
+    }
+
     // 2. Process message via Gemini
     const response = await geminiService.processUserMessage(user.id, text);
 

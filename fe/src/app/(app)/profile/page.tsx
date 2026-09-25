@@ -154,7 +154,7 @@ export default function ProfilePage() {
 
         {/* Live Financial Health & DCA Power Ribbon */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-[#0d1017] border border-white/5 shadow-sm space-y-1">
+          <div className="p-4 rounded-2xl bg-[#0c101e]/60 backdrop-blur-2xl border border-white/[0.08] shadow-sm space-y-1">
             <span className="text-[11px] font-medium text-zinc-400 flex items-center gap-1.5">
               <Wallet className="w-3.5 h-3.5 text-blue-400" />
               Pemasukan Bulanan
@@ -163,7 +163,7 @@ export default function ProfilePage() {
             <div className="text-[10px] text-zinc-500">Arus kas masuk bruto</div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#0d1017] border border-white/5 shadow-sm space-y-1">
+          <div className="p-4 rounded-2xl bg-[#0c101e]/60 backdrop-blur-2xl border border-white/[0.08] shadow-sm space-y-1">
             <span className="text-[11px] font-medium text-zinc-400 flex items-center gap-1.5">
               <TrendingUp className="w-3.5 h-3.5 text-amber-400" />
               Pengeluaran Pokok
@@ -181,7 +181,7 @@ export default function ProfilePage() {
             <div className="text-[10px] text-emerald-500/80">Kapasitas investasi ({savingsRate}% dari pemasukan)</div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#0d1017] border border-white/5 shadow-sm space-y-1">
+          <div className="p-4 rounded-2xl bg-[#0c101e]/60 backdrop-blur-2xl border border-white/[0.08] shadow-sm space-y-1">
             <span className="text-[11px] font-medium text-zinc-400 flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5 text-purple-400" />
               Target Dana Darurat
@@ -207,7 +207,7 @@ export default function ProfilePage() {
         )}
 
         {/* AI Insight Card: How Jarvis interprets this profile */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-950/20 via-blue-950/20 to-transparent border border-emerald-500/20 shadow-lg space-y-3">
+        <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-transparent backdrop-blur-xl border-emerald-500/30 shadow-lg space-y-3">
           <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
             <Brain className="w-4 h-4" />
             Bagaimana AI Jarvis Membaca Jati Diri Finansial Anda:
@@ -228,7 +228,7 @@ export default function ProfilePage() {
         {/* Main Profile Form (Intuitive Sovereign Questionnaire Form) */}
         <form onSubmit={handleSaveProfile} className="space-y-6">
           {/* Section 1: Demografi & Tahun Lahir */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
+          <div className="bg-[#0a0e1a]/70 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-6 space-y-5 shadow-xl">
             <div className="border-b border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2 font-mono uppercase tracking-wider">
                 <User className="w-4 h-4 text-blue-400" />
@@ -247,7 +247,7 @@ export default function ProfilePage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Adam Wahyu Kurniawan"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500 font-sans"
+                  className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-blue-500 font-sans"
                 />
               </div>
 
@@ -301,7 +301,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Section 2: Arus Kas & Kapasitas Investasi */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
+          <div className="bg-[#0a0e1a]/70 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-6 space-y-5 shadow-xl">
             <div className="border-b border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2 font-mono uppercase tracking-wider">
                 <Wallet className="w-4 h-4 text-blue-400" />
@@ -354,7 +354,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Section 3: Target Visi Finansial & Gaya Investasi */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-5 shadow-xl">
+          <div className="bg-[#0a0e1a]/70 backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-6 space-y-5 shadow-xl">
             <div className="border-b border-slate-800 pb-3">
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2 font-mono uppercase tracking-wider">
                 <Target className="w-4 h-4 text-blue-400" />
@@ -429,8 +429,15 @@ export default function ProfilePage() {
             {/* Quick Choice: Gaya / Strategi Investasi */}
             <div className="space-y-2 pt-2 border-t border-slate-800">
               <label className="text-xs font-mono font-medium text-slate-300">Gaya &amp; Preferensi Alokasi Portofolio</label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
+                  {
+                    id: "FUNDAMENTAL_TRI_PILLAR",
+                    title: "Tri-Pilar Fundamental Bebas Volatilitas",
+                    desc: "40% Ekuitas VT, 40% Moneter Keras BTC, 20% Emas/Kas. Fokus nilai riil & kelangkaan mutlak.",
+                    value: "Tri-Pilar Fundamental: 40% Ekuitas Produktif Dunia (VT), 40% Moneter Terdesentralisasi (BTC), 20% Jangkar Emas/Kas Bebas Risiko Rekanan.",
+                    risk: "moderate",
+                  },
                   {
                     id: "SOVEREIGN_WIDE_MOAT",
                     title: "Global Wide-Moat Monopoly",
@@ -448,7 +455,7 @@ export default function ProfilePage() {
                   {
                     id: "TECH_CRYPTO_MAX",
                     title: "Asymmetric High Growth",
-                    desc: "Fokus aset moneter digital & disrupsi kecerdasan buatan dengan toleransi volatilitas tinggi.",
+                    desc: "Fokus aset moneter digital & disrupsi AI dengan toleransi volatilitas tinggi.",
                     value: "Pertumbuhan Asimetris Agresif: Dominasi Bitcoin, Semikonduktor, dan Big Tech disrupsi.",
                     risk: "aggressive",
                   },

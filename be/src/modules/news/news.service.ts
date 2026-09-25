@@ -107,25 +107,25 @@ function decodeHtmlEntities(str: string): string {
 // Live financial news fetcher via verified Google News RSS queries (Global Focus)
 async function fetchLiveRssNews(category?: string): Promise<MarketNewsItem[]> {
   try {
-    let query = "global stock market Wall Street AI semiconductor bubble selloff";
+    let query = "when:24h global stock market Wall Street AI semiconductor";
     let catEnum: MarketNewsItem["category"] = "HOT";
 
     if (category) {
       const c = category.toUpperCase();
       if (c === "HOT") {
-        query = "stock market selloff AI bubble semiconductor tech crash KOSPI Nikkei";
+        query = "when:24h stock market selloff AI bubble semiconductor tech crash Wall Street";
         catEnum = "HOT";
       } else if (c === "GLOBAL_EQUITIES") {
-        query = "Wall Street S&P 500 Apple Microsoft Google Nvidia Big Tech earnings";
+        query = "when:24h Wall Street S&P 500 Apple Microsoft Nvidia Big Tech stocks";
         catEnum = "GLOBAL_EQUITIES";
       } else if (c === "CRYPTO") {
-        query = "bitcoin crypto spot ETF BlackRock institutional Ethereum liquidity";
+        query = "when:24h bitcoin crypto spot ETF BlackRock Ethereum market";
         catEnum = "CRYPTO";
       } else if (c === "MACRO_GLOBAL") {
-        query = "Federal Reserve interest rate Powell US Treasury inflation DXY dollar";
+        query = "when:24h Federal Reserve interest rate Powell US Treasury inflation dollar";
         catEnum = "MACRO_GLOBAL";
       } else if (c === "SAFE_HAVEN") {
-        query = "gold price all time high central bank gold reserves safe haven bullion";
+        query = "when:24h gold price high central bank gold reserves safe haven bullion";
         catEnum = "SAFE_HAVEN";
       }
     }
@@ -134,7 +134,7 @@ async function fetchLiveRssNews(category?: string): Promise<MarketNewsItem[]> {
     const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
     const res = await fetch(rssUrl, {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(6000),
     });
 
     if (!res.ok) return [];
@@ -149,6 +149,7 @@ async function fetchLiveRssNews(category?: string): Promise<MarketNewsItem[]> {
       const link = raw.match(/<link>(.*?)<\/link>/)?.[1] || "";
       const pubDate = raw.match(/<pubDate>(.*?)<\/pubDate>/)?.[1] || new Date().toISOString();
       const sourceMatch = raw.match(/<source[^>]*>(.*?)<\/source>/)?.[1];
+      const descMatch = raw.match(/<description>([\s\S]*?)<\/description>/)?.[1];
 
       title = decodeHtmlEntities(title);
       let sourceName = sourceMatch ? decodeHtmlEntities(sourceMatch) : "Global Financial Terminal";
@@ -161,6 +162,21 @@ async function fetchLiveRssNews(category?: string): Promise<MarketNewsItem[]> {
       }
 
       if (!title || !link) continue;
+
+      // Extract and clean real description snippet
+      let snippet = "";
+      if (descMatch) {
+        const cleanDesc = decodeHtmlEntities(descMatch)
+          .replace(/<[^>]*>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        if (cleanDesc.length > 20 && !cleanDesc.includes(title)) {
+          snippet = cleanDesc.slice(0, 240) + "...";
+        }
+      }
+      if (!snippet) {
+        snippet = `Laporan langsung terverifikasi dari ${sourceName}: Pantau likuiditas institusional, volatilitas terkini, dan dinamika pasar modal global.`;
+      }
 
       // Extract potential global tickers
       const tickers: string[] = [];
@@ -198,7 +214,7 @@ async function fetchLiveRssNews(category?: string): Promise<MarketNewsItem[]> {
       items.push({
         id: `rss-global-${i + 1}-${Date.now()}`,
         title,
-        summary: `Dispatch dari ${sourceName}: Pantau perkembangan volatilitas pasar dunia, likuiditas bank sentral, dan pergeseran narasi sektor global.`,
+        summary: snippet,
         source: sourceName,
         url: link,
         published_at: new Date(pubDate).toISOString(),
@@ -206,7 +222,7 @@ async function fetchLiveRssNews(category?: string): Promise<MarketNewsItem[]> {
         tickers,
         sentiment,
         sentiment_score: sentimentScore,
-        impact_summary: `Memengaruhi persepsi risiko institusional dan likuiditas pada ticker ${tickers.join(", ")}.`,
+        impact_summary: `Katalis volatilitas 24 jam terakhir yang memengaruhi likuiditas aset ${tickers.join(", ")}.`,
       });
     }
 
@@ -230,7 +246,7 @@ export const getNewsFeed = async (
     cached = cached.filter((n) => n.category === category.toUpperCase());
   }
 
-  // Live news first, followed by curated news
+  // Live fresh news first, followed by curated news
   const combined = [...liveNews, ...cached];
   return combined.slice(0, limit);
 };
@@ -243,7 +259,7 @@ export const getNewsByTicker = async (ticker: string): Promise<MarketNewsItem[]>
 
   // If no cached matches or to enrich, query RSS for this specific ticker
   try {
-    const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent("saham " + clean)}&hl=id&gl=ID&ceid=ID:id`;
+    const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent("when:24h " + clean + " stock market")}&hl=en&gl=US&ceid=US:en`;
     const res = await fetch(rssUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
       signal: AbortSignal.timeout(4000),
@@ -261,7 +277,7 @@ export const getNewsByTicker = async (ticker: string): Promise<MarketNewsItem[]>
         const sourceMatch = raw.match(/<source[^>]*>(.*?)<\/source>/)?.[1];
 
         title = decodeHtmlEntities(title);
-        let sourceName = sourceMatch ? decodeHtmlEntities(sourceMatch) : "Google Berita";
+        let sourceName = sourceMatch ? decodeHtmlEntities(sourceMatch) : "Google Finance";
         if (title.includes(" - ")) {
           const parts = title.split(" - ");
           sourceName = parts[parts.length - 1].trim();
@@ -272,11 +288,11 @@ export const getNewsByTicker = async (ticker: string): Promise<MarketNewsItem[]>
           liveForTicker.push({
             id: `ticker-rss-${i}-${Date.now()}`,
             title,
-            summary: `Update terkini seputar emiten ${clean} dari media tepercaya ${sourceName}.`,
+            summary: `Update terkini 24 jam terakhir seputar emiten ${clean} dari media tepercaya ${sourceName}.`,
             source: sourceName,
             url: link,
             published_at: new Date(pubDate).toISOString(),
-            category: "STOCK",
+            category: "GLOBAL_EQUITIES",
             tickers: [clean],
             sentiment: "NEUTRAL",
             sentiment_score: 0.1,

@@ -26,10 +26,10 @@ export default function MarketTickerRibbon() {
   const [tickers, setTickers] = useState<TickerItem[]>(mockTickers);
 
   return (
-    <div className="w-full overflow-hidden rounded-xl bg-white/90 dark:bg-zinc-900/70 border border-zinc-200/80 dark:border-white/[0.06] backdrop-blur-md p-1.5 shadow-sm">
+    <div className="w-full overflow-hidden rounded-xl bg-white/90 dark:bg-[#0e1322]/50 dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-zinc-200/80 dark:border-white/[0.06] backdrop-blur-md p-1.5 shadow-sm">
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 px-2">
         {/* Live Market Chip */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold shrink-0">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-300 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 dark:shadow-[0_0_12px_rgba(16,185,129,0.3)] text-[11px] font-bold shrink-0">
           <Radio className="w-3 h-3 animate-pulse text-emerald-600 dark:text-emerald-400" />
           <span className="tracking-wide uppercase">Market Live</span>
         </div>
@@ -38,7 +38,7 @@ export default function MarketTickerRibbon() {
         {tickers.map((t) => (
           <div
             key={t.symbol}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-100/90 dark:bg-zinc-850/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-800/90 border border-zinc-200/70 dark:border-white/[0.06] shrink-0 transition cursor-default text-xs"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-100/90 dark:bg-white/[0.03] hover:bg-zinc-200/80 dark:hover:bg-white/[0.07] border border-zinc-200/70 dark:border-white/[0.06] dark:hover:border-white/[0.15] dark:backdrop-blur-md shrink-0 transition cursor-default text-xs"
           >
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-zinc-900 dark:text-zinc-100">{t.symbol}</span>

@@ -83,7 +83,7 @@ export default function NewsPage() {
 
       <main className="p-3.5 sm:p-5 md:p-8 max-w-7xl w-full mx-auto space-y-6">
         {/* Global Market Intelligence Radar Banner (Sovereign Terminal Style) */}
-        <div className="rounded-2xl p-5 border border-slate-800 bg-slate-900/90 shadow-xl backdrop-blur-md relative overflow-hidden">
+        <div className="rounded-2xl p-5 border border-white/[0.09] bg-[#0c101d]/65 shadow-xl backdrop-blur-2xl relative overflow-hidden">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 text-xs font-mono font-bold text-blue-400">
@@ -177,7 +177,7 @@ export default function NewsPage() {
               return (
                 <article
                   key={item.id}
-                  className="rounded-2xl p-5 bg-slate-900 border border-slate-800 hover:border-blue-500/50 transition-all duration-200 shadow-xl flex flex-col justify-between space-y-4 group"
+                  className="rounded-2xl p-5 bg-[#0a0e1a]/65 hover:bg-[#0f1527]/80 border border-white/[0.08] hover:border-white/[0.2] backdrop-blur-xl hover:-translate-y-1 transition-all duration-300 shadow-xl flex flex-col justify-between space-y-4 group"
                 >
                   <div className="space-y-3">
                     {/* Top Row: Category, Tickers, Sentiment */}
@@ -244,7 +244,7 @@ export default function NewsPage() {
 
                   {/* AI Impact Box & Meta */}
                   <div className="space-y-3 pt-2.5 border-t border-slate-800/80">
-                    <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-[11px] text-slate-300 flex items-start gap-2 font-sans">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-r from-blue-500/10 via-white/[0.02] to-transparent border border-blue-500/25 backdrop-blur-md text-[11px] text-slate-300 flex items-start gap-2 font-sans">
                       <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
                       <div>
                         <span className="font-bold text-blue-400 font-mono">DAMPAK PORTOFOLIO: </span>

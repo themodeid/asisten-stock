@@ -38,7 +38,7 @@ export default function AppLayout({
   // Show obsidian loading state while checking authentication
   if (isLoading) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#080a0f] text-zinc-100">
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#07090e] text-zinc-100">
         <div className="relative">
           <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 animate-pulse">
             <Lock className="w-8 h-8" />
@@ -63,6 +63,11 @@ export default function AppLayout({
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground transition-colors duration-200">
+      {/* Ambient Radial Glows */}
+      <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none -z-0" />
+      <div className="fixed top-1/2 right-0 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none -z-0" />
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-purple-500/10 rounded-full blur-[100px] pointer-events-none -z-0" />
+
       {/* Sidebar (handles both desktop fixed sidebar & mobile slide-over drawer) */}
       <Sidebar
         isOpen={isMobileMenuOpen}

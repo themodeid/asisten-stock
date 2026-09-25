@@ -92,7 +92,7 @@ export default function QuickActionHub() {
             <Link
               key={act.name}
               href={act.href}
-              className="group p-3.5 rounded-2xl bg-white/90 dark:bg-zinc-900/70 hover:bg-zinc-50 dark:hover:bg-zinc-850/90 border border-zinc-200/80 dark:border-white/[0.06] hover:border-zinc-300 dark:hover:border-white/[0.15] transition-all duration-200 shadow-sm flex flex-col justify-between active:scale-[0.98] glass-card-hover"
+              className="group p-3.5 rounded-2xl bg-white/90 dark:bg-[#0d1220]/60 hover:bg-zinc-50 dark:hover:bg-[#12192c]/80 dark:backdrop-blur-xl border border-zinc-200/80 dark:border-white/[0.08] hover:border-zinc-300 dark:hover:border-white/[0.2] hover:-translate-y-1 transition-all duration-300 dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)] shadow-sm flex flex-col justify-between active:scale-[0.98] glass-card-hover"
             >
               <div className="flex items-start justify-between mb-2.5">
                 <div

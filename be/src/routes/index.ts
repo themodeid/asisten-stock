@@ -11,6 +11,7 @@ import telegramRoutes from "../modules/telegram/telegram.routes";
 import authRoutes from "../modules/auth/auth.routes";
 import exportRoutes from "../modules/export/export.routes";
 import newsRoutes from "../modules/news/news.routes";
+import cashflowRoutes from "../modules/cashflow/cashflow.routes";
 import { authGuard } from "../middlewares/authGuard";
 
 const router = Router();
@@ -31,6 +32,7 @@ router.use("/dashboard", authGuard, dashboardRoutes);
 router.use("/users", authGuard, userRoutes);
 router.use("/portfolio", authGuard, portfolioRoutes);
 router.use("/transactions", authGuard, transactionRoutes);
+router.use("/cashflow", authGuard, cashflowRoutes);
 router.use("/watchlist", authGuard, watchlistRoutes);
 router.use("/gemini", authGuard, geminiRoutes);
 router.use("/export", authGuard, exportRoutes);

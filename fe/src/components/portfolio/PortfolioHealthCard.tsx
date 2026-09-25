@@ -105,7 +105,7 @@ export default function PortfolioHealthCard({
       {/* ========================================================================= */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* LEFT COLUMN: Visual Speedometer Gauge Card (5 Cols) */}
-        <div className="lg:col-span-5 rounded-3xl bg-[#0c0e14] border border-white/[0.08] p-5 sm:p-6 shadow-2xl relative overflow-hidden flex flex-col items-center text-center justify-between">
+        <div className="lg:col-span-5 rounded-3xl bg-[#0c101d]/65 backdrop-blur-2xl border border-white/[0.09] p-5 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col items-center text-center justify-between">
           {/* Subtle Ambient Radial Glow */}
           <div
             className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full blur-3xl opacity-20 pointer-events-none -z-0"
@@ -245,7 +245,7 @@ export default function PortfolioHealthCard({
         </div>
 
         {/* RIGHT COLUMN: 3 Key Health Pillars & Diagnostic (7 Cols) */}
-        <div className="lg:col-span-7 rounded-3xl bg-[#0c0e14] border border-white/[0.08] p-5 sm:p-6 shadow-2xl flex flex-col justify-between space-y-5">
+        <div className="lg:col-span-7 rounded-3xl bg-[#0c101d]/65 backdrop-blur-2xl border border-white/[0.09] p-5 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.6)] flex flex-col justify-between space-y-5">
           <div>
             <div className="flex items-center justify-between mb-3 border-b border-white/[0.04] pb-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
@@ -260,7 +260,7 @@ export default function PortfolioHealthCard({
             {/* 3 Visual Meter Bars */}
             <div className="space-y-4">
               {/* Pillar 1: Asset Concentration */}
-              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition space-y-2">
+              <div className="p-3.5 rounded-2xl bg-white/[0.02] backdrop-blur-md hover:bg-white/[0.04] border border-white/[0.05] hover:border-white/10 transition space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-zinc-200">1. Konsentrasi Aset Tunggal</span>
@@ -300,7 +300,7 @@ export default function PortfolioHealthCard({
               </div>
 
               {/* Pillar 2: Safe Haven Buffer (Gold / Cash) */}
-              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition space-y-2">
+              <div className="p-3.5 rounded-2xl bg-white/[0.02] backdrop-blur-md hover:bg-white/[0.04] border border-white/[0.05] hover:border-white/10 transition space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-zinc-200">2. Bantalan Pengaman (Safe Haven)</span>
@@ -339,7 +339,7 @@ export default function PortfolioHealthCard({
               </div>
 
               {/* Pillar 3: High Growth & Volatility Exposure */}
-              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition space-y-2">
+              <div className="p-3.5 rounded-2xl bg-white/[0.02] backdrop-blur-md hover:bg-white/[0.04] border border-white/[0.05] hover:border-white/10 transition space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-zinc-200">3. Aset Pertumbuhan Agresif</span>
@@ -384,7 +384,7 @@ export default function PortfolioHealthCard({
       {/* ========================================================================= */}
       {/* 2. ACTIONABLE REBALANCING PLAN (EASY-TO-FOLLOW CARDS)                     */}
       {/* ========================================================================= */}
-      <div className="rounded-3xl bg-[#0c0e14] border border-white/[0.08] p-5 sm:p-6 shadow-2xl space-y-4">
+      <div className="rounded-3xl bg-[#0c101d]/65 backdrop-blur-2xl border border-white/[0.09] p-5 sm:p-6 shadow-[0_20px_60px_rgba(0,0,0,0.6)] space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.04] pb-4">
           <div>
             <h4 className="text-base font-bold text-white flex items-center gap-2">
@@ -418,10 +418,10 @@ export default function PortfolioHealthCard({
               return (
                 <div
                   key={idx}
-                  className={`rounded-2xl p-4 border transition-all flex flex-col justify-between space-y-3 ${
+                  className={`rounded-2xl p-4 transition-all flex flex-col justify-between space-y-3 ${
                     isReduce
-                      ? "bg-amber-950/20 border-amber-800/40 hover:border-amber-700/60"
-                      : "bg-emerald-950/20 border-emerald-800/40 hover:border-emerald-700/60"
+                      ? "bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/25 backdrop-blur-xl shadow-[0_8px_25px_rgba(245,158,11,0.1)] hover:border-amber-700/60"
+                      : "bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/25 backdrop-blur-xl shadow-[0_8px_25px_rgba(16,185,129,0.1)] hover:border-emerald-700/60"
                   }`}
                 >
                   <div className="space-y-2">

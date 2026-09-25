@@ -15,14 +15,14 @@ export default function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 bg-[#090b0e]/95 backdrop-blur-xl border-t border-white/[0.08] lg:hidden px-3 py-1.5 shadow-2xl safe-area-bottom">
+    <nav className="fixed bottom-0 inset-x-0 z-40 bg-[#0c101d]/80 backdrop-blur-xl border-t border-white/[0.08] lg:hidden px-3 py-1.5 shadow-2xl safe-area-bottom">
       <div className="flex items-center justify-around max-w-md mx-auto relative">
         {/* 1. Portofolio (Beranda Utama) */}
         <Link
           href="/portfolio"
           className={`flex flex-col items-center justify-center py-1 px-2 transition-all ${
             pathname === "/" || pathname?.startsWith("/portfolio")
-              ? "text-[#D2F831] font-bold scale-105"
+              ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)] font-bold scale-105"
               : "text-zinc-500 hover:text-zinc-300"
           }`}
         >
@@ -35,7 +35,7 @@ export default function MobileNav() {
           href="/watchlist"
           className={`flex flex-col items-center justify-center py-1 px-2 transition-all ${
             pathname?.startsWith("/watchlist")
-              ? "text-[#D2F831] font-bold scale-105"
+              ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)] font-bold scale-105"
               : "text-zinc-500 hover:text-zinc-300"
           }`}
         >
@@ -49,8 +49,8 @@ export default function MobileNav() {
           className="flex flex-col items-center justify-center -mt-6 group active:scale-95 transition-transform"
           title="Transaksi Cepat & AI Rebalancing"
         >
-          <div className="w-12 h-12 rounded-full bg-white text-zinc-950 flex items-center justify-center shadow-lg shadow-white/20 border-2 border-[#090b0e] group-hover:bg-zinc-100 transition">
-            <ArrowLeftRight className="w-5 h-5 text-zinc-950 font-black" />
+          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-400 to-blue-500 text-slate-950 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.4)] border-2 border-[#0c101d] group-hover:opacity-90 transition">
+            <ArrowLeftRight className="w-5 h-5 text-slate-950 font-black" />
           </div>
         </Link>
 
@@ -59,7 +59,7 @@ export default function MobileNav() {
           href="/analytics"
           className={`flex flex-col items-center justify-center py-1 px-2 transition-all ${
             pathname?.startsWith("/analytics")
-              ? "text-[#D2F831] font-bold scale-105"
+              ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)] font-bold scale-105"
               : "text-zinc-500 hover:text-zinc-300"
           }`}
         >
@@ -72,7 +72,7 @@ export default function MobileNav() {
           href="/transactions"
           className={`flex flex-col items-center justify-center py-1 px-2 transition-all ${
             pathname?.startsWith("/transactions")
-              ? "text-[#D2F831] font-bold scale-105"
+              ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)] font-bold scale-105"
               : "text-zinc-500 hover:text-zinc-300"
           }`}
         >

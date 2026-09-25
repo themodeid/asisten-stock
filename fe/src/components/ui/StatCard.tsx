@@ -32,13 +32,13 @@ export default function StatCard({
   const iconClass = accentGradients[accentColor] || accentGradients.emerald;
 
   return (
-    <div className="rounded-2xl bg-white/90 dark:bg-zinc-900/75 border border-zinc-200/80 dark:border-white/[0.07] hover:border-zinc-300 dark:hover:border-white/[0.16] p-5 transition-all duration-200 shadow-sm dark:shadow-lg dark:shadow-black/40 glass-card glass-card-hover flex flex-col justify-between">
+    <div className="rounded-2xl bg-white/90 dark:bg-[#0e1322]/60 dark:backdrop-blur-2xl dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] border border-zinc-200/80 dark:border-white/[0.07] hover:border-zinc-300 dark:hover:border-white/[0.16] p-5 transition-all duration-200 shadow-sm dark:shadow-glass glass-card glass-card-hover flex flex-col justify-between">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           {title}
         </span>
         <div
-          className={`w-9 h-9 rounded-xl bg-gradient-to-br ${iconClass} border flex items-center justify-center shadow-sm`}
+          className={`w-9 h-9 rounded-xl bg-gradient-to-br ${iconClass} border flex items-center justify-center shadow-sm dark:backdrop-blur-md dark:border-white/[0.15]`}
         >
           <Icon className="w-4 h-4" />
         </div>
@@ -53,8 +53,8 @@ export default function StatCard({
             <span
               className={`inline-flex items-center gap-0.5 text-[11px] font-bold px-2 py-0.5 rounded-lg font-mono tabular-nums ${
                 trend.isPositive
-                  ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/60"
-                  : "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-800/60"
+                  ? "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30"
+                  : "bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-500/30"
               }`}
             >
               {trend.isPositive ? (

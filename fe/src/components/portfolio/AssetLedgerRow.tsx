@@ -61,7 +61,7 @@ export default function AssetLedgerRow({
   };
 
   return (
-    <div className="border-b border-slate-800/80 last:border-0 hover:bg-slate-850/40 transition-all duration-150">
+    <div className="border-b border-white/[0.05] last:border-0 hover:bg-white/[0.03] backdrop-blur-md transition-all duration-150">
       {/* Main Terminal Ledger Row */}
       <div
         onClick={() => setIsExpanded(!isExpanded)}
@@ -128,7 +128,7 @@ export default function AssetLedgerRow({
 
       {/* Expandable Breakdown & Actions Panel */}
       {isExpanded && (
-        <div className="px-4 pb-4 pt-2 bg-slate-950/70 border-t border-slate-800/80 space-y-3 animate-in fade-in duration-150">
+        <div className="px-4 pb-4 pt-2 bg-black/40 backdrop-blur-xl border-t border-white/[0.06] rounded-b-2xl shadow-inner space-y-3 animate-in fade-in duration-150">
           {/* Multi-Vault Breakdown */}
           {h.wallet_breakdown && h.wallet_breakdown.length > 0 && (
             <div className="space-y-1.5 pt-1">
@@ -147,7 +147,7 @@ export default function AssetLedgerRow({
                         e.stopPropagation();
                         onSelectWallet(wb.wallet_id);
                       }}
-                      className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-700/80 text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95"
+                      className="px-2.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.16] backdrop-blur-md text-xs transition flex items-center gap-1.5 shadow-sm active:scale-95"
                     >
                       <span className="font-bold text-slate-200 capitalize">{wb.wallet_name}:</span>
                       <span className="font-mono text-slate-300 tabular-nums">

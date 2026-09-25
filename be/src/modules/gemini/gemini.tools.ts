@@ -291,4 +291,40 @@ export const geminiToolDeclarations: FunctionDeclaration[] = [
       },
     },
   },
+  {
+    name: "log_cashflow_transaction",
+    description: "Catat pemasukan kas (INCOME misal gaji, dividen, bonus), pengeluaran belanja/jajan (EXPENSE misal makan, bensin, belanja), atau transfer saldo antar dompet/bank/e-wallet (TRANSFER).",
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        type: {
+          type: Type.STRING,
+          enum: ["INCOME", "EXPENSE", "TRANSFER"],
+          description: "Jenis transaksi kas: INCOME (pemasukan), EXPENSE (pengeluaran), TRANSFER (pindah saldo antar dompet/bank).",
+        },
+        amount: {
+          type: Type.NUMBER,
+          description: "Nominal uang dalam Rupiah (contoh: 50000 untuk 50 ribu, 1500000 untuk 1.5 juta).",
+        },
+        category: {
+          type: Type.STRING,
+          enum: ["MAKANAN", "TRANSPORT", "GAJI", "INVESTASI", "BELANJA", "TAGIHAN", "HIBURAN", "KESEHATAN", "PENDIDIKAN", "TRANSFER", "LAINNYA"],
+          description: "Kategori transaksi.",
+        },
+        wallet_name: {
+          type: Type.STRING,
+          description: "Nama dompet atau rekening sumber (misal: Bank BCA, GoPay, OVO, Cash Dompet, Bibit, Pluang).",
+        },
+        to_wallet_name: {
+          type: Type.STRING,
+          description: "Nama dompet atau rekening tujuan (wajib jika type adalah TRANSFER, misal: GoPay, Bank BCA).",
+        },
+        description: {
+          type: Type.STRING,
+          description: "Keterangan atau catatan transaksi (misal: 'Beli kopi Starbucks', 'Bensin motor', 'Makan siang').",
+        },
+      },
+      required: ["type", "amount"],
+    },
+  },
 ];

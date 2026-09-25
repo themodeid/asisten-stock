@@ -16,3 +16,7 @@ yarn-error.log*
 *.sln
 *.sw?
 uploads/
+
+# Skripsi & Dokumen Tugas Akhir
+skripsi/
+**/skripsi/

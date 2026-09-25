@@ -12,7 +12,7 @@ export default function LoginPage() {
   const { theme, toggleTheme } = useTheme();
 
   const [username, setUsername] = useState("adamwahyukur");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("adamwahyu");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
@@ -59,7 +59,7 @@ export default function LoginPage() {
       {/* Theme Toggle in top right */}
       <button
         onClick={toggleTheme}
-        className="absolute top-5 right-5 p-2 rounded-xl bg-white/80 dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition shadow-sm"
+        className="absolute top-5 right-5 p-2 rounded-xl bg-white/80 dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/[0.12] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition shadow-sm"
         title="Ganti Tema"
         aria-label="Toggle Theme"
       >
@@ -67,7 +67,7 @@ export default function LoginPage() {
       </button>
 
       {/* Main Login Card */}
-      <div className="relative w-full max-w-md bg-white/95 dark:bg-[#0d1017]/90 backdrop-blur-2xl border border-zinc-200/90 dark:border-white/10 rounded-3xl p-8 sm:p-10 shadow-xl dark:shadow-[0_20px_60px_rgba(0,0,0,0.7)] transition-all">
+      <div className="relative w-full max-w-md bg-white/95 dark:bg-[#0a0e19]/75 backdrop-blur-2xl border border-zinc-200/90 dark:border-white/[0.12] rounded-3xl p-8 sm:p-10 shadow-xl dark:shadow-[0_25px_80px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.15)] transition-all">
         {/* Brand Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-gradient-to-tr dark:from-emerald-500/20 dark:to-emerald-400/5 border border-emerald-300 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-inner">
@@ -112,7 +112,7 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="adamwahyukur"
                 autoComplete="username"
-                className="w-full bg-zinc-50 dark:bg-[#131722] border border-zinc-200 dark:border-zinc-800 focus:border-emerald-500/60 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition"
+                className="w-full bg-zinc-50 dark:bg-black/40 dark:backdrop-blur-md border border-zinc-200 dark:border-white/[0.08] focus:border-emerald-500/60 rounded-xl pl-10 pr-4 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition"
               />
             </div>
           </div>
@@ -131,7 +131,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="current-password"
-                className="w-full bg-zinc-50 dark:bg-[#131722] border border-zinc-200 dark:border-zinc-800 focus:border-emerald-500/60 rounded-xl pl-10 pr-11 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition"
+                className="w-full bg-zinc-50 dark:bg-black/40 dark:backdrop-blur-md border border-zinc-200 dark:border-white/[0.08] focus:border-emerald-500/60 rounded-xl pl-10 pr-11 py-3 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition"
               />
               <button
                 type="button"
@@ -155,10 +155,33 @@ export default function LoginPage() {
             </label>
           </div>
 
+          {/* Quick Credential Helper Banner */}
+          <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/25 text-xs text-emerald-800 dark:text-emerald-300 flex items-center justify-between gap-2 shadow-sm">
+            <div className="space-y-0.5">
+              <div className="font-semibold flex items-center gap-1 text-[11px] uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                Kredensial Default Mas Aang
+              </div>
+              <div className="text-[12px]">
+                User: <span className="font-mono font-bold bg-emerald-100 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded text-emerald-900 dark:text-emerald-200">adamwahyukur</span> • Pass: <span className="font-mono font-bold bg-emerald-100 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded text-emerald-900 dark:text-emerald-200">adamwahyu</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setUsername("adamwahyukur");
+                setPassword("adamwahyu");
+              }}
+              className="shrink-0 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition active:scale-95 shadow-sm"
+            >
+              Isi Ulang
+            </button>
+          </div>
+
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white dark:text-zinc-950 font-bold text-sm shadow-[0_0_20px_rgba(16,185,129,0.25)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.98]"
+            className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-500 hover:from-emerald-300 hover:to-blue-400 text-slate-950 font-black text-sm shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.98]"
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2">

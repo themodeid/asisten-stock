@@ -183,7 +183,7 @@ export default function WatchlistPage() {
 
       <main className="p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto">
         {/* Primary View Switcher */}
-        <div className="flex border-b border-zinc-800 gap-6 text-sm font-medium">
+        <div className="flex border-b border-white/[0.08] gap-6 text-sm font-medium">
           <button
             onClick={() => setActiveTab("WATCHLIST")}
             className={`pb-3 flex items-center gap-2 border-b-2 transition ${
@@ -276,7 +276,7 @@ export default function WatchlistPage() {
                   return (
                     <div
                       key={item.id}
-                      className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-zinc-700 transition relative flex flex-col justify-between shadow-sm"
+                      className="bg-[#0d1220]/65 backdrop-blur-2xl border border-white/[0.08] rounded-xl p-5 hover:border-white/[0.2] transition relative flex flex-col justify-between shadow-sm"
                     >
                       <div>
                         <div className="flex items-start justify-between">
@@ -369,7 +369,7 @@ export default function WatchlistPage() {
         {activeTab === "DIP_RADAR" && (
           <div className="space-y-6">
             {/* Header & Filter Controls */}
-            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-sm space-y-4">
+            <div className="bg-[#0d1220]/65 backdrop-blur-2xl border border-white/[0.08] rounded-xl p-5 shadow-sm space-y-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
@@ -439,8 +439,8 @@ export default function WatchlistPage() {
                       key={item.ticker}
                       className={`rounded-xl p-5 border transition flex flex-col justify-between shadow-sm ${
                         isStrong
-                          ? "bg-zinc-900 border-emerald-500/50 ring-1 ring-emerald-500/30"
-                          : "bg-zinc-900 border-zinc-800 hover:border-zinc-700"
+                          ? "bg-[#0d1220]/65 backdrop-blur-2xl border-emerald-500/50 shadow-[0_0_25px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/30"
+                          : "bg-[#0d1220]/65 backdrop-blur-2xl border-white/[0.08] hover:border-white/[0.2]"
                       }`}
                     >
                       <div>

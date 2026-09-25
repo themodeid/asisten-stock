@@ -64,7 +64,7 @@ export default function PluangProfitLossChart({
   const fxSharePct = 100 - assetSharePct;
 
   return (
-    <div className="rounded-2xl bg-slate-900 border border-slate-800 p-4 sm:p-6 shadow-2xl space-y-5 text-slate-100">
+    <div className="rounded-2xl bg-[#0c101c]/70 backdrop-blur-2xl border border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-4 sm:p-6 space-y-5 text-slate-100">
       {/* 1. Header: Judul Komponen & Toggle Persentase / Nominal */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -94,7 +94,7 @@ export default function PluangProfitLossChart({
       </div>
 
       {/* 2. Hero Net Profit/Loss Summary Card (Opsi 2: Visual Card Ringkas & Elegan) */}
-      <div className="rounded-2xl bg-gradient-to-b from-zinc-900/90 to-zinc-950/90 border border-white/[0.07] p-4 sm:p-5 space-y-4 shadow-xl">
+      <div className="rounded-2xl bg-gradient-to-br from-white/[0.04] via-black/40 to-transparent backdrop-blur-xl border border-white/[0.1] shadow-[inset_0_1px_1px_rgba(255,255,255,0.12)] p-4 sm:p-5 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-3">
           <div className="space-y-1">
             <span className="text-xs font-semibold text-zinc-400 tracking-wider uppercase">
@@ -150,21 +150,21 @@ export default function PluangProfitLossChart({
 
         {/* 3 Metric Mini Cards: Modal, Nilai Pasar, Hasil Bersih */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+          <div className="p-3 rounded-xl bg-white/[0.03] backdrop-blur-md border border-white/[0.06] hover:border-white/[0.12]">
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">Total Capital Invested</span>
             <span className="text-sm font-bold font-mono text-slate-100 mt-0.5 block tabular-nums">
               {isPrivate ? "••••••••" : formatIDR(totalInvested)}
             </span>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+          <div className="p-3 rounded-xl bg-white/[0.03] backdrop-blur-md border border-white/[0.06] hover:border-white/[0.12]">
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">Current Market Valuation</span>
             <span className="text-sm font-bold font-mono text-slate-100 mt-0.5 block tabular-nums">
               {isPrivate ? "••••••••" : formatIDR(currentMarketValue)}
             </span>
           </div>
 
-          <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800">
+          <div className="p-3 rounded-xl bg-white/[0.03] backdrop-blur-md border border-white/[0.06] hover:border-white/[0.12]">
             <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">Net Gain / Drawdown</span>
             <span
               className={`text-sm font-bold font-mono mt-0.5 block tabular-nums ${
@@ -245,7 +245,7 @@ export default function PluangProfitLossChart({
       </div>
 
       {/* 3. Unrealized P&L Accordion Card */}
-      <div className="rounded-xl bg-slate-950/70 border border-slate-800 overflow-hidden transition-all">
+      <div className="rounded-xl bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-md border border-white/[0.06] overflow-hidden transition-all">
         <button
           type="button"
           onClick={() => setIsUnrealizedOpen(!isUnrealizedOpen)}
@@ -316,7 +316,7 @@ export default function PluangProfitLossChart({
       </div>
 
       {/* 4. Realized P&L Accordion Card */}
-      <div className="rounded-xl bg-slate-950/70 border border-slate-800 overflow-hidden transition-all">
+      <div className="rounded-xl bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-md border border-white/[0.06] overflow-hidden transition-all">
         <button
           type="button"
           onClick={() => setIsRealizedOpen(!isRealizedOpen)}

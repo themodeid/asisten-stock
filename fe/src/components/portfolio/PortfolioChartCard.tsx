@@ -238,7 +238,7 @@ export default function PortfolioChartCard({
     : `-${Math.abs(Number(changePercent)).toFixed(2)}%`;
 
   return (
-    <div className="bg-[#0f172a]/80 backdrop-blur-xl text-slate-100 rounded-2xl p-5 md:p-7 border border-slate-800 shadow-2xl space-y-4 select-none">
+    <div className="bg-[#0a0e19]/70 backdrop-blur-2xl text-slate-100 rounded-3xl p-5 md:p-7 border border-white/[0.09] shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.08)] space-y-4 select-none">
       {/* 1. Header Label & Updated Clock */}
       <div className="flex items-center justify-between text-xs gap-3">
         <div className="flex items-center gap-2">
@@ -456,8 +456,8 @@ export default function PortfolioChartCard({
               onClick={() => setTimeframe(tf)}
               className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-mono font-bold transition text-center ${
                 isActive
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-400/40"
-                  : "bg-slate-900/90 text-slate-400 hover:text-slate-200 hover:bg-slate-850 border border-slate-800"
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)] border border-blue-400/40 font-bold"
+                  : "bg-white/[0.03] text-slate-400 border border-white/[0.06] hover:bg-white/[0.06]"
               }`}
             >
               {tf}
@@ -467,7 +467,7 @@ export default function PortfolioChartCard({
       </div>
 
       {/* 5. Bottom Summary Collapsible Card */}
-      <div className="rounded-xl bg-slate-900/90 border border-slate-800 overflow-hidden text-xs mt-3">
+      <div className="rounded-xl bg-white/[0.03] backdrop-blur-xl border border-white/[0.07] overflow-hidden text-xs mt-3">
         <button
           type="button"
           onClick={() => setIsDetailsOpen(!isDetailsOpen)}

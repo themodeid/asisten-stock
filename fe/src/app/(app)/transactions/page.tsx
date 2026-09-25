@@ -174,7 +174,7 @@ export default function TransactionsPage() {
 
       <main className="p-6 md:p-8 space-y-6 max-w-7xl w-full mx-auto">
         {/* Multi-Vault & Execution Ledger Filter Bar (Sovereign Terminal Style) */}
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-3">
+        <div className="p-4 rounded-2xl bg-[#0e1322]/60 backdrop-blur-2xl border border-white/[0.08] shadow-xl space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-blue-600/10 border border-blue-500/20 text-blue-400">
@@ -238,7 +238,7 @@ export default function TransactionsPage() {
 
         {/* Top Metric Summary Cards (Terminal Style) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 shadow-lg flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-[#0e1322]/60 backdrop-blur-2xl border border-white/[0.08] shadow-lg flex items-center justify-between">
             <div>
               <div className="text-[10px] font-mono tracking-wider text-slate-400 uppercase font-semibold">Total Order Tercatat</div>
               <div className="text-xl font-bold font-mono tabular-nums text-slate-100 mt-1">{stats.count} Eksekusi</div>
@@ -246,7 +246,7 @@ export default function TransactionsPage() {
             <Clock className="w-7 h-7 text-slate-700" />
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 shadow-lg flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-[#0e1322]/60 backdrop-blur-2xl border border-white/[0.08] shadow-lg flex items-center justify-between">
             <div>
               <div className="text-[10px] font-mono tracking-wider text-slate-400 uppercase font-semibold">Akumulasi Pembelian (BUY)</div>
               <div className="text-xl font-bold font-mono tabular-nums text-emerald-400 mt-1">{formatIDR(stats.totalBuy)}</div>
@@ -254,7 +254,7 @@ export default function TransactionsPage() {
             <TrendingDown className="w-7 h-7 text-emerald-500/30" />
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 shadow-lg flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-[#0e1322]/60 backdrop-blur-2xl border border-white/[0.08] shadow-lg flex items-center justify-between">
             <div>
               <div className="text-[10px] font-mono tracking-wider text-slate-400 uppercase font-semibold">Realisasi Penjualan (SELL)</div>
               <div className="text-xl font-bold font-mono tabular-nums text-amber-400 mt-1">{formatIDR(stats.totalSell)}</div>
@@ -264,7 +264,7 @@ export default function TransactionsPage() {
         </div>
 
         {/* Filter Controls Bar (Terminal Console Style) */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-xl">
+        <div className="bg-[#0e1322]/60 backdrop-blur-2xl border border-white/[0.08] rounded-xl p-5 space-y-4 shadow-xl">
           {/* Row 1: Time Range Presets */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-4">
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
@@ -403,10 +403,10 @@ export default function TransactionsPage() {
         </div>
 
         {/* Transactions Table (Sovereign Order Ledger) */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+        <div className="bg-[#0e1322]/60 backdrop-blur-2xl border border-white/[0.08] rounded-xl overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950/80 border-b border-slate-800 text-[10px] text-slate-400 uppercase tracking-wider font-mono font-bold">
+              <thead className="bg-white/[0.02] border-b border-white/[0.06] text-[10px] text-slate-400 uppercase tracking-wider font-mono font-bold">
                 <tr>
                   <th className="py-3.5 px-6">TIMESTAMP</th>
                   <th className="py-3.5 px-4">SIDE</th>
@@ -427,7 +427,7 @@ export default function TransactionsPage() {
                     const txDate = new Date(tx.transaction_date || tx.created_at);
 
                     return (
-                      <tr key={tx.id} className="hover:bg-slate-800/50 transition">
+                      <tr key={tx.id} className="hover:bg-white/[0.03] border-white/[0.04] transition">
                         <td className="py-3.5 px-6 text-slate-300 text-xs whitespace-nowrap font-mono">
                           <div className="font-bold text-slate-100">
                             {txDate.toLocaleDateString("id-ID", {

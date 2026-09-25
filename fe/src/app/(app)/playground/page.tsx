@@ -239,7 +239,7 @@ export default function PlaygroundPage() {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden">
-      <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-950 px-6 py-4 sticky top-0 z-20 shrink-0">
+      <div className="flex items-center justify-between border-b border-white/[0.08] bg-[#07090e]/90 backdrop-blur-xl px-6 py-4 sticky top-0 z-20 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-100 font-bold shadow-sm">
             <Bot className="w-5 h-5 text-emerald-400" />
@@ -285,7 +285,7 @@ export default function PlaygroundPage() {
         </div>
 
         {/* Chat History Box */}
-        <div className="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl p-4 md:p-6 overflow-y-auto space-y-4 shadow-sm">
+        <div className="flex-1 bg-[#0b0f19]/65 backdrop-blur-2xl border border-white/[0.08] rounded-xl p-4 md:p-6 overflow-y-auto space-y-4 shadow-sm">
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -300,10 +300,10 @@ export default function PlaygroundPage() {
               )}
 
               <div
-                className={`max-w-2xl rounded-xl p-3.5 space-y-2.5 ${
+                className={`max-w-2xl p-3.5 space-y-2.5 ${
                   msg.role === "user"
-                    ? "bg-zinc-100 text-zinc-900 rounded-br-none font-medium shadow-sm"
-                    : "bg-zinc-850 text-zinc-200 border border-zinc-800 rounded-bl-none shadow-sm"
+                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl rounded-br-none font-medium shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+                    : "bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] text-slate-100 rounded-2xl rounded-bl-none shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                 }`}
               >
                 {/* Tool Calling Execution Logs if any */}
@@ -316,9 +316,9 @@ export default function PlaygroundPage() {
                     {msg.toolCalls.map((tc, idx) => (
                       <div
                         key={idx}
-                        className="bg-zinc-950 border border-zinc-800 rounded-lg p-2 font-mono text-[11px] text-zinc-300"
+                        className="bg-black/50 backdrop-blur-md border border-emerald-500/30 text-emerald-300 rounded-lg p-2 font-mono text-[11px]"
                       >
-                        <span className="text-emerald-400 font-semibold">
+                        <span className="font-semibold">
                           {tc.toolName}
                         </span>
                         <span className="text-zinc-400">
@@ -432,7 +432,7 @@ export default function PlaygroundPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             disabled={loading}
-            className="flex-1 bg-zinc-900 border border-zinc-800 text-zinc-100 placeholder-zinc-500 text-xs sm:text-sm rounded-lg px-4 py-2.5 focus:outline-none focus:border-zinc-400 transition"
+            className="flex-1 bg-[#0a0e18]/80 backdrop-blur-xl border border-white/[0.1] text-zinc-100 placeholder-zinc-500 text-xs sm:text-sm rounded-lg px-4 py-2.5 focus:outline-none focus-within:border-emerald-500/60 transition"
           />
 
           <button

@@ -12,11 +12,11 @@ export default function Badge({
   size = "sm",
 }: BadgeProps) {
   const variantStyles = {
-    success: "bg-emerald-950/40 text-emerald-300 border-emerald-800/60",
-    danger: "bg-red-950/40 text-red-300 border-red-800/60",
-    warning: "bg-amber-950/40 text-amber-300 border-amber-800/60",
-    info: "bg-blue-950/40 text-blue-300 border-blue-800/60",
-    neutral: "bg-zinc-800 text-zinc-300 border-zinc-700",
+    success: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30 backdrop-blur-md shadow-[0_0_10px_rgba(16,185,129,0.15)]",
+    danger: "bg-rose-500/15 text-rose-300 border-rose-500/30 backdrop-blur-md shadow-[0_0_10px_rgba(244,63,94,0.15)]",
+    warning: "bg-amber-500/15 text-amber-300 border-amber-500/30 backdrop-blur-md shadow-[0_0_10px_rgba(245,158,11,0.15)]",
+    info: "bg-blue-500/15 text-blue-300 border-blue-500/30 backdrop-blur-md shadow-[0_0_10px_rgba(59,130,246,0.15)]",
+    neutral: "bg-white/[0.06] text-slate-300 border-white/[0.1] backdrop-blur-md",
   };
 
   const sizeStyles = {

@@ -40,7 +40,7 @@ export default function Header({ title = "Asisten Stock & Crypto", onMenuClick }
   const displayName = user?.full_name || user?.first_name || user?.username || "Investor Pro";
 
   return (
-    <header className="h-16 shrink-0 w-full border-b border-zinc-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-[#0b0f19]/90 backdrop-blur-xl px-4 sm:px-6 md:px-8 flex items-center justify-between sticky top-0 z-30 transition-colors duration-200">
+    <header className="h-16 shrink-0 w-full border-b border-zinc-200/80 dark:border-white/[0.08] bg-white/90 dark:bg-[#07090e]/70 dark:shadow-[0_4px_30px_rgba(0,0,0,0.5)] backdrop-blur-xl px-4 sm:px-6 md:px-8 flex items-center justify-between sticky top-0 z-30 transition-colors duration-200">
       <div className="flex items-center gap-3 min-w-0">
         {/* Mobile Hamburger Button */}
         <button
@@ -69,7 +69,7 @@ export default function Header({ title = "Asisten Stock & Crypto", onMenuClick }
         <button
           type="button"
           onClick={() => setIsSearchOpen(true)}
-          className="relative hidden lg:flex items-center bg-zinc-100 dark:bg-slate-900/70 hover:bg-zinc-200/80 dark:hover:bg-slate-850 border border-zinc-200 dark:border-slate-800 text-zinc-500 dark:text-slate-400 text-xs rounded-xl pl-8 pr-12 py-1.5 w-48 xl:w-64 transition text-left cursor-pointer select-none focus:border-blue-500"
+          className="relative hidden lg:flex items-center bg-zinc-100 dark:bg-white/[0.04] hover:bg-zinc-200/80 dark:hover:bg-white/[0.07] border border-zinc-200 dark:border-white/[0.08] text-zinc-500 dark:text-slate-400 text-xs rounded-xl pl-8 pr-12 py-1.5 w-48 xl:w-64 transition text-left cursor-pointer select-none focus:border-blue-500"
         >
           <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <span className="truncate">Cari emiten US, global, koin...</span>
@@ -82,7 +82,7 @@ export default function Header({ title = "Asisten Stock & Crypto", onMenuClick }
         <button
           type="button"
           onClick={() => setIsSearchOpen(true)}
-          className="p-2 rounded-xl bg-zinc-100 dark:bg-slate-900/80 border border-zinc-200/80 dark:border-slate-800 text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-zinc-100 lg:hidden transition"
+          className="p-2 rounded-xl bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200/80 dark:border-white/[0.08] text-zinc-600 dark:text-slate-400 hover:text-zinc-900 dark:hover:text-zinc-100 lg:hidden transition"
           title="Cari Saham & Aset Global"
           aria-label="Cari Saham & Aset Global"
         >
@@ -106,7 +106,7 @@ export default function Header({ title = "Asisten Stock & Crypto", onMenuClick }
             className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-zinc-100 dark:hover:bg-slate-850/60 transition"
             title="Buka Jati Diri & Profil Investor"
           >
-            <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-slate-900 border border-zinc-200 dark:border-slate-800 flex items-center justify-center text-zinc-600 dark:text-slate-300 shadow-inner shrink-0 relative">
+            <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/[0.08] flex items-center justify-center text-zinc-600 dark:text-slate-300 shadow-inner shrink-0 relative">
               <User className="w-4 h-4 text-blue-400" />
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-white dark:ring-[#0b0f19]" />
             </div>

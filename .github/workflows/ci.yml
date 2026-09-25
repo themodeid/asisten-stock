@@ -1,4 +1,4 @@
-name: CI / CD Pipeline
+name: Asisten Stock CI Pipeline
 
 on:
   push:
@@ -7,13 +7,9 @@ on:
     branches: [ main, master ]
 
 jobs:
-  backend-checks:
-    name: Backend Lint, Test & Build
+  backend-test-and-build:
+    name: Backend CI (Unit Tests & Build)
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: ./be
 
     steps:
       - name: Checkout Code
@@ -26,22 +22,21 @@ jobs:
           cache: 'npm'
           cache-dependency-path: be/package-lock.json
 
-      - name: Install Dependencies
+      - name: Install Backend Dependencies
+        working-directory: be
         run: npm ci
 
-      - name: Typecheck TypeScript
-        run: npx tsc --noEmit
-
-      - name: Run Unit Tests
+      - name: Run Backend Unit Tests (41 Tests)
+        working-directory: be
         run: npm test
 
-  frontend-checks:
-    name: Frontend Lint & Build
-    runs-on: ubuntu-latest
+      - name: Build Backend TypeScript
+        working-directory: be
+        run: npm run build
 
-    defaults:
-      run:
-        working-directory: ./fe
+  frontend-build:
+    name: Frontend CI (Build Validation)
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
@@ -54,10 +49,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: fe/package-lock.json
 
-      - name: Install Dependencies
+      - name: Install Frontend Dependencies
+        working-directory: fe
         run: npm ci
 
-      - name: Build Next.js App
-        run: npm run build
+      - name: Build Next.js Application
+        working-directory: fe
         env:
           NEXT_PUBLIC_API_URL: http://localhost:3050/api
+        run: npm run build

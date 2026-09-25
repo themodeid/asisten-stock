@@ -274,7 +274,21 @@ export function parseIndonesianMoneyString(raw: string): { amount: number; curre
     }
   }
 
-  // 2. Multi-word phrase parser for "6 ratus 30 ribu", "enam ratus tiga puluh ribu", "2 ratus 50 ribu", "1 juta 500 ribu"
+  // 2. Direct simple digit with multiplier e.g. "500rb", "100k", "1.5jt", "2.5 juta", "500 ribu"
+  const shortPattern = clean.match(/(?:rp\.?|rp\s*|\$)?\s*(\d+(?:[,\.]\d+)?)\s*(k|rb|ribu|jt|juta|miliar|milyar|m|b)\b/i);
+  if (shortPattern) {
+    const num = parseFloat(shortPattern[1].replace(",", "."));
+    const unit = shortPattern[2].toLowerCase();
+    let mult = 1;
+    if (unit === "k" || unit === "rb" || unit === "ribu") mult = 1000;
+    else if (unit === "jt" || unit === "juta" || unit === "m") mult = 1000000;
+    else if (unit === "miliar" || unit === "milyar" || unit === "b") mult = 1000000000;
+    if (!isNaN(num) && num > 0) {
+      return { amount: num * mult, currency: isUSD ? "USD" : "IDR" };
+    }
+  }
+
+  // 3. Multi-word phrase parser for "6 ratus 30 ribu", "enam ratus tiga puluh ribu", "2 ratus 50 ribu", "1 juta 500 ribu"
   const tokens = clean
     .replace(/rp\.?/g, "")
     .replace(/[^\w\s\.]/g, " ")
@@ -349,19 +363,6 @@ export function parseIndonesianMoneyString(raw: string): { amount: number; curre
     return { amount: total, currency: isUSD ? "USD" : "IDR" };
   }
 
-  // 3. Direct simple digit with multiplier fallback e.g. "500rb", "100k", "1.5jt", "2.5 juta", "500 ribu"
-  const shortPattern = clean.match(/(?:rp\.?|rp\s*|\$)?\s*(\d+(?:[,\.]\d+)?)\s*(k|rb|ribu|jt|juta|miliar|milyar|m|b)\b/i);
-  if (shortPattern) {
-    const num = parseFloat(shortPattern[1].replace(",", "."));
-    const unit = shortPattern[2].toLowerCase();
-    let mult = 1;
-    if (unit === "k" || unit === "rb" || unit === "ribu") mult = 1000;
-    else if (unit === "jt" || unit === "juta" || unit === "m") mult = 1000000;
-    else if (unit === "miliar" || unit === "milyar" || unit === "b") mult = 1000000000;
-    if (!isNaN(num) && num > 0) {
-      return { amount: num * mult, currency: isUSD ? "USD" : "IDR" };
-    }
-  }
 
   // 4. Raw number fallback: e.g. "4325000"
   const rawNumMatch = clean.match(/\b\d{4,12}\b/);

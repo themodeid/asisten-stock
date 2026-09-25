@@ -243,6 +243,11 @@ export const calculateRebalancePlan = async (
 
   // Preset Strategy Targets - Redesigned for Global Sovereign & Macro Resilient Portfolios
   const STRATEGIES: Record<string, { name: string; desc: string; targets: Record<string, number> }> = {
+    FUNDAMENTAL_TRI_PILLAR: {
+      name: "Tri-Pilar Fundamental Bebas Volatilitas (Anti-Fragile)",
+      desc: "Fokus penciptaan nilai & kelangkaan matematis: 40% Ekuitas Produktif (VT), 40% Moneter Terdesentralisasi (BTC), 20% Jangkar Bebas Risiko Mitra (Emas Fisik & Kas). Mengabaikan fluktuasi harian demi mencegah kehancuran modal permanen.",
+      targets: { ETF: 40, CRYPTO: 40, GOLD: 20, STOCK: 0 },
+    },
     STATELESS_GLOBAL: {
       name: "Stateless Global Macro (Anti-Fragile)",
       desc: "Bebas risiko satu negara: 60% ETF Global VT (USD), 20% Emas (Safe Haven), 20% Bitcoin (BTC). 0% Keterikatan Saham Satu Negara.",
@@ -272,14 +277,16 @@ export const calculateRebalancePlan = async (
 
   // Backward compatibility alias:
   const strategyAlias: Record<string, string> = {
-    BALANCED_GROWTH: "STATELESS_GLOBAL",
+    TRI_PILLAR: "FUNDAMENTAL_TRI_PILLAR",
+    FUNDAMENTAL: "FUNDAMENTAL_TRI_PILLAR",
+    BALANCED_GROWTH: "FUNDAMENTAL_TRI_PILLAR",
     ALL_WEATHER: "ALL_WEATHER_GLOBAL",
     HIGH_ALPHA: "HIGH_ALPHA_GLOBAL",
     CONSERVATIVE: "CAPITAL_DEFENSE",
     WIDE_MOAT: "WIDE_MOAT_GLOBAL",
   };
   const resolvedStrategyKey = strategyAlias[strategy] || strategy;
-  const selectedStrategy = STRATEGIES[resolvedStrategyKey] || STRATEGIES.STATELESS_GLOBAL;
+  const selectedStrategy = STRATEGIES[resolvedStrategyKey] || STRATEGIES.FUNDAMENTAL_TRI_PILLAR;
   const targetWeights = customTargets || selectedStrategy.targets;
 
   // Aggregate current values by Asset Class
@@ -299,17 +306,17 @@ export const calculateRebalancePlan = async (
   // Calculate gaps and target amounts
   const assetTypes = ["ETF", "GOLD", "CRYPTO", "STOCK"] as const;
   const representativeTickers: Record<string, string> = {
-    ETF: "VT / VOO (Vanguard Total World / S&P 500 ETF - Pluang)",
-    GOLD: "EMAS (Emas Logam Mulia / Fisik / PAXG)",
-    CRYPTO: "BTC (Bitcoin Sovereign / Ajaib & Pluang)",
-    STOCK: "Saham Wide-Moat Global (AAPL, MSFT, GOOGL, NVDA - Pluang & Gotrade)",
+    ETF: "VT / VOO (Vanguard Total World / S&P 500 ETF - Ekuitas Produktif Dunia)",
+    GOLD: "EMAS (Emas Logam Mulia Fisik / PAXG - Bebas Risiko Pihak Ketiga)",
+    CRYPTO: "BTC (Bitcoin Sovereign - Hard Cap 21 Juta Matematis)",
+    STOCK: "Saham Wide-Moat Global (AAPL, MSFT, GOOGL - Big Tech Moat)",
   };
 
   const assetLabels: Record<string, string> = {
-    ETF: "ETF Global Dunia (VT / VOO)",
-    GOLD: "Emas Safe Haven (XAU)",
-    CRYPTO: "Kripto & Bitcoin (BTC)",
-    STOCK: "Saham Global Wide-Moat (Big Tech & Moat)",
+    ETF: "Pilar 1: Ekuitas Produktif (VT)",
+    GOLD: "Pilar 3: Jangkar Likuiditas (Emas/Kas)",
+    CRYPTO: "Pilar 2: Moneter Terdesentralisasi (BTC)",
+    STOCK: "Saham Wide-Moat Global",
   };
 
   // Find underweight classes and their deficit amounts
@@ -325,8 +332,16 @@ export const calculateRebalancePlan = async (
     totalDeficit += deficit;
   }
 
-  // Distribute freshCapital to underweight classes
-  const items: any[] = assetTypes.map((type) => {
+  // Benchmark tickers for technical entry monitoring
+  const benchmarkTickers: Record<string, string> = {
+    ETF: "VT",
+    GOLD: "GLD",
+    CRYPTO: "BTC",
+    STOCK: "AAPL",
+  };
+
+  // Distribute freshCapital to underweight classes with Technical Entry Gate & Money Management
+  const items: any[] = await Promise.all(assetTypes.map(async (type) => {
     const currentVal = currentValues[type] || 0;
     const currentPct = currentTotal > 0 ? (currentVal / currentTotal) * 100 : 0;
     const targetPct = targetWeights[type] || 0;
@@ -357,6 +372,62 @@ export const calculateRebalancePlan = async (
       status = "OVERWEIGHT";
     }
 
+    // Technical Entry & Capital Efficiency Analysis
+    let technicalEntry = {
+      status: "FAIR_DCA" as "OPTIMAL_DIP_BUY" | "FAIR_DCA" | "OVEREXTENDED_WAIT",
+      badge_label: "🟡 Akumulasi Netral (Cicil 2 Tranche)",
+      discount_from_high: 0,
+      position_52w: 50,
+      technical_note: "Harga berada di area konsolidasi wajar.",
+      tranche_advice: `Tranche 1: Masuk 50% (Rp ${Math.round(roundedInflow * 0.5).toLocaleString("id-ID")}) hari ini, simpan 50% di kas sebagai amunisi limit order.`
+    };
+
+    if (roundedInflow > 0) {
+      try {
+        const bTicker = benchmarkTickers[type];
+        const q = await marketService.getStockQuote(bTicker, type === "CRYPTO" ? "CRYPTO" : (type === "ETF" ? "ETF" : "STOCK"));
+        if (q && q.regularMarketPrice) {
+          const price = q.regularMarketPrice;
+          const high = q.fiftyTwoWeekHigh || price * 1.15;
+          const low = q.fiftyTwoWeekLow || price * 0.85;
+          const span = Math.max(1, high - low);
+          const pos = Math.min(100, Math.max(0, Number((((price - low) / span) * 100).toFixed(1))));
+          const discount = Math.max(0, Number((((high - price) / high) * 100).toFixed(1)));
+
+          if (pos <= 40 || discount >= 15) {
+            technicalEntry = {
+              status: "OPTIMAL_DIP_BUY",
+              badge_label: "🟢 Sangat Efektif Masuk (Optimal Dip Entry)",
+              discount_from_high: discount,
+              position_52w: pos,
+              technical_note: `Terdiskon ${discount}% dari puncak tahunan (posisi rentang 52W: ${pos}%). Momentum harga sangat efektif untuk akumulasi.`,
+              tranche_advice: `Tranche Tunggal (100%): Eksekusi alokasi Rp ${roundedInflow.toLocaleString("id-ID")} secara langsung.`
+            };
+          } else if (pos >= 80 || discount <= 3) {
+            technicalEntry = {
+              status: "OVEREXTENDED_WAIT",
+              badge_label: "🔴 Jenuh Beli / Overextended (Tahan Amunisi)",
+              discount_from_high: discount,
+              position_52w: pos,
+              technical_note: `Harga menempel di dekat puncak tahunan (${pos}% rentang 52W). Jangan kejar harga pucuk, waspadai potensi pullback jangka pendek.`,
+              tranche_advice: `Tranche Defensif: Masuk 30% (Rp ${Math.round(roundedInflow * 0.3).toLocaleString("id-ID")}) sekarang, simpan 70% (Rp ${Math.round(roundedInflow * 0.7).toLocaleString("id-ID")}) di kas siap serok saat koreksi.`
+            };
+          } else {
+            technicalEntry = {
+              status: "FAIR_DCA",
+              badge_label: "🟡 Akumulasi Netral (Cicil 2 Tranche)",
+              discount_from_high: discount,
+              position_52w: pos,
+              technical_note: `Harga berkonsolidasi di rentang tengah (${pos}% dari rentang 52W). Aman untuk cicil bertahap.`,
+              tranche_advice: `Tranche Bertahap: Masuk 50% (Rp ${Math.round(roundedInflow * 0.5).toLocaleString("id-ID")}) sekarang, simpan 50% (Rp ${Math.round(roundedInflow * 0.5).toLocaleString("id-ID")}) untuk limit order support.`
+            };
+          }
+        }
+      } catch {
+        // Fallback default technicalEntry
+      }
+    }
+
     let recommended_action = `Pertahankan alokasi wajar.`;
     if (targetPct === 0) {
       recommended_action = currentVal > 0
@@ -380,10 +451,16 @@ export const calculateRebalancePlan = async (
       recommended_inflow_idr: roundedInflow,
       recommended_inflow_percent: Number(allocatedInflowPct.toFixed(1)),
       recommended_action,
+      technical_entry: technicalEntry,
     };
-  });
+  }));
 
-  const summaryAdvice = `Dengan menyalurkan dana segar Rp ${freshCapital.toLocaleString("id-ID")} ke aset yang Underweight (terutama ${items.filter(i => i.recommended_inflow_idr > 0).map(i => i.label.split(" ")[0]).join(" dan ")}), portofolio Anda akan lebih seimbang secara organik tanpa perlu menjual aset yang sedang floating loss.`;
+  let summaryAdvice = `Dengan menyalurkan dana segar Rp ${freshCapital.toLocaleString("id-ID")} ke aset yang Underweight (terutama ${items.filter(i => i.recommended_inflow_idr > 0).map(i => i.label.split(" ")[0]).join(" dan ")}), portofolio Anda akan lebih seimbang secara organik tanpa perlu menjual aset yang sedang floating loss.`;
+
+  if (resolvedStrategyKey === "FUNDAMENTAL_TRI_PILLAR") {
+    const underweights = items.filter(i => i.recommended_inflow_idr > 0).map(i => i.label);
+    summaryAdvice = `🏛️ **Eksekusi Fundamental Bebas Volatilitas:** Alokasikan dana segar Rp ${freshCapital.toLocaleString("id-ID")} murni untuk menutup defisit pilar yang tertinggal (${underweights.length > 0 ? underweights.join(", ") : "seluruh pilar berimbang"}). Abaikan fluktuasi grafik harga harian—fokus utama adalah memperkokoh 3 pilar: mesin laba riil korporasi dunia (VT), kelangkaan moneter 21M (BTC), dan solvabilitas tanpa risiko mitra (Emas/Kas) guna mencegah kehancuran modal permanen dan pengenceran nilai tukar fiat.`;
+  }
 
   return {
     portfolio_id: portfolioId,

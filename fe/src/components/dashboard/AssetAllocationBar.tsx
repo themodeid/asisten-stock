@@ -57,7 +57,7 @@ export default function AssetAllocationBar({
   const safeTotal = totalValue > 0 ? totalValue : 1;
 
   return (
-    <div className="rounded-2xl bg-white/90 dark:bg-zinc-900/70 border border-zinc-200/80 dark:border-white/[0.06] p-5 shadow-sm dark:shadow-lg backdrop-blur-xl space-y-4 glass-card">
+    <div className="rounded-2xl bg-white/90 dark:bg-[#0e1322]/60 dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] border border-zinc-200/80 dark:border-white/[0.06] p-5 shadow-sm backdrop-blur-xl space-y-4 glass-card">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-600/10 border border-indigo-500/30 flex items-center justify-center text-indigo-500 dark:text-indigo-400">
@@ -82,7 +82,7 @@ export default function AssetAllocationBar({
       </div>
 
       {/* Segmented Multi-Color Progress Bar (Pluang Style) */}
-      <div className="w-full h-3 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-white/[0.04] overflow-hidden flex p-0.5 gap-0.5">
+      <div className="w-full h-3 rounded-full bg-zinc-100 dark:bg-black/50 dark:shadow-inner border border-zinc-200 dark:border-white/[0.08] overflow-hidden flex p-0.5 gap-0.5">
         {allocations.map((alloc) => {
           const cfg = colorMap[alloc.asset_type] || colorMap.STOCK;
           const widthPct = Math.max(2, alloc.percentage);
@@ -104,7 +104,7 @@ export default function AssetAllocationBar({
           return (
             <div
               key={alloc.asset_type}
-              className="p-3 rounded-xl bg-zinc-100/90 dark:bg-zinc-850/80 border border-zinc-200/80 dark:border-white/[0.06] flex flex-col justify-between hover:bg-zinc-200/80 dark:hover:bg-zinc-800/90 transition shadow-sm"
+              className="p-3 rounded-xl bg-zinc-100/90 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] border border-zinc-200/80 dark:border-white/[0.06] dark:hover:border-white/[0.14] dark:backdrop-blur-md flex flex-col justify-between hover:bg-zinc-200/80 transition shadow-sm"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-1.5">

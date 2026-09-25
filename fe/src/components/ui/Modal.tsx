@@ -30,20 +30,20 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xl animate-fadeIn"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl animate-scaleUp overflow-hidden"
+        className="bg-[#0c101d]/90 backdrop-blur-2xl border border-white/[0.12] rounded-3xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-[0_25px_70px_rgba(0,0,0,0.8),inset_0_1px_0_0_rgba(255,255,255,0.12)] animate-scaleUp overflow-hidden"
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 sm:py-4 border-b border-zinc-800 shrink-0 bg-zinc-900">
+        <div className="flex items-center justify-between px-5 sm:px-6 py-3.5 sm:py-4 border-b border-white/[0.07] shrink-0 bg-white/[0.02]">
           <h3 className="text-sm sm:text-base font-semibold text-zinc-100">{title}</h3>
           <button
             type="button"
             onClick={onClose}
             title="Tutup (Esc)"
-            className="text-zinc-400 hover:text-white transition p-1.5 rounded-lg hover:bg-zinc-800 border border-transparent hover:border-zinc-700"
+            className="text-zinc-400 hover:text-white transition p-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-transparent hover:border-white/[0.08]"
           >
             <X className="w-5 h-5" />
           </button>
