@@ -15,6 +15,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Asisten+Stock - AI Personal Stock Portfolio & Analyst",
   description: "Asisten AI Pengelola Portofolio & Analisa Saham Multi-Channel",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon-192.png",
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

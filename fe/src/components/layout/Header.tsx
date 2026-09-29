@@ -6,6 +6,7 @@ import { Menu, Search, User, Sun, Moon, Lock } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import GlobalSearchModal from "@/components/search/GlobalSearchModal";
+import BrandLogo from "@/components/ui/BrandLogo";
 
 interface HeaderProps {
   title?: string;
@@ -53,9 +54,7 @@ export default function Header({ title = "Asisten Stock & Crypto", onMenuClick }
 
         {/* Brand indicator on small screens */}
         <div className="flex items-center gap-2.5 min-w-0 max-w-full">
-          <div className="w-7 h-7 rounded-lg bg-blue-600 font-black text-white text-xs flex items-center justify-center lg:hidden shrink-0 shadow-sm shadow-blue-500/30">
-            AS
-          </div>
+          <BrandLogo size={28} className="lg:hidden" />
           <div className="min-w-0 flex-1">
             <h2 className="text-xs sm:text-sm md:text-base font-bold text-zinc-900 dark:text-slate-100 truncate tracking-tight max-w-[150px] sm:max-w-[220px] md:max-w-[320px] lg:max-w-none">
               {title}

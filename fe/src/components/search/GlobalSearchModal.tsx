@@ -14,6 +14,8 @@ import {
   Building2,
   Layers,
   ArrowRight,
+  Landmark,
+  Lightbulb,
 } from "lucide-react";
 
 export interface SearchResultItem {
@@ -139,25 +141,29 @@ export default function GlobalSearchModal({
         {/* Market Filter Chips */}
         <div className="px-4 py-2.5 border-b border-white/[0.06] bg-white/[0.01] flex items-center gap-2 overflow-x-auto no-scrollbar text-xs">
           {[
-            { key: "ALL", label: "Semua Aset" },
-            { key: "US", label: "🇺🇸 Saham AS" },
-            { key: "IDX", label: "🇮🇩 Saham IDX" },
-            { key: "GLOBAL_ETF", label: "🌐 Global ETF" },
-            { key: "CRYPTO", label: "🪙 Kripto" },
-          ].map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => setMarketFilter(f.key as any)}
-              className={`px-3 py-1.5 rounded-full whitespace-nowrap transition border text-xs font-semibold ${
-                marketFilter === f.key
-                  ? "bg-white text-zinc-950 border-white shadow-sm font-bold"
-                  : "bg-zinc-900 border-white/[0.06] text-zinc-400 hover:text-white"
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+            { key: "ALL", label: "Semua Aset", icon: Layers },
+            { key: "US", label: "Saham AS", icon: Landmark },
+            { key: "IDX", label: "Saham IDX", icon: Building2 },
+            { key: "GLOBAL_ETF", label: "Global ETF", icon: Globe },
+            { key: "CRYPTO", label: "Kripto", icon: Coins },
+          ].map((f) => {
+            const IconComp = f.icon;
+            return (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setMarketFilter(f.key as any)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full whitespace-nowrap transition border text-xs font-semibold ${
+                  marketFilter === f.key
+                    ? "bg-white text-zinc-950 border-white shadow-sm font-bold"
+                    : "bg-zinc-900 border-white/[0.06] text-zinc-400 hover:text-white"
+                }`}
+              >
+                <IconComp className="w-3.5 h-3.5" />
+                {f.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Results List */}
@@ -183,14 +189,16 @@ export default function GlobalSearchModal({
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     {/* Market Icon Badge */}
-                    <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-sm font-bold shrink-0">
-                      {item.market === "US"
-                        ? "🇺🇸"
-                        : item.market === "IDX"
-                        ? "🇮🇩"
-                        : item.market === "CRYPTO"
-                        ? "🪙"
-                        : "🌐"}
+                    <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/[0.08] flex items-center justify-center shrink-0">
+                      {item.market === "US" ? (
+                        <Landmark className="w-4 h-4 text-blue-400" />
+                      ) : item.market === "IDX" ? (
+                        <Building2 className="w-4 h-4 text-rose-400" />
+                      ) : item.market === "CRYPTO" ? (
+                        <Coins className="w-4 h-4 text-amber-400" />
+                      ) : (
+                        <Globe className="w-4 h-4 text-emerald-400" />
+                      )}
                     </div>
 
                     <div className="min-w-0">
@@ -272,7 +280,10 @@ export default function GlobalSearchModal({
 
         {/* Footer Hint */}
         <div className="px-4 py-2.5 bg-white/[0.02] border-t border-white/[0.06] flex items-center justify-between text-[11px] text-zinc-500">
-          <span>💡 Ketik nama atau kode emiten luar/dalam negeri</span>
+          <span className="flex items-center gap-1.5">
+            <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            Ketik nama atau kode emiten luar/dalam negeri
+          </span>
           <span>Bursa US, Global ETF, Crypto & IDX</span>
         </div>
       </div>

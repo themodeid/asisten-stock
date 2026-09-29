@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 import { Lock, User, Eye, EyeOff, ShieldCheck, ArrowRight, Sparkles, AlertCircle, Sun, Moon } from "lucide-react";
+import BrandLogo from "@/components/ui/BrandLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -70,8 +71,8 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md bg-white/95 dark:bg-[#0a0e19]/75 backdrop-blur-2xl border border-zinc-200/90 dark:border-white/[0.12] rounded-3xl p-8 sm:p-10 shadow-xl dark:shadow-[0_25px_80px_rgba(0,0,0,0.85),inset_0_1px_1px_rgba(255,255,255,0.15)] transition-all">
         {/* Brand Header */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-gradient-to-tr dark:from-emerald-500/20 dark:to-emerald-400/5 border border-emerald-300 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-inner">
-            <Lock className="w-7 h-7" />
+          <div className="inline-flex items-center justify-center">
+            <BrandLogo size={60} className="shadow-xl shadow-emerald-500/10" />
           </div>
 
           <div>

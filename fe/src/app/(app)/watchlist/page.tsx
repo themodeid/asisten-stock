@@ -22,6 +22,10 @@ import {
   Filter,
   RefreshCw,
   ExternalLink,
+  Landmark,
+  Building2,
+  Globe,
+  Coins,
 } from "lucide-react";
 import { AssetType } from "@/types";
 
@@ -244,24 +248,28 @@ export default function WatchlistPage() {
             {/* Watchlist Market Filters */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
               {[
-                { key: "ALL", label: `Semua Aset (${watchlist.length})` },
-                { key: "US", label: "🇺🇸 Saham AS & Global" },
-                { key: "IDX", label: "🇮🇩 Saham IDX" },
-                { key: "CRYPTO", label: "🪙 Kripto" },
-              ].map((f) => (
-                <button
-                  key={f.key}
-                  type="button"
-                  onClick={() => setWatchlistCategory(f.key as any)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition border ${
-                    watchlistCategory === f.key
-                      ? "bg-white text-zinc-950 border-white font-bold shadow-sm"
-                      : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white"
-                  }`}
-                >
-                  {f.label}
-                </button>
-              ))}
+                { key: "ALL", label: `Semua Aset (${watchlist.length})`, icon: Layers },
+                { key: "US", label: "Saham AS & Global", icon: Landmark },
+                { key: "IDX", label: "Saham IDX", icon: Building2 },
+                { key: "CRYPTO", label: "Kripto", icon: Coins },
+              ].map((f) => {
+                const IconComp = f.icon;
+                return (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => setWatchlistCategory(f.key as any)}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition border ${
+                      watchlistCategory === f.key
+                        ? "bg-white text-zinc-950 border-white font-bold shadow-sm"
+                        : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    <IconComp className="w-3.5 h-3.5" />
+                    {f.label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Watchlist Grid */}
@@ -395,24 +403,28 @@ export default function WatchlistPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-zinc-800/80">
                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
                   {[
-                    { key: "ALL", label: "SEMUA INSTRUMEN" },
-                    { key: "STOCK_US", label: "🇺🇸 SAHAM AS" },
-                    { key: "STOCK", label: "🇮🇩 SAHAM IDX" },
-                    { key: "ETF", label: "🌐 GLOBAL ETF" },
-                    { key: "CRYPTO", label: "🪙 KRIPTO" },
-                  ].map((tab) => (
-                    <button
-                      key={tab.key}
-                      onClick={() => setRadarFilterAsset(tab.key as any)}
-                      className={`px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap ${
-                        radarFilterAsset === tab.key
-                          ? "bg-zinc-100 text-zinc-900 font-bold shadow-sm"
-                          : "bg-zinc-850 border border-zinc-800 text-zinc-400 hover:text-zinc-200"
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
+                    { key: "ALL", label: "SEMUA INSTRUMEN", icon: Layers },
+                    { key: "STOCK_US", label: "SAHAM AS", icon: Landmark },
+                    { key: "STOCK", label: "SAHAM IDX", icon: Building2 },
+                    { key: "ETF", label: "GLOBAL ETF", icon: Globe },
+                    { key: "CRYPTO", label: "KRIPTO", icon: Coins },
+                  ].map((tab) => {
+                    const IconComp = tab.icon;
+                    return (
+                      <button
+                        key={tab.key}
+                        onClick={() => setRadarFilterAsset(tab.key as any)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition whitespace-nowrap ${
+                          radarFilterAsset === tab.key
+                            ? "bg-zinc-100 text-zinc-900 font-bold shadow-sm"
+                            : "bg-zinc-850 border border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                        }`}
+                      >
+                        <IconComp className="w-3.5 h-3.5" />
+                        {tab.label}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-300 select-none">
@@ -604,22 +616,26 @@ export default function WatchlistPage() {
               <div className="flex flex-wrap items-center gap-1.5 mt-2">
                 <span className="text-[10px] text-zinc-500 mr-1">Rekomendasi Cepat:</span>
                 {[
-                  { sym: "AAPL", label: "🇺🇸 Apple" },
-                  { sym: "NVDA", label: "🇺🇸 Nvidia" },
-                  { sym: "TSLA", label: "🇺🇸 Tesla" },
-                  { sym: "VT", label: "🌐 Global ETF" },
-                  { sym: "BTC", label: "🪙 Bitcoin" },
-                  { sym: "BBCA", label: "🇮🇩 BCA" },
-                ].map((s) => (
-                  <button
-                    key={s.sym}
-                    type="button"
-                    onClick={() => setTicker(s.sym)}
-                    className="px-2 py-0.5 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-750 text-[10px] transition"
-                  >
-                    {s.label}
-                  </button>
-                ))}
+                  { sym: "AAPL", label: "Apple", icon: Landmark },
+                  { sym: "NVDA", label: "Nvidia", icon: Landmark },
+                  { sym: "TSLA", label: "Tesla", icon: Landmark },
+                  { sym: "VT", label: "Global ETF", icon: Globe },
+                  { sym: "BTC", label: "Bitcoin", icon: Coins },
+                  { sym: "BBCA", label: "BCA", icon: Building2 },
+                ].map((s) => {
+                  const IconComp = s.icon;
+                  return (
+                    <button
+                      key={s.sym}
+                      type="button"
+                      onClick={() => setTicker(s.sym)}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-750 text-[10px] transition"
+                    >
+                      <IconComp className="w-2.5 h-2.5 text-zinc-400" />
+                      {s.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

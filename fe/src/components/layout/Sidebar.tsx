@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
+import BrandLogo from "@/components/ui/BrandLogo";
 
 export const navigation = [
   { name: "Portofolio", href: "/portfolio", icon: LayoutDashboard },
@@ -48,9 +49,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-zinc-200/80 dark:border-white/[0.08]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-lg shadow-blue-500/25 ring-1 ring-blue-400/30">
-              AS
-            </div>
+            <BrandLogo size={32} />
             <div>
               <h1 className="font-bold text-zinc-900 dark:text-zinc-100 text-sm tracking-tight leading-none flex items-center gap-1.5">
                 Asisten+Stock

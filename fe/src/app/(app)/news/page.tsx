@@ -11,6 +11,11 @@ import {
   ExternalLink,
   Clock,
   Filter,
+  Flame,
+  Globe,
+  Coins,
+  Landmark,
+  ShieldCheck,
 } from "lucide-react";
 import { api } from "@/services/api";
 
@@ -29,12 +34,12 @@ interface NewsItem {
 }
 
 const CATEGORIES = [
-  { label: "🔥 Semua Intelijen Global", value: "ALL" },
-  { label: "⚡ Hot Narratives & AI Disruptions", value: "HOT" },
-  { label: "🌍 Global Equities & Moats", value: "GLOBAL_EQUITIES" },
-  { label: "🪙 Bitcoin & Crypto ETF", value: "CRYPTO" },
-  { label: "🏛️ Central Banks & The Fed", value: "MACRO_GLOBAL" },
-  { label: "🥇 Safe-Haven & Gold", value: "SAFE_HAVEN" },
+  { label: "Semua Intelijen Global", value: "ALL", icon: Newspaper },
+  { label: "Hot Narratives & AI Disruptions", value: "HOT", icon: Flame },
+  { label: "Global Equities & Moats", value: "GLOBAL_EQUITIES", icon: Globe },
+  { label: "Bitcoin & Crypto ETF", value: "CRYPTO", icon: Coins },
+  { label: "Central Banks & The Fed", value: "MACRO_GLOBAL", icon: Landmark },
+  { label: "Safe-Haven & Gold", value: "SAFE_HAVEN", icon: ShieldCheck },
 ];
 
 export default function NewsPage() {
@@ -120,16 +125,18 @@ export default function NewsPage() {
           <Filter className="w-3.5 h-3.5 text-blue-400 shrink-0 ml-1" />
           {CATEGORIES.map((cat) => {
             const isActive = selectedCategory === cat.value;
+            const IconComp = cat.icon;
             return (
               <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-mono font-semibold whitespace-nowrap transition-all border ${
+                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono font-semibold whitespace-nowrap transition-all border ${
                   isActive
                     ? "bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/25 ring-1 ring-blue-400/40 font-bold"
                     : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
                 }`}
               >
+                <IconComp className="w-3.5 h-3.5 shrink-0" />
                 {cat.label}
               </button>
             );

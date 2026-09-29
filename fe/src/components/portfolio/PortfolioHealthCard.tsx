@@ -16,6 +16,8 @@ import {
   Shield,
   Zap,
   HelpCircle,
+  TrendingDown,
+  Lightbulb,
 } from "lucide-react";
 
 interface PortfolioHealthCardProps {
@@ -428,13 +430,23 @@ export default function PortfolioHealthCard({
                     {/* Top Action Badge & Asset Name */}
                     <div className="flex items-center justify-between">
                       <span
-                        className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border ${
+                        className={`inline-flex items-center gap-1.5 text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border ${
                           isReduce
                             ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
                             : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
                         }`}
                       >
-                        {isReduce ? "✂️ Pangkas Sebagian (Trim)" : "🛡️ Tambah Alokasi (Diversifikasi)"}
+                        {isReduce ? (
+                          <>
+                            <TrendingDown className="w-3 h-3" />
+                            Pangkas Sebagian (Trim)
+                          </>
+                        ) : (
+                          <>
+                            <ShieldCheck className="w-3 h-3" />
+                            Tambah Alokasi (Diversifikasi)
+                          </>
+                        )}
                       </span>
                       <span className="text-xs font-bold text-white">
                         {act.asset_type}
@@ -476,8 +488,9 @@ export default function PortfolioHealthCard({
               );
             })
           ) : (
-            <div className="col-span-2 py-8 text-center text-xs text-zinc-400">
-              🎉 Portofolio Anda sudah dalam kondisi prima dan seimbang!
+            <div className="col-span-2 py-8 text-center text-xs text-zinc-400 flex items-center justify-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              Portofolio Anda sudah dalam kondisi prima dan seimbang!
             </div>
           )}
         </div>
@@ -486,7 +499,10 @@ export default function PortfolioHealthCard({
         <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-start gap-3 text-xs text-blue-200/90 leading-relaxed">
           <Zap className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
           <div>
-            <strong className="text-white block mb-0.5">💡 Tips Tanpa Harus Menjual Kripto Anda:</strong>
+            <strong className="text-white flex items-center gap-1.5 mb-0.5">
+              <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
+              Tips Tanpa Harus Menjual Kripto Anda:
+            </strong>
             Anda tidak harus menjual Bitcoin Anda jika yakin harganya akan naik lagi. Cukup alokasikan modal baru (fresh capital berikutnya) ke aset Emas atau Kas. Skor kesehatan portofolio Anda akan otomatis naik ke zona aman tanpa memicu pajak penjualan!
           </div>
         </div>

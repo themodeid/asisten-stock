@@ -44,6 +44,10 @@ import {
   Eye,
   EyeOff,
   MoreVertical,
+  Landmark,
+  Zap,
+  Briefcase,
+  Lightbulb,
 } from "lucide-react";
 import { AssetType } from "@/types";
 import PortfolioChartCard from "@/components/portfolio/PortfolioChartCard";
@@ -1452,7 +1456,7 @@ export default function PortfolioPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1">
                   <div className="p-3 rounded-lg bg-slate-950/70 border border-white/[0.08] space-y-1">
                     <p className="font-semibold text-blue-300 flex items-center gap-1.5">
-                      <span>🏛️</span> Pilar 1: Ekuitas Produktif (40%)
+                      <Landmark className="w-4 h-4 text-blue-400 shrink-0" /> Pilar 1: Ekuitas Produktif (40%)
                     </p>
                     <p className="text-[11px] text-slate-400 leading-normal">
                       <strong>Mesin Pertumbuhan:</strong> Laba & Free Cash Flow ribuan korporasi dunia yang terus bertumbuh (VT / S&P 500).
@@ -1460,7 +1464,7 @@ export default function PortfolioPage() {
                   </div>
                   <div className="p-3 rounded-lg bg-slate-950/70 border border-white/[0.08] space-y-1">
                     <p className="font-semibold text-amber-300 flex items-center gap-1.5">
-                      <span>⚡</span> Pilar 2: Moneter Digital (40%)
+                      <Zap className="w-4 h-4 text-amber-400 shrink-0" /> Pilar 2: Moneter Digital (40%)
                     </p>
                     <p className="text-[11px] text-slate-400 leading-normal">
                       <strong>Penyimpan Nilai Mutlak:</strong> Kelangkaan absolut (hard cap 21 juta BTC matematis), bebas risiko devaluasi fiat.
@@ -1468,7 +1472,7 @@ export default function PortfolioPage() {
                   </div>
                   <div className="p-3 rounded-lg bg-slate-950/70 border border-white/[0.08] space-y-1">
                     <p className="font-semibold text-emerald-300 flex items-center gap-1.5">
-                      <span>🛡️</span> Pilar 3: Jangkar Solvabilitas (20%)
+                      <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" /> Pilar 3: Jangkar Solvabilitas (20%)
                     </p>
                     <p className="text-[11px] text-slate-400 leading-normal">
                       <strong>Pertahanan Likuiditas:</strong> Emas fisik & kas bebas risiko pihak ketiga (Zero Counterparty Risk) saat sistem kredit macet.
@@ -1738,8 +1742,9 @@ export default function PortfolioPage() {
                                     {tech.technical_note}
                                   </p>
                                   {item.recommended_inflow_idr > 0 && (
-                                    <p className="text-[10px] font-mono text-blue-300 font-semibold bg-blue-950/40 p-1.5 rounded border border-blue-800/50">
-                                      💼 {tech.tranche_advice}
+                                    <p className="text-[10px] font-mono text-blue-300 font-semibold bg-blue-950/40 p-1.5 rounded border border-blue-800/50 flex items-center gap-1.5">
+                                      <Briefcase className="w-3 h-3 text-blue-400 shrink-0" />
+                                      {tech.tranche_advice}
                                     </p>
                                   )}
                                 </div>
@@ -2800,8 +2805,9 @@ export default function PortfolioPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="text-[10px] text-zinc-400">
-                      🪙 Kuantitas koin desimal otomatis dihitung: <strong className="text-zinc-200">{calibQty} unit</strong> (berdasarkan harga bursa terkini).
+                    <div className="text-[10px] text-zinc-400 flex items-center gap-1.5">
+                      <Coins className="w-3 h-3 text-amber-400 shrink-0" />
+                      <span>Kuantitas koin desimal otomatis dihitung: <strong className="text-zinc-200">{calibQty} unit</strong> (berdasarkan harga bursa terkini).</span>
                     </div>
                   </div>
                 )}
@@ -3465,8 +3471,9 @@ export default function PortfolioPage() {
                   className="w-full bg-black/40 backdrop-blur-md border border-white/[0.09] focus:border-emerald-500/60 focus:border-emerald-500 rounded-lg pl-9 pr-3 py-2 text-zinc-100 text-xs focus:outline-none"
                 />
               </div>
-              <p className="text-[10px] text-zinc-500 mt-1">
-                💡 <em>Bukan nilai aset/koin.</em> Isi <strong>0</strong> jika semua uang di platform ini sudah terbelanjakan menjadi koin/saham.
+              <p className="text-[10px] text-zinc-500 mt-1 flex items-center gap-1.5">
+                <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span><em>Bukan nilai aset/koin.</em> Isi <strong>0</strong> jika semua uang di platform ini sudah terbelanjakan menjadi koin/saham.</span>
               </p>
             </div>
 
