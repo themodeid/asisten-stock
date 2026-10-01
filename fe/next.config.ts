@@ -9,10 +9,11 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   async rewrites() {
+    const backendTarget = process.env.INTERNAL_API_URL || "http://localhost:3050/api";
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:3050/api/:path*",
+        destination: `${backendTarget}/:path*`,
       },
     ];
   },

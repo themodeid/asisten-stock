@@ -12,7 +12,9 @@ let socketInstance: Socket | null = null;
 function getSocket(): Socket {
   if (!socketInstance) {
     const backendUrl =
-      typeof window !== "undefined" && window.location.hostname !== "localhost"
+      typeof window !== "undefined" && window.location.protocol === "https:"
+        ? window.location.origin
+        : typeof window !== "undefined" && window.location.hostname !== "localhost"
         ? `http://${window.location.hostname}:3050`
         : "http://localhost:3050";
 

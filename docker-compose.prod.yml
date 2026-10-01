@@ -1,0 +1,102 @@
+# =============================================================================
+# ASISTEN+STOCK - PRODUCTION DOCKER COMPOSE
+# Standar Keamanan Enterprise:
+# - Zero DB port exposure ke internet publik
+# - Reverse Proxy Caddy dengan otomatisasi Let's Encrypt HTTPS
+# - Restart policy: always
+# - Resource limits RAM untuk stabilitas VPS
+# =============================================================================
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: asisten-postgres-prod
+    restart: always
+    env_file:
+      - .env.production
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-asisten_stock_db}
+      POSTGRES_USER: ${POSTGRES_USER:-asisten_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - asisten_postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  backend:
+    build:
+      context: ./be
+      dockerfile: Dockerfile
+    container_name: asisten-backend-prod
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env.production
+    environment:
+      NODE_ENV: production
+      PORT: 3050
+      DATABASE_URL: postgresql://${POSTGRES_USER:-asisten_admin}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-asisten_stock_db}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_USE_POLLING: ${TELEGRAM_USE_POLLING:-true}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      JWT_SECRET: ${JWT_SECRET}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  frontend:
+    build:
+      context: ./fe
+      dockerfile: dockerfile
+    container_name: asisten-frontend-prod
+    restart: always
+    depends_on:
+      backend:
+        condition: service_started
+    env_file:
+      - .env.production
+    environment:
+      NODE_ENV: production
+      PORT: 3051
+      HOSTNAME: 0.0.0.0
+      INTERNAL_API_URL: http://backend:3050/api
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: asisten-caddy-prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - asisten_caddy_data:/data
+      - asisten_caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+volumes:
+  asisten_postgres_prod_data:
+  asisten_caddy_data:
+  asisten_caddy_config:

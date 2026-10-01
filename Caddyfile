@@ -1,0 +1,22 @@
+# =============================================================================
+# Caddyfile - Reverse Proxy & Automatic HTTPS Let's Encrypt
+# =============================================================================
+
+{$APP_DOMAIN:localhost} {
+    encode zstd gzip
+
+    # 1. Route WebSocket (Socket.IO) to Backend
+    handle /socket.io/* {
+        reverse_proxy backend:3050
+    }
+
+    # 2. Route REST API & Swagger to Backend
+    handle /api/* {
+        reverse_proxy backend:3050
+    }
+
+    # 3. Route All Web Pages & Static Assets to Next.js Frontend
+    handle {
+        reverse_proxy frontend:3051
+    }
+}

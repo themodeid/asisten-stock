@@ -193,6 +193,30 @@ async function startServer(): Promise<void> {
         websocket: `ws://localhost:${ENV.PORT}`,
       }, "🚀 Asisten+Stock Backend is up and running!");
     });
+
+    // 7. GRACEFUL SHUTDOWN HANDLERS
+    const gracefulShutdown = async (signal: string) => {
+      logger.info(`🛑 Received ${signal}. Starting graceful shutdown...`);
+      server.close(async () => {
+        logger.info("🔌 HTTP & WebSocket connections drained.");
+        try {
+          await pool.end();
+          logger.info("📦 PostgreSQL connection pool closed.");
+          process.exit(0);
+        } catch (err) {
+          logger.error({ err }, "❌ Error closing PostgreSQL pool.");
+          process.exit(1);
+        }
+      });
+
+      setTimeout(() => {
+        logger.error("⚠️ Forced shutdown initiated due to timeout.");
+        process.exit(1);
+      }, 10000).unref();
+    };
+
+    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
   } catch (error) {
     logger.error({ err: error }, "❌ Server failed to start");
     logger.info("💡 Tip: Start PostgreSQL using 'npm run docker:db' or check your DATABASE_URL in .env");
