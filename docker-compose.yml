@@ -20,6 +20,21 @@ services:
       retries: 5
       start_period: 10s
 
+  redis:
+    image: redis:7-alpine
+    container_name: ${REDIS_CONTAINER_NAME:-asisten-redis}
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - asisten_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
   backend:
     build:
       context: ./be
@@ -33,6 +48,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
     environment:
@@ -40,6 +57,8 @@ services:
       DATABASE_URL: ${DATABASE_URL_DOCKER}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      REDIS_URL: redis://redis:6379
+      USE_REDIS: "true"
     volumes:
       - ./be:/app
       - /app/node_modules
@@ -66,3 +85,4 @@ services:
 
 volumes:
   asisten_postgres_data:
+  asisten_redis_data:
