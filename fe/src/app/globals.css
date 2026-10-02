@@ -3,99 +3,122 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc;
-  --foreground: #09090b;
-  --card-bg: rgba(255, 255, 255, 0.9);
-  --card-border: rgba(0, 0, 0, 0.08);
-  --card-border-hover: rgba(0, 0, 0, 0.16);
-  --scrollbar-track: #f1f5f9;
-  --scrollbar-thumb: #cbd5e1;
+  --background: #ffffff;
+  --foreground: #1f2328;
+  --card-bg: #f6f8fa;
+  --card-border: #d0d7de;
+  --card-border-hover: #0969da;
+  --scrollbar-track: #ffffff;
+  --scrollbar-thumb: #d0d7de;
 }
 
 html.dark {
-  --background: #07090e; /* Obsidian Base */
-  --foreground: #f1f5f9;
-  --card-bg: rgba(14, 19, 34, 0.60);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-border-hover: rgba(255, 255, 255, 0.20);
-  --scrollbar-track: #07090e;
-  --scrollbar-thumb: #1a1f2e;
+  --background: #0d1117; /* GitHub Dark Canvas Default */
+  --foreground: #f0f6fc; /* GitHub Dark FG Default */
+  --card-bg: #161b22;    /* GitHub Dark Canvas Subtle / Box */
+  --card-border: #30363d; /* GitHub Dark Border Default */
+  --card-border-hover: #8b949e; /* GitHub Dark Border Hover */
+  --scrollbar-track: #0d1117;
+  --scrollbar-thumb: #30363d;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   -webkit-font-smoothing: antialiased;
-  background-attachment: fixed;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 html.dark body {
-  background-image:
-    radial-gradient(ellipse 80% 60% at 0% 0%, rgba(59, 130, 246, 0.06) 0px, transparent 50%),
-    radial-gradient(ellipse 60% 50% at 100% 10%, rgba(16, 185, 129, 0.04) 0px, transparent 50%),
-    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(139, 92, 246, 0.03) 0px, transparent 50%);
+  background-color: #0d1117;
 }
 
 html.light body {
-  background-image:
-    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.04) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.025) 0px, transparent 50%);
+  background-color: #ffffff;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   Dark Obsidian Glassmorphism — Design System Utilities
+   GitHub Primer Design System Utilities
    ═══════════════════════════════════════════════════════════════ */
 
-/* Base Glass Card */
-.glass-card {
+/* GitHub Box Surface */
+.glass-card, .gh-box {
   background: var(--card-bg);
-  backdrop-filter: blur(24px) saturate(1.2);
-  -webkit-backdrop-filter: blur(24px) saturate(1.2);
   border: 1px solid var(--card-border);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: none;
 }
 
-/* Glass Card Hover */
+/* GitHub Box Hover */
 .glass-card-hover {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .glass-card-hover:hover {
   border-color: var(--card-border-hover);
-  transform: translateY(-2px);
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: none;
 }
 
 html.dark .glass-card-hover:hover {
-  box-shadow:
-    0 16px 48px -8px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: none;
 }
 
-/* Glass Input Fields */
-.glass-input {
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+/* GitHub Inset Input Fields */
+.glass-input, .gh-input {
+  background: #0d1117;
+  border: 1px solid var(--card-border);
+  color: var(--foreground);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.glass-input:focus {
-  border-color: rgba(16, 185, 129, 0.6);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+html.light .glass-input, html.light .gh-input {
+  background: #f6f8fa;
+}
+
+.glass-input:focus, .gh-input:focus {
+  border-color: #58a6ff;
+  box-shadow: 0 0 0 1px #58a6ff;
   outline: none;
 }
 
 /* Number display with tabular nums for professional alignment */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* GitHub Iconic Buttons */
+.gh-btn-primary {
+  background-color: #238636;
+  color: #ffffff;
+  border: 1px solid rgba(240, 246, 252, 0.1);
+  box-shadow: 0 1px 0 rgba(27, 31, 36, 0.1);
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+.gh-btn-primary:hover {
+  background-color: #2ea043;
+}
+
+.gh-btn-secondary {
+  background-color: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.gh-btn-secondary:hover {
+  background-color: #30363d;
+  border-color: #8b949e;
+  color: #f0f6fc;
+}
+
+/* GitHub Underline Tab Active Indicator */
+.gh-tab-active {
+  border-bottom: 2px solid #f78166;
+  color: #f0f6fc;
+  font-weight: 600;
 }
 
 /* Hide scrollbar utility */
@@ -107,10 +130,10 @@ html.dark .glass-card-hover:hover {
   scrollbar-width: none;
 }
 
-/* Custom modern scrollbars */
+/* Custom GitHub Scrollbars */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -119,9 +142,9 @@ html.dark .glass-card-hover:hover {
 
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: 9999px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  filter: brightness(1.3);
+  background: #484f58;
 }

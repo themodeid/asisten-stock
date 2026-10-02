@@ -9,7 +9,7 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   viewportFit: "cover",
-  themeColor: "#09090b",
+  themeColor: "#0d1117",
 };
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" className="dark" suppressHydrationWarning>
-      <body className="bg-background text-foreground min-h-screen antialiased selection:bg-emerald-500 selection:text-white transition-colors duration-200">
+      <body className="bg-background text-foreground min-h-screen antialiased selection:bg-[#58a6ff] selection:text-[#f0f6fc] transition-colors duration-200">
         <ThemeProvider>
           <AuthProvider>
             {children}

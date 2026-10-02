@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -81,6 +81,15 @@ export default function CashflowPage() {
   const [wallets, setWallets] = useState<WalletOption[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Period filtering: defaults to PREVIOUS (September 2026) to immediately show last month's expenses
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1; // 10
+  const currentYear = now.getFullYear();   // 2026
+  const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1; // 9
+  const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear; // 2026
+
+  const [periodMode, setPeriodMode] = useState<"PREVIOUS" | "CURRENT" | "ALL">("PREVIOUS");
+
   // Filters
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -109,21 +118,28 @@ export default function CashflowPage() {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3050/api";
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (targetMode: "PREVIOUS" | "CURRENT" | "ALL" = periodMode) => {
     setLoading(true);
     try {
       const headers: Record<string, string> = {};
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
+      let sumUrl = `${API_BASE}/cashflow/summary`;
+      if (targetMode === "CURRENT") {
+        sumUrl += `?month=${currentMonth}&year=${currentYear}`;
+      } else if (targetMode === "PREVIOUS") {
+        sumUrl += `?month=${prevMonth}&year=${prevYear}`;
+      }
+
       // Fetch summary
-      const sumRes = await fetch(`${API_BASE}/cashflow/summary`, { headers });
+      const sumRes = await fetch(sumUrl, { headers });
       const sumJson = await sumRes.json();
       if (sumJson.status === "success") {
         setSummary(sumJson.data);
       }
 
-      // Fetch transactions
-      const txRes = await fetch(`${API_BASE}/cashflow`, { headers });
+      // Fetch transactions (fetch up to 100 recent)
+      const txRes = await fetch(`${API_BASE}/cashflow?limit=100`, { headers });
       const txJson = await txRes.json();
       if (txJson.status === "success") {
         setTransactions(txJson.data.transactions || []);
@@ -143,7 +159,12 @@ export default function CashflowPage() {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE, token, formWalletId]);
+  }, [API_BASE, token, formWalletId, periodMode, currentMonth, currentYear, prevMonth, prevYear]);
+
+  const handlePeriodChange = (mode: "PREVIOUS" | "CURRENT" | "ALL") => {
+    setPeriodMode(mode);
+    fetchData(mode);
+  };
 
   useEffect(() => {
     fetchData();
@@ -317,6 +338,18 @@ export default function CashflowPage() {
   // Filter transactions
   const filteredTxs = transactions.filter((tx) => {
     if (typeFilter !== "ALL" && tx.type !== typeFilter) return false;
+
+    // Filter by period
+    const txDate = new Date(tx.transaction_date);
+    const txMonth = txDate.getMonth() + 1;
+    const txYear = txDate.getFullYear();
+
+    if (periodMode === "CURRENT") {
+      if (txMonth !== currentMonth || txYear !== currentYear) return false;
+    } else if (periodMode === "PREVIOUS") {
+      if (txMonth !== prevMonth || txYear !== prevYear) return false;
+    }
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchDesc = tx.description?.toLowerCase().includes(q);
@@ -327,19 +360,26 @@ export default function CashflowPage() {
     return true;
   });
 
+  const periodLabel =
+    periodMode === "PREVIOUS"
+      ? "Bulan Kemarin (Sep 2026)"
+      : periodMode === "CURRENT"
+      ? "Bulan Ini (Okt 2026)"
+      : "Akumulasi Semua";
+
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200/80 dark:border-white/[0.08] pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200/80 dark:border-[#30363d] pb-5">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-500 dark:text-emerald-400 uppercase tracking-widest">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[#3fb950] dark:text-[#3fb950] uppercase tracking-widest">
             <Wallet className="w-4 h-4" />
             Cashflow & Multi-Account Manager
           </div>
           <h1 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight mt-1">
             Pencatatan Keuangan & Arus Kas
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+          <p className="text-sm text-[#8b949e] dark:text-[#8b949e] mt-0.5">
             Pantau pemasukan, pengeluaran harian, dan saldo antar dompet secara manual atau otomatis via AI Gemini.
           </p>
         </div>
@@ -353,9 +393,9 @@ export default function CashflowPage() {
               setScanResult(null);
               setIsScanModalOpen(true);
             }}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30 text-xs md:text-sm font-bold transition shadow-sm"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] hover:text-[#f0f6fc] border border-[#30363d] text-xs font-semibold transition"
           >
-            <Camera className="w-4 h-4 text-purple-500" />
+            <Camera className="w-3.5 h-3.5 text-[#8b949e]" />
             <span>Scan Struk AI</span>
           </button>
 
@@ -367,92 +407,237 @@ export default function CashflowPage() {
               setFormDescription("");
               setIsManualModalOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs md:text-sm font-bold transition shadow-lg shadow-emerald-600/20"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-md bg-[#238636] hover:bg-[#2ea043] text-white text-xs font-bold border border-[rgba(240,246,252,0.1)] shadow-[0_1px_0_rgba(27,31,36,0.1)] transition active:bg-[#238636]"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5 text-white" />
             <span>+ Catat Manual</span>
           </button>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Pemasukan */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-[#0c101d]/60 dark:backdrop-blur-2xl border border-zinc-200 dark:border-white/[0.08] shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Pemasukan Bulan Ini</span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-              <ArrowDownLeft className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 text-xl md:text-2xl font-black text-emerald-600 dark:text-emerald-400">
-            Rp {(summary?.total_income || 0).toLocaleString("id-ID")}
-          </div>
-          <p className="text-[11px] text-zinc-400 mt-1">Gaji, dividen & kas masuk</p>
+      {/* Period Selector Ribbon - GitHub Box Style */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2.5 rounded-md bg-white dark:bg-[#161b22] border border-zinc-200 dark:border-[#30363d] shadow-[0_1px_0_rgba(27,31,36,0.04)]">
+        <div className="flex items-center gap-2 text-xs font-bold text-zinc-700 dark:text-[#f0f6fc]">
+          <Calendar className="w-4 h-4 text-[#3fb950]" />
+          <span>Pilih Periode Laporan:</span>
         </div>
-
-        {/* Card 2: Pengeluaran */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-[#0c101d]/60 dark:backdrop-blur-2xl border border-zinc-200 dark:border-white/[0.08] shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Pengeluaran Bulan Ini</span>
-            <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">
-              <ArrowUpRight className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 text-xl md:text-2xl font-black text-rose-600 dark:text-rose-400">
-            Rp {(summary?.total_expense || 0).toLocaleString("id-ID")}
-          </div>
-          <p className="text-[11px] text-zinc-400 mt-1">Kebutuhan harian & belanja</p>
-        </div>
-
-        {/* Card 3: Tabungan Bersih */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-[#0c101d]/60 dark:backdrop-blur-2xl border border-zinc-200 dark:border-white/[0.08] shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Sisa Tabungan Bersih</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-          </div>
-          <div className={`mt-2 text-xl md:text-2xl font-black ${
-            (summary?.net_savings || 0) >= 0 ? "text-blue-600 dark:text-blue-400" : "text-rose-500"
-          }`}>
-            Rp {(summary?.net_savings || 0).toLocaleString("id-ID")}
-          </div>
-          <p className="text-[11px] text-zinc-400 mt-1">Pemasukan dikurangi pengeluaran</p>
-        </div>
-
-        {/* Card 4: Total Kas Dompet */}
-        <div className="p-4 rounded-2xl bg-white dark:bg-[#0c101d]/60 dark:backdrop-blur-2xl border border-zinc-200 dark:border-white/[0.08] shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Total Saldo Kas (Dompet)</span>
-            <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center">
-              <CreditCard className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 text-xl md:text-2xl font-black text-purple-600 dark:text-purple-400">
-            Rp {(summary?.total_cash_balance || 0).toLocaleString("id-ID")}
-          </div>
-          <p className="text-[11px] text-zinc-400 mt-1">Akumulasi seluruh bank & e-wallet</p>
+        <div className="flex items-center gap-2 overflow-x-auto">
+          {[
+            { key: "PREVIOUS", label: "â®ï¸ Bulan Kemarin (Sep 2026)", badge: "9 Transaksi" },
+            { key: "CURRENT", label: "ðŸ“… Bulan Ini (Okt 2026)", badge: "Bulan Baru" },
+            { key: "ALL", label: "ðŸŒ Semua Waktu", badge: "Semua Data" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => handlePeriodChange(tab.key as any)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition whitespace-nowrap border ${
+                periodMode === tab.key
+                  ? "bg-[#238636] hover:bg-[#2ea043] text-white border-[rgba(240,246,252,0.1)] shadow-[0_1px_0_rgba(27,31,36,0.1)]"
+                  : "bg-zinc-100 dark:bg-[#21262d] hover:dark:bg-[#30363d] text-zinc-700 dark:text-[#c9d1d9] hover:dark:text-[#f0f6fc] border-zinc-200 dark:border-[#30363d]"
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-medium ${
+                periodMode === tab.key ? "bg-[#0d1117] text-white" : "bg-zinc-200 dark:bg-[#30363d] text-[#6e7681] dark:text-[#8b949e]"
+              }`}>
+                {tab.badge}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Filter & Search Toolbar */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-white dark:bg-[#0c101d]/60 dark:backdrop-blur-2xl p-3 rounded-2xl border border-zinc-200 dark:border-white/[0.08]">
+      {/* Summary Cards - GitHub Box Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Pemasukan */}
+        <div className="p-4 rounded-md bg-white dark:bg-[#161b22] border border-zinc-200 dark:border-[#30363d] shadow-[0_1px_0_rgba(27,31,36,0.04)]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#8b949e] dark:text-[#8b949e]">Pemasukan {periodLabel}</span>
+            <div className="w-7 h-7 rounded-md bg-[#238636]/15 border border-[#238636]/30 text-[#3fb950] flex items-center justify-center">
+              <ArrowDownLeft className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="mt-2 text-xl md:text-2xl font-bold font-mono tabular-nums text-[#3fb950] dark:text-[#3fb950]">
+            Rp {(summary?.total_income || 0).toLocaleString("id-ID")}
+          </div>
+          <p className="text-[11px] text-[#8b949e] dark:text-[#8b949e] mt-1">Gaji, rezeki segar & kas masuk</p>
+        </div>
+
+        {/* Card 2: Pengeluaran */}
+        <div className="p-4 rounded-md bg-white dark:bg-[#161b22] border border-zinc-200 dark:border-[#30363d] shadow-[0_1px_0_rgba(27,31,36,0.04)]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#8b949e] dark:text-[#8b949e]">Pengeluaran {periodLabel}</span>
+            <div className="w-7 h-7 rounded-md bg-[#da3633]/15 border border-[#da3633]/30 text-[#f85149] flex items-center justify-center">
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="mt-2 text-xl md:text-2xl font-bold font-mono tabular-nums text-[#f85149] dark:text-[#f85149]">
+            Rp {(summary?.total_expense || 0).toLocaleString("id-ID")}
+          </div>
+          <p className="text-[11px] text-[#8b949e] dark:text-[#8b949e] mt-1">Investasi, langganan & kebutuhan</p>
+        </div>
+
+        {/* Card 3: Tabungan Bersih */}
+        <div className="p-4 rounded-md bg-white dark:bg-[#161b22] border border-zinc-200 dark:border-[#30363d] shadow-[0_1px_0_rgba(27,31,36,0.04)]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#8b949e] dark:text-[#8b949e]">Sisa Tabungan Bersih</span>
+            <div className="w-7 h-7 rounded-md bg-[#388bfd]/15 border border-[#388bfd]/30 text-[#58a6ff] flex items-center justify-center">
+              <TrendingUp className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className={`mt-2 text-xl md:text-2xl font-bold font-mono tabular-nums ${
+            (summary?.net_savings || 0) >= 0 ? "text-[#58a6ff] dark:text-[#58a6ff]" : "text-[#f85149] dark:text-[#f85149]"
+          }`}>
+            Rp {(summary?.net_savings || 0).toLocaleString("id-ID")}
+          </div>
+          <p className="text-[11px] text-[#8b949e] dark:text-[#8b949e] mt-1">Pemasukan dikurangi pengeluaran</p>
+        </div>
+
+        {/* Card 4: Total Kas Dompet */}
+        <div className="p-4 rounded-md bg-white dark:bg-[#161b22] border border-zinc-200 dark:border-[#30363d] shadow-[0_1px_0_rgba(27,31,36,0.04)]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#8b949e] dark:text-[#8b949e]">Total Saldo Kas Likuid</span>
+            <div className="w-7 h-7 rounded-md bg-[#8957e5]/15 border border-[#8957e5]/30 text-[#a371f7] flex items-center justify-center">
+              <CreditCard className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <div className="mt-2 text-xl md:text-2xl font-bold font-mono tabular-nums text-[#a371f7] dark:text-[#a371f7]">
+            Rp {(summary?.total_cash_balance || 0).toLocaleString("id-ID")}
+          </div>
+          <p className="text-[11px] text-[#8b949e] dark:text-[#8b949e] mt-1">BCA, Dompet Tunai, GoPay, DANA</p>
+        </div>
+      </div>
+
+      {/* Liquid Cash Multi-Wallet Breakdown & Category Expense Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Liquid Wallets Status */}
+        <div className="lg:col-span-1 p-4 rounded-md bg-[#161b22] border border-[#30363d] shadow-sm space-y-3">
+          <div className="flex items-center justify-between border-b border-[#30363d] pb-2.5">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-[#3fb950]" />
+              <span className="text-xs font-semibold text-[#f0f6fc] tracking-tight">
+                Posisi Kas Likuid Riil
+              </span>
+            </div>
+            <span className="text-xs font-mono font-bold text-[#3fb950]">
+              Rp {wallets.filter(w => !['ajaib', 'pluang'].includes(w.name.toLowerCase())).reduce((acc, curr) => acc + Number(curr.cash_balance), 0).toLocaleString("id-ID")}
+            </span>
+          </div>
+          <div className="space-y-1.5 text-xs">
+            {wallets.filter(w => !['ajaib', 'pluang'].includes(w.name.toLowerCase())).map((w) => (
+              <div key={w.id} className="flex items-center justify-between p-2 rounded-md bg-[#0d1117] border border-[#30363d]">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-[#3fb950]" />
+                  <span className="font-medium text-[#c9d1d9]">{w.name}</span>
+                </div>
+                <span className="font-mono font-bold text-[#f0f6fc]">
+                  Rp {Number(w.cash_balance).toLocaleString("id-ID")}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="text-[11px] text-[#8b949e] text-center pt-1">
+            Makan &amp; bensin aman ditanggung ortu. Kas operasional &amp; darurat aman terkunci.
+          </p>
+        </div>
+
+        {/* Category Expense Breakdown */}
+        <div className="lg:col-span-2 p-4 rounded-md bg-[#161b22] border border-[#30363d] shadow-sm space-y-3">
+          <div className="flex items-center justify-between border-b border-[#30363d] pb-2.5">
+            <div className="flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-[#a371f7]" />
+              <span className="text-xs font-semibold text-[#f0f6fc] tracking-tight">
+                Rincian Kategori Pengeluaran ({periodLabel})
+              </span>
+            </div>
+            <span className="text-xs font-mono font-bold text-[#f85149]">
+              Total Rp {(summary?.total_expense || 0).toLocaleString("id-ID")}
+            </span>
+          </div>
+
+          {(!summary?.category_breakdown || summary.category_breakdown.length === 0) ? (
+            <div className="py-8 text-center text-[#8b949e] space-y-3">
+              <p className="text-xs">Tidak ada data pengeluaran pada periode ini.</p>
+              {periodMode === "CURRENT" && (
+                <button
+                  onClick={() => handlePeriodChange("PREVIOUS")}
+                  className="px-3 py-1.5 rounded-md bg-[#21262d] hover:bg-[#30363d] text-[#c9d1d9] border border-[#30363d] text-xs font-medium transition inline-flex items-center gap-2"
+                >
+                  <ArrowLeftRight className="w-3.5 h-3.5 text-[#58a6ff]" />
+                  <span>Lihat Rekap Pengeluaran Bulan Kemarin (September 2026)</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {summary.category_breakdown.map((item) => {
+                const IconC = CATEGORY_ICONS[item.category] || HelpCircle;
+                return (
+                  <div key={item.category} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <IconC className="w-3.5 h-3.5 text-[#8b949e]" />
+                        <span className="font-medium text-[#c9d1d9]">
+                          {item.category === "INVESTASI"
+                            ? "Investasi Ekuitas (VT ETF Pluang)"
+                            : item.category === "TAGIHAN"
+                            ? "Tagihan & Langganan (AI Google & Paket Data)"
+                            : item.category === "KESEHATAN"
+                            ? "Kesehatan & Grooming Diri"
+                            : item.category === "MAKANAN"
+                            ? "Konsumsi & Makanan"
+                            : item.category}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-[#f0f6fc]">
+                          Rp {item.amount.toLocaleString("id-ID")}
+                        </span>
+                        <span className="text-[11px] text-[#8b949e] font-mono">
+                          ({item.percentage.toFixed(1)}%)
+                        </span>
+                      </div>
+                    </div>
+                    {/* Progress Bar (GitHub Language Breakdown Style) */}
+                    <div className="w-full h-1.5 bg-[#21262d] rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          item.category === "INVESTASI"
+                            ? "bg-[#3fb950]"
+                            : item.category === "TAGIHAN"
+                            ? "bg-[#58a6ff]"
+                            : item.category === "MAKANAN"
+                            ? "bg-[#d29922]"
+                            : "bg-[#a371f7]"
+                        }`}
+                        style={{ width: `${Math.min(item.percentage, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Filter & Search Toolbar (GitHub Primer Style) */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-3 bg-[#161b22] p-3 rounded-md border border-[#30363d] shadow-sm">
         {/* Type Pill Tabs */}
         <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
           {[
             { key: "ALL", label: "Semua" },
             { key: "INCOME", label: "Pemasukan (+)" },
             { key: "EXPENSE", label: "Pengeluaran (-)" },
-            { key: "TRANSFER", label: "Pindah Saldo (⇄)" },
+            { key: "TRANSFER", label: "Pindah Saldo (â‡„)" },
           ].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setTypeFilter(tab.key)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition whitespace-nowrap border ${
                 typeFilter === tab.key
-                  ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-950 shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
+                  ? "bg-[#21262d] text-[#f0f6fc] border-[#8b949e] font-semibold"
+                  : "bg-[#0d1117] text-[#8b949e] border-[#30363d] hover:bg-[#21262d] hover:text-[#c9d1d9]"
               }`}
             >
               {tab.label}
@@ -462,46 +647,46 @@ export default function CashflowPage() {
 
         {/* Search Box */}
         <div className="relative w-full md:w-72">
-          <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-[#8b949e] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Cari deskripsi / kategori / dompet..."
+            placeholder="Cari transaksi / keterangan..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-zinc-100 dark:bg-zinc-900/60 border border-zinc-200 dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#0d1117] border border-[#30363d] text-[#c9d1d9] rounded-md focus:outline-none focus:border-[#58a6ff]"
           />
         </div>
       </div>
 
-      {/* Transactions Table */}
-      <div className="bg-white dark:bg-[#0c101d]/60 dark:backdrop-blur-2xl rounded-2xl border border-zinc-200 dark:border-white/[0.08] overflow-hidden shadow-sm">
+      {/* Transactions Table (GitHub Primer Box) */}
+      <div className="bg-[#0d1117] rounded-md border border-[#30363d] overflow-hidden shadow-sm">
         {loading ? (
-          <div className="p-12 text-center text-zinc-400 text-sm animate-pulse">
+          <div className="p-12 text-center text-[#8b949e] text-sm">
             Memuat data transaksi kas...
           </div>
         ) : filteredTxs.length === 0 ? (
           <div className="p-12 text-center space-y-2">
-            <FileText className="w-10 h-10 mx-auto text-zinc-300 dark:text-zinc-600" />
-            <p className="text-sm font-semibold text-zinc-600 dark:text-zinc-300">Belum ada riwayat transaksi</p>
-            <p className="text-xs text-zinc-400">
+            <FileText className="w-8 h-8 mx-auto text-[#8b949e]" />
+            <p className="text-sm font-semibold text-[#f0f6fc]">Belum ada riwayat transaksi</p>
+            <p className="text-xs text-[#8b949e]">
               Klik tombol "+ Catat Manual" atau "Scan Struk AI" untuk mulai mencatat.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-zinc-50 dark:bg-zinc-900/40 text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-white/[0.08] font-bold uppercase tracking-wider text-[10px]">
+              <thead className="bg-[#161b22] text-[#8b949e] border-b border-[#30363d] font-semibold uppercase tracking-wider text-[10px] font-mono">
                 <tr>
-                  <th className="px-4 py-3">Tanggal</th>
-                  <th className="px-4 py-3">Tipe & Kategori</th>
-                  <th className="px-4 py-3">Keterangan</th>
-                  <th className="px-4 py-3">Dompet</th>
-                  <th className="px-4 py-3 text-right">Nominal</th>
-                  <th className="px-4 py-3 text-center">Sumber</th>
-                  <th className="px-4 py-3 text-right">Aksi</th>
+                  <th className="px-4 py-2.5">Tanggal</th>
+                  <th className="px-4 py-2.5">Tipe & Kategori</th>
+                  <th className="px-4 py-2.5">Keterangan</th>
+                  <th className="px-4 py-2.5">Dompet</th>
+                  <th className="px-4 py-2.5 text-right">Nominal</th>
+                  <th className="px-4 py-2.5 text-center">Sumber</th>
+                  <th className="px-4 py-2.5 text-right">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200 dark:divide-white/[0.06]">
+              <tbody className="divide-y divide-[#21262d]">
                 {filteredTxs.map((tx) => {
                   const IconComp = CATEGORY_ICONS[tx.category] || HelpCircle;
                   const isIncome = tx.type === "INCOME";
@@ -509,9 +694,9 @@ export default function CashflowPage() {
                   const isTransfer = tx.type === "TRANSFER";
 
                   return (
-                    <tr key={tx.id} className="hover:bg-zinc-50/60 dark:hover:bg-white/[0.03] transition-colors">
+                    <tr key={tx.id} className="hover:bg-zinc-50/60 dark:hover:bg-[#161b22] transition-colors">
                       {/* Tanggal */}
-                      <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">
+                      <td className="px-4 py-3 text-[#8b949e] whitespace-nowrap">
                         {new Date(tx.transaction_date).toLocaleDateString("id-ID", {
                           day: "numeric",
                           month: "short",
@@ -522,21 +707,21 @@ export default function CashflowPage() {
                       {/* Tipe & Kategori */}
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                          <div className={`w-7 h-7 rounded-md flex items-center justify-center ${
                             isIncome
-                              ? "bg-emerald-500/10 text-emerald-500"
+                              ? "bg-[#238636]/15 text-[#3fb950]"
                               : isExpense
-                              ? "bg-rose-500/10 text-rose-500"
-                              : "bg-blue-500/10 text-blue-500"
+                              ? "bg-[#da3633]/15 text-[#f85149]"
+                              : "bg-[#388bfd]/15 text-[#58a6ff]"
                           }`}>
                             <IconComp className="w-3.5 h-3.5" />
                           </div>
                           <div>
-                            <span className="font-bold text-zinc-800 dark:text-zinc-200 block">
+                            <span className="font-bold text-zinc-800 dark:text-[#c9d1d9] block">
                               {tx.category}
                             </span>
                             <span className={`text-[10px] font-bold ${
-                              isIncome ? "text-emerald-500" : isExpense ? "text-rose-500" : "text-blue-500"
+                              isIncome ? "text-[#3fb950]" : isExpense ? "text-[#f85149]" : "text-[#58a6ff]"
                             }`}>
                               {isIncome ? "Pemasukan" : isExpense ? "Pengeluaran" : "Transfer"}
                             </span>
@@ -545,17 +730,17 @@ export default function CashflowPage() {
                       </td>
 
                       {/* Keterangan */}
-                      <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">
+                      <td className="px-4 py-3 text-zinc-700 dark:text-[#c9d1d9]">
                         {tx.description || "-"}
                       </td>
 
                       {/* Dompet */}
-                      <td className="px-4 py-3 whitespace-nowrap text-zinc-600 dark:text-zinc-400">
+                      <td className="px-4 py-3 whitespace-nowrap text-[#6e7681] dark:text-[#8b949e]">
                         {isTransfer ? (
                           <div className="flex items-center gap-1.5 font-medium">
                             <span>{tx.wallet_name || "Kas"}</span>
-                            <ArrowLeftRight className="w-3 h-3 text-zinc-400" />
-                            <span className="text-blue-400 font-bold">{tx.to_wallet_name || "Tujuan"}</span>
+                            <ArrowLeftRight className="w-3 h-3 text-[#8b949e]" />
+                            <span className="text-[#58a6ff] font-bold">{tx.to_wallet_name || "Tujuan"}</span>
                           </div>
                         ) : (
                           <span>{tx.wallet_name || "Kas Umum"}</span>
@@ -566,10 +751,10 @@ export default function CashflowPage() {
                       <td className="px-4 py-3 text-right font-mono font-bold whitespace-nowrap">
                         <span className={`text-sm ${
                           isIncome
-                            ? "text-emerald-500"
+                            ? "text-[#3fb950]"
                             : isExpense
-                            ? "text-rose-500"
-                            : "text-zinc-900 dark:text-zinc-100"
+                            ? "text-[#f85149]"
+                            : "text-zinc-900 dark:text-[#f0f6fc]"
                         }`}>
                           {isIncome ? "+" : isExpense ? "-" : ""}Rp {Number(tx.amount).toLocaleString("id-ID")}
                         </span>
@@ -578,16 +763,16 @@ export default function CashflowPage() {
                       {/* Sumber */}
                       <td className="px-4 py-3 text-center whitespace-nowrap">
                         {tx.source === "AI_RECEIPT" ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/30">
-                            📸 AI Scan
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#8957e5]/15 text-[#a371f7] border border-[#8957e5]/40">
+                            ðŸ“¸ AI Scan
                           </span>
                         ) : tx.source === "AI_CHAT" ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/30">
-                            🤖 AI Chat
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#388bfd]/15 text-[#58a6ff] border border-[#388bfd]/40">
+                            ðŸ¤– AI Chat
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">
-                            ✏️ Manual
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-500/10 text-[#8b949e] border border-zinc-500/20">
+                            âœï¸ Manual
                           </span>
                         )}
                       </td>
@@ -597,14 +782,14 @@ export default function CashflowPage() {
                         <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => handleEdit(tx)}
-                            className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition"
+                            className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-[#161b22] text-[#8b949e] hover:text-[#c9d1d9] transition"
                             title="Edit Transaksi"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDelete(tx.id)}
-                            className="p-1.5 rounded-lg hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 transition"
+                            className="p-1.5 rounded-md hover:bg-[#da3633]/15 text-[#8b949e] hover:text-[#f85149] transition"
                             title="Hapus Transaksi"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -622,16 +807,16 @@ export default function CashflowPage() {
 
       {/* MODAL 1: FORM CATAT MANUAL / EDIT */}
       {isManualModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-[#0c101d]/90 dark:backdrop-blur-2xl rounded-2xl border border-zinc-200 dark:border-white/[0.12] shadow-2xl p-5 md:p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-white/[0.08] pb-3">
-              <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-emerald-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0d1117] ">
+          <div className="w-full max-w-md bg-white dark:bg-[#161b22] dark: rounded-md border border-zinc-200 dark:border-[#30363d] shadow-none p-5 md:p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-[#30363d] pb-3">
+              <h3 className="text-base font-bold text-zinc-900 dark:text-[#f0f6fc] flex items-center gap-2">
+                <Wallet className="w-4 h-4 text-[#3fb950]" />
                 {editingTx ? "Edit Transaksi Kas" : "Catat Transaksi Manual"}
               </h3>
               <button
                 onClick={() => setIsManualModalOpen(false)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-zinc-200"
+                className="p-1 rounded-md text-[#8b949e] hover:text-[#c9d1d9]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -639,7 +824,7 @@ export default function CashflowPage() {
 
             <form onSubmit={handleSubmitManual} className="space-y-3.5 text-xs">
               {/* Type Switcher */}
-              <div className="grid grid-cols-3 gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl">
+              <div className="grid grid-cols-3 gap-1.5 p-1 bg-zinc-100 dark:bg-[#0d1117] rounded-md">
                 {[
                   { key: "EXPENSE", label: "Pengeluaran" },
                   { key: "INCOME", label: "Pemasukan" },
@@ -649,14 +834,14 @@ export default function CashflowPage() {
                     key={tab.key}
                     type="button"
                     onClick={() => setFormType(tab.key as any)}
-                    className={`py-2 rounded-lg font-bold text-center transition ${
+                    className={`py-2 rounded-md font-bold text-center transition ${
                       formType === tab.key
                         ? tab.key === "INCOME"
-                          ? "bg-emerald-600 text-white"
+                          ? "bg-[#238636]/15 text-white"
                           : tab.key === "EXPENSE"
-                          ? "bg-rose-600 text-white"
-                          : "bg-blue-600 text-white"
-                        : "text-zinc-500 hover:text-zinc-300"
+                          ? "bg-[#da3633]/15 text-white"
+                          : "bg-[#388bfd]/15 text-white"
+                        : "text-[#8b949e] hover:text-[#c9d1d9]"
                     }`}
                   >
                     {tab.label}
@@ -666,8 +851,8 @@ export default function CashflowPage() {
 
               {/* Nominal Input */}
               <div>
-                <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                  Nominal (Rp) <span className="text-rose-500">*</span>
+                <label className="block font-semibold text-zinc-700 dark:text-[#c9d1d9] mb-1">
+                  Nominal (Rp) <span className="text-[#f85149]">*</span>
                 </label>
                 <input
                   type="number"
@@ -675,7 +860,7 @@ export default function CashflowPage() {
                   required
                   value={formAmount}
                   onChange={(e) => setFormAmount(e.target.value)}
-                  className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/[0.08] rounded-xl text-sm font-bold focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-zinc-100 dark:bg-[#0d1117] border border-zinc-200 dark:border-[#30363d] rounded-md text-sm font-bold focus:outline-none focus:ring-1 focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"
                 />
                 {/* Quick Chips */}
                 <div className="flex items-center gap-1.5 mt-1.5">
@@ -684,7 +869,7 @@ export default function CashflowPage() {
                       key={quick}
                       type="button"
                       onClick={() => setFormAmount(quick.toString())}
-                      className="px-2 py-0.5 text-[10px] font-mono rounded bg-zinc-200/60 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-700"
+                      className="px-2 py-0.5 text-[10px] font-mono rounded bg-zinc-200/60 dark:bg-[#161b22] text-[#6e7681] dark:text-[#c9d1d9] hover:bg-zinc-300 dark:hover:bg-[#21262d]"
                     >
                       {quick >= 1000000 ? `${quick / 1000000}jt` : `${quick / 1000}rb`}
                     </button>
@@ -694,13 +879,13 @@ export default function CashflowPage() {
 
               {/* Dompet Asal */}
               <div>
-                <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                <label className="block font-semibold text-zinc-700 dark:text-[#c9d1d9] mb-1">
                   {formType === "TRANSFER" ? "Dompet Asal (Sumber Dana)" : "Pilih Dompet / Rekening"}
                 </label>
                 <select
                   value={formWalletId}
                   onChange={(e) => setFormWalletId(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-zinc-100 dark:bg-[#0d1117] border border-zinc-200 dark:border-[#30363d] rounded-md focus:outline-none focus:ring-1 focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"
                 >
                   {wallets.map((w) => (
                     <option key={w.id} value={w.id}>
@@ -713,13 +898,13 @@ export default function CashflowPage() {
               {/* Dompet Tujuan (Khusus Transfer) */}
               {formType === "TRANSFER" && (
                 <div>
-                  <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
-                    Dompet Tujuan <span className="text-rose-500">*</span>
+                  <label className="block font-semibold text-zinc-700 dark:text-[#c9d1d9] mb-1">
+                    Dompet Tujuan <span className="text-[#f85149]">*</span>
                   </label>
                   <select
                     value={formToWalletId}
                     onChange={(e) => setFormToWalletId(Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-zinc-100 dark:bg-[#0d1117] border border-zinc-200 dark:border-[#30363d] rounded-md focus:outline-none focus:ring-1 focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"
                   >
                     <option value="">-- Pilih Dompet Tujuan --</option>
                     {wallets
@@ -736,13 +921,13 @@ export default function CashflowPage() {
               {/* Kategori (Khusus Income & Expense) */}
               {formType !== "TRANSFER" && (
                 <div>
-                  <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+                  <label className="block font-semibold text-zinc-700 dark:text-[#c9d1d9] mb-1">
                     Kategori Transaksi
                   </label>
                   <select
                     value={formCategory}
                     onChange={(e) => setFormCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 bg-zinc-100 dark:bg-[#0d1117] border border-zinc-200 dark:border-[#30363d] rounded-md focus:outline-none focus:ring-1 focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"
                   >
                     <option value="MAKANAN">Makanan & Minuman</option>
                     <option value="TRANSPORT">Transportasi / Bensin</option>
@@ -761,22 +946,22 @@ export default function CashflowPage() {
               {/* Keterangan & Tanggal */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Tanggal</label>
+                  <label className="block font-semibold text-zinc-700 dark:text-[#c9d1d9] mb-1">Tanggal</label>
                   <input
                     type="date"
                     value={formDate}
                     onChange={(e) => setFormDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 bg-zinc-100 dark:bg-[#0d1117] border border-zinc-200 dark:border-[#30363d] rounded-md focus:outline-none focus:ring-1 focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-zinc-700 dark:text-zinc-300 mb-1">Keterangan</label>
+                  <label className="block font-semibold text-zinc-700 dark:text-[#c9d1d9] mb-1">Keterangan</label>
                   <input
                     type="text"
                     placeholder="Contoh: Makan siang"
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
-                    className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 bg-zinc-100 dark:bg-[#0d1117] border border-zinc-200 dark:border-[#30363d] rounded-md focus:outline-none focus:ring-1 focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"
                   />
                 </div>
               </div>
@@ -786,7 +971,7 @@ export default function CashflowPage() {
                 <button
                   type="submit"
                   disabled={formSubmitting}
-                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-md disabled:opacity-50"
+                  className="w-full py-2.5 rounded-md bg-[#238636]/15 hover:bg-[#238636]/15 text-white font-bold text-xs transition shadow-md disabled:opacity-50"
                 >
                   {formSubmitting ? "Menyimpan..." : editingTx ? "Simpan Perubahan" : "Simpan Transaksi"}
                 </button>
@@ -798,16 +983,16 @@ export default function CashflowPage() {
 
       {/* MODAL 2: SCAN STRUK AI (GEMINI MULTIMODAL) */}
       {isScanModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white dark:bg-[#0c101d]/90 dark:backdrop-blur-2xl rounded-2xl border border-zinc-200 dark:border-white/[0.12] shadow-2xl p-5 md:p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-white/[0.08] pb-3">
-              <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-                <Camera className="w-4 h-4 text-purple-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0d1117] ">
+          <div className="w-full max-w-md bg-white dark:bg-[#161b22] dark: rounded-md border border-zinc-200 dark:border-[#30363d] shadow-none p-5 md:p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-[#30363d] pb-3">
+              <h3 className="text-base font-bold text-zinc-900 dark:text-[#f0f6fc] flex items-center gap-2">
+                <Camera className="w-4 h-4 text-[#a371f7]" />
                 Scan Bukti Transfer / Struk AI
               </h3>
               <button
                 onClick={() => setIsScanModalOpen(false)}
-                className="p-1 rounded-lg text-zinc-400 hover:text-zinc-200"
+                className="p-1 rounded-md text-[#8b949e] hover:text-[#c9d1d9]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -816,12 +1001,12 @@ export default function CashflowPage() {
             <div className="space-y-4 text-xs">
               {/* Dropzone / File Picker */}
               {!scanPreviewUrl ? (
-                <label className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 dark:border-white/[0.15] hover:border-purple-500 rounded-2xl p-8 cursor-pointer transition text-center space-y-2 bg-zinc-50 dark:bg-zinc-900/40">
-                  <UploadCloud className="w-8 h-8 text-purple-400 animate-bounce" />
-                  <span className="font-bold text-zinc-800 dark:text-zinc-200">
+                <label className="flex flex-col items-center justify-center border-2 border-dashed border-zinc-300 dark:border-[#30363d] hover:border-[#8957e5]/40 rounded-md p-8 cursor-pointer transition text-center space-y-2 bg-zinc-50 dark:bg-[#0d1117]">
+                  <UploadCloud className="w-8 h-8 text-[#a371f7] animate-bounce" />
+                  <span className="font-bold text-zinc-800 dark:text-[#c9d1d9]">
                     Upload Screenshot Struk / m-Banking
                   </span>
-                  <span className="text-[11px] text-zinc-400">
+                  <span className="text-[11px] text-[#8b949e]">
                     Mendukung format PNG, JPG, JPEG (GoPay, m-BCA, ShopeePay, Nota)
                   </span>
                   <input
@@ -839,7 +1024,7 @@ export default function CashflowPage() {
                 </label>
               ) : (
                 <div className="space-y-3">
-                  <div className="relative rounded-xl overflow-hidden border border-zinc-200 dark:border-white/[0.1] max-h-48 flex items-center justify-center bg-zinc-950">
+                  <div className="relative rounded-md overflow-hidden border border-zinc-200 dark:border-[#30363d] max-h-48 flex items-center justify-center bg-[#0d1117]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={scanPreviewUrl} alt="Preview Struk" className="object-contain max-h-48" />
                     <button
@@ -848,7 +1033,7 @@ export default function CashflowPage() {
                         setScanPreviewUrl(null);
                         setScanResult(null);
                       }}
-                      className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white hover:bg-black"
+                      className="absolute top-2 right-2 p-1 rounded-full bg-[#0d1117] text-white hover:bg-[#0d1117]"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -859,16 +1044,16 @@ export default function CashflowPage() {
                       type="button"
                       disabled={scanning}
                       onClick={handleScanReceipt}
-                      className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
+                      className="w-full py-2.5 rounded-md bg-[#8957e5]/15 hover:bg-[#8957e5]/15 text-white font-bold flex items-center justify-center gap-2 transition disabled:opacity-50"
                     >
                       {scanning ? (
                         <>
-                          <Sparkles className="w-4 h-4 animate-spin text-purple-200" />
+                          <Sparkles className="w-4 h-4 animate-spin text-[#a371f7]" />
                           <span>Gemini AI sedang membaca struk...</span>
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-4 h-4 text-purple-200" />
+                          <Sparkles className="w-4 h-4 text-[#a371f7]" />
                           <span>Pindai Gambar dengan Gemini AI</span>
                         </>
                       )}
@@ -879,36 +1064,36 @@ export default function CashflowPage() {
 
               {/* AI Detection Result Confirmation Box */}
               {scanResult && (
-                <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/30 space-y-2">
-                  <div className="flex items-center gap-1.5 text-purple-400 font-bold uppercase tracking-wider text-[10px]">
+                <div className="p-3.5 rounded-md bg-[#8957e5]/15 border border-[#8957e5]/40 space-y-2">
+                  <div className="flex items-center gap-1.5 text-[#a371f7] font-bold uppercase tracking-wider text-[10px]">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     Hasil Pembacaan Gemini AI
                   </div>
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-zinc-400">Total Terbaca:</span>
-                      <span className="font-mono font-bold text-emerald-400">
+                      <span className="text-[#8b949e]">Total Terbaca:</span>
+                      <span className="font-mono font-bold text-[#3fb950]">
                         Rp {Number(scanResult.amount).toLocaleString("id-ID")}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zinc-400">Merchant / Info:</span>
-                      <span className="font-semibold text-zinc-200">{scanResult.merchant_or_notes}</span>
+                      <span className="text-[#8b949e]">Merchant / Info:</span>
+                      <span className="font-semibold text-[#c9d1d9]">{scanResult.merchant_or_notes}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zinc-400">Kategori:</span>
-                      <span className="font-semibold text-zinc-200">{scanResult.category}</span>
+                      <span className="text-[#8b949e]">Kategori:</span>
+                      <span className="font-semibold text-[#c9d1d9]">{scanResult.category}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-zinc-400">Perkiraan Dompet:</span>
-                      <span className="font-semibold text-zinc-200">{scanResult.suggested_wallet || "Kas Umum"}</span>
+                      <span className="text-[#8b949e]">Perkiraan Dompet:</span>
+                      <span className="font-semibold text-[#c9d1d9]">{scanResult.suggested_wallet || "Kas Umum"}</span>
                     </div>
                   </div>
 
                   <button
                     onClick={handleConfirmScanResult}
                     disabled={formSubmitting}
-                    className="w-full mt-2 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition flex items-center justify-center gap-1.5 shadow-sm"
+                    className="w-full mt-2 py-2 rounded-md bg-[#238636]/15 hover:bg-[#238636]/15 text-white font-bold transition flex items-center justify-center gap-1.5 shadow-sm"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{formSubmitting ? "Menyimpan..." : "Konfirmasi & Simpan ke Kas"}</span>
@@ -922,3 +1107,5 @@ export default function CashflowPage() {
     </div>
   );
 }
+
+

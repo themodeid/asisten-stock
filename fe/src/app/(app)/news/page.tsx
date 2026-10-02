@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import Header from "@/components/layout/Header";
@@ -83,38 +83,38 @@ export default function NewsPage() {
   const bullishRatio = news.length > 0 ? Math.round((bullishCount / news.length) * 100) : 65;
 
   return (
-    <div className="min-h-screen bg-[#0b0f19] text-slate-100 transition-colors duration-200">
+    <div className="min-h-screen bg-[#0d1117] text-[#f0f6fc] transition-colors duration-200">
       <Header title="Intelijen Makroekonomi & Geopolitik Global" />
 
       <main className="p-3.5 sm:p-5 md:p-8 max-w-7xl w-full mx-auto space-y-6">
         {/* Global Market Intelligence Radar Banner (Sovereign Terminal Style) */}
-        <div className="rounded-2xl p-5 border border-white/[0.09] bg-[#0c101d]/65 shadow-xl backdrop-blur-2xl relative overflow-hidden">
+        <div className="rounded-md p-5 border border-[#30363d] bg-[#161b22] shadow-none  relative overflow-hidden">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
             <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-blue-400">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#58a6ff]">
                 <Sparkles className="w-4 h-4 animate-pulse" />
                 <span>TERMINAL MACRO RADAR &bull; GLOBAL SENTIMENT FEED</span>
               </div>
-              <h2 className="text-base sm:text-lg font-bold tracking-tight text-slate-100 font-sans">
+              <h2 className="text-base sm:text-lg font-bold tracking-tight text-[#f0f6fc] font-sans">
                 Sentimen Likuiditas Global: {bullishRatio >= 50 ? "Akumulatif & Resilient" : "Risk-Off & Waspada"} ({bullishRatio}% Bullish)
               </h2>
-              <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
+              <p className="text-xs text-[#8b949e] max-w-2xl leading-relaxed">
                 Pemantauan real-time terhadap volatilitas bursa Asia/semikonduktor, perdebatan valuasi AI Capex, kebijakan suku bunga The Fed, dan pergerakan emas/Bitcoin institusional.
               </p>
             </div>
 
             <div className="flex items-center gap-3 self-start md:self-center shrink-0 font-mono">
-              <div className="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-center">
-                <span className="text-[9px] uppercase font-bold text-slate-400 block tracking-wider">TOTAL DISPATCH</span>
-                <span className="text-sm font-bold text-slate-100 tabular-nums">{news.length}</span>
+              <div className="px-3.5 py-2 rounded-md bg-[#0d1117] border border-[#30363d] text-center">
+                <span className="text-[9px] uppercase font-bold text-[#8b949e] block tracking-wider">TOTAL DISPATCH</span>
+                <span className="text-sm font-bold text-[#f0f6fc] tabular-nums">{news.length}</span>
               </div>
-              <div className="px-3.5 py-2 rounded-xl bg-slate-950 border border-emerald-800/40 text-center">
-                <span className="text-[9px] uppercase font-bold text-emerald-400 block tracking-wider">BULLISH</span>
-                <span className="text-sm font-bold text-emerald-400 tabular-nums">{bullishCount}</span>
+              <div className="px-3.5 py-2 rounded-md bg-[#0d1117] border border-[#238636]/40 text-center">
+                <span className="text-[9px] uppercase font-bold text-[#3fb950] block tracking-wider">BULLISH</span>
+                <span className="text-sm font-bold text-[#3fb950] tabular-nums">{bullishCount}</span>
               </div>
-              <div className="px-3.5 py-2 rounded-xl bg-slate-950 border border-rose-800/40 text-center">
-                <span className="text-[9px] uppercase font-bold text-rose-400 block tracking-wider">BEARISH</span>
-                <span className="text-sm font-bold text-rose-400 tabular-nums">{bearishCount}</span>
+              <div className="px-3.5 py-2 rounded-md bg-[#0d1117] border border-[#da3633]/40 text-center">
+                <span className="text-[9px] uppercase font-bold text-[#f85149] block tracking-wider">BEARISH</span>
+                <span className="text-sm font-bold text-[#f85149] tabular-nums">{bearishCount}</span>
               </div>
             </div>
           </div>
@@ -122,7 +122,7 @@ export default function NewsPage() {
 
         {/* Category Filters (Console Style) */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-          <Filter className="w-3.5 h-3.5 text-blue-400 shrink-0 ml-1" />
+          <Filter className="w-3.5 h-3.5 text-[#58a6ff] shrink-0 ml-1" />
           {CATEGORIES.map((cat) => {
             const isActive = selectedCategory === cat.value;
             const IconComp = cat.icon;
@@ -130,10 +130,10 @@ export default function NewsPage() {
               <button
                 key={cat.value}
                 onClick={() => setSelectedCategory(cat.value)}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono font-semibold whitespace-nowrap transition-all border ${
+                className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-mono font-semibold whitespace-nowrap transition-all border ${
                   isActive
-                    ? "bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-500/25 ring-1 ring-blue-400/40 font-bold"
-                    : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                    ? "bg-[#388bfd]/15 text-white border-[#388bfd]/40 shadow-md shadow-blue-500/25 ring-1 ring-blue-400/40 font-bold"
+                    : "bg-[#0d1117] border-[#30363d] text-[#8b949e] hover:text-[#c9d1d9] hover:border-[#30363d]"
                 }`}
               >
                 <IconComp className="w-3.5 h-3.5 shrink-0" />
@@ -149,14 +149,14 @@ export default function NewsPage() {
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="h-44 rounded-2xl bg-zinc-100 dark:bg-zinc-900/40 border border-zinc-200 dark:border-white/[0.06] animate-pulse p-5"
+                className="h-44 rounded-md bg-zinc-100 dark:bg-[#0d1117] border border-zinc-200 dark:border-[#30363d] animate-pulse p-5"
               />
             ))}
           </div>
         ) : news.length === 0 ? (
-          <div className="text-center py-12 rounded-2xl bg-white/50 dark:bg-zinc-900/20 border border-dashed border-zinc-300 dark:border-zinc-800 p-6">
-            <Newspaper className="w-8 h-8 mx-auto text-zinc-400 mb-2 opacity-50" />
-            <p className="text-sm text-zinc-500 font-medium">Belum ada berita pada kategori ini.</p>
+          <div className="text-center py-12 rounded-md bg-white/50 dark:bg-[#0d1117] border border-dashed border-zinc-300 dark:border-[#30363d] p-6">
+            <Newspaper className="w-8 h-8 mx-auto text-[#8b949e] mb-2 opacity-50" />
+            <p className="text-sm text-[#8b949e] font-medium">Belum ada berita pada kategori ini.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -167,24 +167,24 @@ export default function NewsPage() {
               const getCategoryBadgeClass = (cat: string) => {
                 switch (cat) {
                   case "HOT":
-                    return "bg-rose-950/70 text-rose-400 border-rose-800/60";
+                    return "bg-[#da3633]/15 text-[#f85149] border-[#da3633]/40";
                   case "GLOBAL_EQUITIES":
-                    return "bg-blue-950/70 text-blue-400 border-blue-800/60";
+                    return "bg-[#388bfd]/15 text-[#58a6ff] border-[#388bfd]/40";
                   case "CRYPTO":
-                    return "bg-amber-950/70 text-amber-400 border-amber-800/60";
+                    return "bg-[#d29922]/15 text-[#d29922] border-[#d29922]/40";
                   case "MACRO_GLOBAL":
-                    return "bg-indigo-950/70 text-indigo-300 border-indigo-800/60";
+                    return "bg-[#8957e5]/15 text-[#a371f7] border-[#8957e5]/40";
                   case "SAFE_HAVEN":
-                    return "bg-yellow-950/70 text-yellow-400 border-yellow-800/60";
+                    return "bg-[#d29922]/15 text-[#d29922] border-[#d29922]/40";
                   default:
-                    return "bg-slate-800 text-slate-300 border-slate-700";
+                    return "bg-[#161b22] text-[#c9d1d9] border-[#30363d]";
                 }
               };
 
               return (
                 <article
                   key={item.id}
-                  className="rounded-2xl p-5 bg-[#0a0e1a]/65 hover:bg-[#0f1527]/80 border border-white/[0.08] hover:border-white/[0.2] backdrop-blur-xl hover:-translate-y-1 transition-all duration-300 shadow-xl flex flex-col justify-between space-y-4 group"
+                  className="rounded-md p-5 bg-[#0d1117] hover:bg-[#161b22] border border-[#30363d] hover:border-[#30363d]  hover:-translate-y-1 transition-all duration-300 shadow-none flex flex-col justify-between space-y-4 group"
                 >
                   <div className="space-y-3">
                     {/* Top Row: Category, Tickers, Sentiment */}
@@ -196,7 +196,7 @@ export default function NewsPage() {
                         {item.tickers.map((t) => (
                           <span
                             key={t}
-                            className="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-slate-950 text-blue-400 border border-blue-500/30"
+                            className="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-[#0d1117] text-[#58a6ff] border border-[#388bfd]/40"
                           >
                             ${t}
                           </span>
@@ -207,10 +207,10 @@ export default function NewsPage() {
                       <span
                         className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-0.5 rounded font-mono ${
                           isBullish
-                            ? "bg-emerald-950/80 text-emerald-400 border border-emerald-800/60"
+                            ? "bg-[#238636]/15 text-[#3fb950] border border-[#238636]/40"
                             : isBearish
-                            ? "bg-rose-950/80 text-rose-400 border border-rose-800/60"
-                            : "bg-slate-950 text-slate-300 border border-slate-800"
+                            ? "bg-[#da3633]/15 text-[#f85149] border border-[#da3633]/40"
+                            : "bg-[#0d1117] text-[#c9d1d9] border border-[#30363d]"
                         }`}
                       >
                         {isBullish ? (
@@ -232,40 +232,40 @@ export default function NewsPage() {
                         rel="noopener noreferrer"
                         className="group/link block"
                       >
-                        <h3 className="text-sm sm:text-base font-bold text-slate-100 group-hover/link:text-blue-400 transition-colors leading-snug tracking-tight flex items-start justify-between gap-2 font-sans">
+                        <h3 className="text-sm sm:text-base font-bold text-[#f0f6fc] group-hover/link:text-[#58a6ff] transition-colors leading-snug tracking-tight flex items-start justify-between gap-2 font-sans">
                           <span>{item.title}</span>
-                          <ExternalLink className="w-3.5 h-3.5 opacity-40 group-hover/link:opacity-100 group-hover/link:text-blue-400 shrink-0 mt-1 transition-all" />
+                          <ExternalLink className="w-3.5 h-3.5 opacity-40 group-hover/link:opacity-100 group-hover/link:text-[#58a6ff] shrink-0 mt-1 transition-all" />
                         </h3>
                       </a>
                     ) : (
-                      <h3 className="text-sm sm:text-base font-bold text-slate-100 leading-snug tracking-tight font-sans">
+                      <h3 className="text-sm sm:text-base font-bold text-[#f0f6fc] leading-snug tracking-tight font-sans">
                         {item.title}
                       </h3>
                     )}
 
                     {/* Summary */}
-                    <p className="text-xs text-slate-300 leading-relaxed line-clamp-3 font-normal">
+                    <p className="text-xs text-[#c9d1d9] leading-relaxed line-clamp-3 font-normal">
                       {item.summary}
                     </p>
                   </div>
 
                   {/* AI Impact Box & Meta */}
-                  <div className="space-y-3 pt-2.5 border-t border-slate-800/80">
-                    <div className="p-2.5 rounded-xl bg-gradient-to-r from-blue-500/10 via-white/[0.02] to-transparent border border-blue-500/25 backdrop-blur-md text-[11px] text-slate-300 flex items-start gap-2 font-sans">
-                      <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0 mt-0.5" />
+                  <div className="space-y-3 pt-2.5 border-t border-[#30363d]">
+                    <div className="p-2.5 rounded-md bg-gradient-to-r from-blue-500/10 via-white/[0.02] to-transparent border border-[#388bfd]/40  text-[11px] text-[#c9d1d9] flex items-start gap-2 font-sans">
+                      <Sparkles className="w-3.5 h-3.5 text-[#58a6ff] shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-bold text-blue-400 font-mono">DAMPAK PORTOFOLIO: </span>
+                        <span className="font-bold text-[#58a6ff] font-mono">DAMPAK PORTOFOLIO: </span>
                         {item.impact_summary}
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-slate-400 gap-2 flex-wrap font-mono">
+                    <div className="flex items-center justify-between text-[11px] text-[#8b949e] gap-2 flex-wrap font-mono">
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1.5 font-semibold text-slate-300 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                        <span className="inline-flex items-center gap-1.5 font-semibold text-[#c9d1d9] bg-[#0d1117] px-2 py-0.5 rounded border border-[#30363d]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#388bfd]/15 animate-pulse"></span>
                           {item.source}
                         </span>
-                        <div className="flex items-center gap-1 text-slate-500">
+                        <div className="flex items-center gap-1 text-[#8b949e]">
                           <Clock className="w-3 h-3" />
                           <span>{formatTimeAgo(item.published_at)}</span>
                         </div>
@@ -276,7 +276,7 @@ export default function NewsPage() {
                           href={item.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors ml-auto font-sans"
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#58a6ff] hover:text-[#58a6ff] transition-colors ml-auto font-sans"
                         >
                           <span>Buka Dispatch</span>
                           <ExternalLink className="w-3 h-3" />
@@ -293,3 +293,5 @@ export default function NewsPage() {
     </div>
   );
 }
+
+

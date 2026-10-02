@@ -107,39 +107,39 @@ export default function GlobalSearchModal({
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/75 transition-opacity"
         onClick={onClose}
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-2xl bg-[#0c0e14] border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] z-10 animate-in fade-in zoom-in-95 duration-150">
+      <div className="relative w-full max-w-2xl bg-[#0d1117] border border-[#30363d] rounded-md shadow-none overflow-hidden flex flex-col max-h-[80vh] z-10 animate-in fade-in zoom-in-95 duration-150">
         {/* Search Header Bar */}
-        <div className="p-4 border-b border-white/[0.08] flex items-center gap-3 bg-white/[0.015]">
-          <Search className="w-5 h-5 text-emerald-400 shrink-0" />
+        <div className="p-4 border-b border-[#30363d] flex items-center gap-3 bg-[#161b22]">
+          <Search className="w-5 h-5 text-[#3fb950] shrink-0" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Cari saham AS (AAPL, TSLA), Saham IDX (BBCA), Kripto (BTC), ETF..."
-            className="flex-1 bg-transparent text-white text-sm sm:text-base outline-none placeholder:text-zinc-500 font-medium"
+            className="flex-1 bg-transparent text-[#f0f6fc] text-sm sm:text-base outline-none placeholder:text-[#8b949e] font-medium"
           />
           {query && (
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="p-1 rounded-full text-zinc-400 hover:text-white transition"
+              className="p-1 rounded-full text-[#8b949e] hover:text-[#f0f6fc] transition"
             >
               <X className="w-4 h-4" />
             </button>
           )}
-          <kbd className="hidden sm:inline px-2 py-0.5 rounded-lg bg-zinc-800 border border-zinc-700 text-[11px] text-zinc-400 font-mono">
+          <kbd className="hidden sm:inline px-2 py-0.5 rounded-md bg-[#161b22] border border-[#30363d] text-[11px] text-[#8b949e] font-mono">
             ESC
           </kbd>
         </div>
 
         {/* Market Filter Chips */}
-        <div className="px-4 py-2.5 border-b border-white/[0.06] bg-white/[0.01] flex items-center gap-2 overflow-x-auto no-scrollbar text-xs">
+        <div className="px-4 py-2.5 border-b border-[#30363d] bg-[#161b22] flex items-center gap-2 overflow-x-auto no-scrollbar text-xs">
           {[
             { key: "ALL", label: "Semua Aset", icon: Layers },
             { key: "US", label: "Saham AS", icon: Landmark },
@@ -155,8 +155,8 @@ export default function GlobalSearchModal({
                 onClick={() => setMarketFilter(f.key as any)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full whitespace-nowrap transition border text-xs font-semibold ${
                   marketFilter === f.key
-                    ? "bg-white text-zinc-950 border-white shadow-sm font-bold"
-                    : "bg-zinc-900 border-white/[0.06] text-zinc-400 hover:text-white"
+                    ? "bg-[#f0f6fc] text-zinc-950 border-[#f0f6fc] shadow-sm font-bold"
+                    : "bg-[#161b22] border-[#30363d] text-[#8b949e] hover:text-[#f0f6fc]"
                 }`}
               >
                 <IconComp className="w-3.5 h-3.5" />
@@ -167,10 +167,10 @@ export default function GlobalSearchModal({
         </div>
 
         {/* Results List */}
-        <div className="flex-1 overflow-y-auto divide-y divide-white/[0.04] p-2">
+        <div className="flex-1 overflow-y-auto divide-y divide-[#21262d] p-2">
           {loading ? (
-            <div className="p-8 text-center text-xs text-zinc-400">
-              <div className="inline-block w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin mb-2" />
+            <div className="p-8 text-center text-xs text-[#8b949e]">
+              <div className="inline-block w-5 h-5 border-2 border-[#3fb950] border-t-transparent rounded-full animate-spin mb-2" />
               <div>Memindai bursa global & IDX...</div>
             </div>
           ) : filteredResults.length > 0 ? (
@@ -185,28 +185,28 @@ export default function GlobalSearchModal({
                     if (onSelectTicker) onSelectTicker(item.ticker);
                     onClose();
                   }}
-                  className="p-3 sm:p-3.5 rounded-2xl hover:bg-white/[0.04] transition flex items-center justify-between cursor-pointer group"
+                  className="p-3 sm:p-3.5 rounded-md hover:bg-[#21262d] transition flex items-center justify-between cursor-pointer group"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     {/* Market Icon Badge */}
-                    <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/[0.08] flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-md bg-[#161b22] border border-[#30363d] flex items-center justify-center shrink-0">
                       {item.market === "US" ? (
-                        <Landmark className="w-4 h-4 text-blue-400" />
+                        <Landmark className="w-4 h-4 text-[#58a6ff]" />
                       ) : item.market === "IDX" ? (
-                        <Building2 className="w-4 h-4 text-rose-400" />
+                        <Building2 className="w-4 h-4 text-[#f85149]" />
                       ) : item.market === "CRYPTO" ? (
-                        <Coins className="w-4 h-4 text-amber-400" />
+                        <Coins className="w-4 h-4 text-[#d29922]" />
                       ) : (
-                        <Globe className="w-4 h-4 text-emerald-400" />
+                        <Globe className="w-4 h-4 text-[#3fb950]" />
                       )}
                     </div>
 
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-white text-sm group-hover:text-emerald-300 transition">
+                        <span className="font-bold text-[#f0f6fc] text-sm group-hover:text-[#3fb950] transition">
                           {item.ticker}
                         </span>
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-white/[0.06] text-zinc-400 border border-white/[0.05]">
+                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-[#161b22] text-[#8b949e] border border-[#30363d]">
                           {item.market === "US"
                             ? "Saham AS"
                             : item.market === "IDX"
@@ -216,7 +216,7 @@ export default function GlobalSearchModal({
                             : "Global ETF"}
                         </span>
                       </div>
-                      <div className="text-xs text-zinc-400 truncate max-w-[200px] sm:max-w-xs mt-0.5">
+                      <div className="text-xs text-[#8b949e] truncate max-w-[200px] sm:max-w-xs mt-0.5">
                         {item.name}
                       </div>
                     </div>
@@ -225,7 +225,7 @@ export default function GlobalSearchModal({
                   {/* Price & Action Button */}
                   <div className="flex items-center gap-3 shrink-0">
                     <div className="text-right">
-                      <div className="text-sm font-black font-mono text-white">
+                      <div className="text-sm font-black font-mono text-[#f0f6fc]">
                         {item.currency === "USD"
                           ? `$${Number(item.price || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                           : formatIDR(item.price || 0)}
@@ -233,7 +233,7 @@ export default function GlobalSearchModal({
                       {item.change_percent !== undefined && (
                         <div
                           className={`text-[11px] font-bold font-mono ${
-                            isUp ? "text-[#00e676]" : "text-[#ff5252]"
+                            isUp ? "text-[#3fb950]" : "text-[#f85149]"
                           }`}
                         >
                           {isUp ? "+" : ""}
@@ -245,16 +245,16 @@ export default function GlobalSearchModal({
                     <button
                       type="button"
                       onClick={(e) => handleAddToWatchlist(e, item)}
-                      className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1 border ${
+                      className={`px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition flex items-center gap-1 border ${
                         isAdded
-                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                          : "bg-zinc-850 hover:bg-zinc-800 text-zinc-300 border-white/[0.08]"
+                          ? "bg-[#238636]/15 text-[#3fb950] border-[#238636]/40"
+                          : "bg-[#161b22] hover:bg-[#21262d] text-[#c9d1d9] border-[#30363d]"
                       }`}
                       title="Pantau di Watchlist"
                     >
                       {isAdded ? (
                         <>
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <Check className="w-3.5 h-3.5 text-[#3fb950]" />
                           <span className="hidden sm:inline">Terpantau</span>
                         </>
                       ) : (
@@ -269,9 +269,9 @@ export default function GlobalSearchModal({
               );
             })
           ) : (
-            <div className="p-8 text-center text-xs text-zinc-500">
+            <div className="p-8 text-center text-xs text-[#8b949e]">
               Tidak ada aset yang cocok dengan &quot;{query}&quot;.
-              <div className="mt-1 text-zinc-600">
+              <div className="mt-1 text-[#6e7681]">
                 Coba cari ticker seperti AAPL, TSLA, NVDA, VT, BTC, atau BBCA.
               </div>
             </div>
@@ -279,9 +279,9 @@ export default function GlobalSearchModal({
         </div>
 
         {/* Footer Hint */}
-        <div className="px-4 py-2.5 bg-white/[0.02] border-t border-white/[0.06] flex items-center justify-between text-[11px] text-zinc-500">
+        <div className="px-4 py-2.5 bg-[#161b22] border-t border-[#30363d] flex items-center justify-between text-[11px] text-[#8b949e]">
           <span className="flex items-center gap-1.5">
-            <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <Lightbulb className="w-3.5 h-3.5 text-[#d29922] shrink-0" />
             Ketik nama atau kode emiten luar/dalam negeri
           </span>
           <span>Bursa US, Global ETF, Crypto & IDX</span>

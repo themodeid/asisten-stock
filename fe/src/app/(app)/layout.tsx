@@ -35,22 +35,18 @@ export default function AppLayout({
     };
   }, []);
 
-  // Show obsidian loading state while checking authentication
+  // Show clean enterprise loading state while checking authentication
   if (isLoading) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#07090e] text-zinc-100">
-        <div className="relative">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 animate-pulse">
-            <Lock className="w-8 h-8" />
-          </div>
-          <div className="absolute -inset-1 rounded-2xl bg-emerald-500/20 blur-lg -z-10 animate-pulse" />
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#0d1117] text-[#f0f6fc]">
+        <div className="w-12 h-12 rounded-md bg-[#161b22] border border-[#30363d] flex items-center justify-center text-[#c9d1d9] shadow-none">
+          <Lock className="w-5 h-5 text-[#8b949e]" />
         </div>
         <div className="mt-4 text-center space-y-1">
-          <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-emerald-400 uppercase tracking-widest">
-            <Sparkles className="w-3 h-3" />
-            Verifikasi Otorisasi Brankas
+          <div className="text-xs font-medium text-[#c9d1d9] tracking-wide">
+            Verifikasi Sesi Pengguna
           </div>
-          <p className="text-xs text-zinc-500">Mempersiapkan data portofolio pribadi...</p>
+          <p className="text-xs text-[#8b949e]">Memuat data portofolio...</p>
         </div>
       </div>
     );
@@ -62,11 +58,7 @@ export default function AppLayout({
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground transition-colors duration-200">
-      {/* Ambient Radial Glows */}
-      <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] pointer-events-none -z-0" />
-      <div className="fixed top-1/2 right-0 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none -z-0" />
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-purple-500/10 rounded-full blur-[100px] pointer-events-none -z-0" />
+    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground transition-colors duration-150">
 
       {/* Sidebar (handles both desktop fixed sidebar & mobile slide-over drawer) */}
       <Sidebar

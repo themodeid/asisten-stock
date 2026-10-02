@@ -3,6 +3,7 @@ import { formatTicker } from "../../utils/stockHelper";
 import { StockQuote, StockFundamentalAnalysis } from "./market.type";
 import { cache } from "../../utils/cacheManager";
 import { AppError } from "../../utils/appError";
+import { getUsdIdrRate } from "./fx.service";
 
 const CACHE_TTL_SECONDS = 60; // 1 minute cache
 
@@ -219,13 +220,13 @@ const FALLBACK_DATABASE: Record<string, Partial<StockQuote>> = {
   "GOLD.IDR": {
     name: "Emas Logam Mulia (Antam/UBS per Gram)",
     currency: "IDR",
-    regularMarketPrice: 1410000,
-    regularMarketChange: 5000,
-    regularMarketChangePercent: 0.36,
-    regularMarketDayHigh: 1415000,
-    regularMarketDayLow: 1405000,
-    fiftyTwoWeekHigh: 1450000,
-    fiftyTwoWeekLow: 1040000,
+    regularMarketPrice: 2420000,
+    regularMarketChange: 12000,
+    regularMarketChangePercent: 0.50,
+    regularMarketDayHigh: 2435000,
+    regularMarketDayLow: 2400000,
+    fiftyTwoWeekHigh: 2480000,
+    fiftyTwoWeekLow: 1400000,
     valuationStatus: "Fair Value",
     valuationSummary: "Aset Safe Haven klasik pelindung nilai inflasi. Permintaan pembelian emas fisik oleh Bank Sentral global menjaga level support harga.",
     news: [
@@ -652,6 +653,202 @@ async function fetchLiveCryptoQuote(symbol: string): Promise<StockQuote | null> 
   return null;
 }
 
+async function fetchLiveGoldQuote(symbol: string): Promise<StockQuote | null> {
+  const upper = symbol.toUpperCase().trim();
+  const isUsdPaxg = upper === "PAXG" || upper === "PAXG-USD";
+  const TROY_OZ_TO_GRAM = 31.1034768;
+
+  // 1. Try Indodax for Indonesian Rupiah spot (No key required, highly accurate IDR orderbook)
+  if (!isUsdPaxg) {
+    try {
+      const res = await fetch("https://indodax.com/api/ticker/paxgidr", { signal: AbortSignal.timeout(3500) });
+      if (res.ok) {
+        const data: any = await res.json();
+        const lastOunce = parseFloat(data?.ticker?.last);
+        const highOunce = parseFloat(data?.ticker?.high);
+        const lowOunce = parseFloat(data?.ticker?.low);
+        const buyOunce = parseFloat(data?.ticker?.buy);
+
+        if (lastOunce > 0) {
+          const priceGram = Math.round(lastOunce / TROY_OZ_TO_GRAM);
+          const highGram = Math.round(highOunce / TROY_OZ_TO_GRAM) || priceGram;
+          const lowGram = Math.round(lowOunce / TROY_OZ_TO_GRAM) || priceGram;
+          const change = buyOunce > 0 ? Math.round(priceGram - (buyOunce / TROY_OZ_TO_GRAM)) : 0;
+          const changePercent = buyOunce > 0 ? Number(((change / (buyOunce / TROY_OZ_TO_GRAM)) * 100).toFixed(2)) : 0;
+
+          const fallback = FALLBACK_DATABASE["GOLD.IDR"] || {};
+          return {
+            ticker: "GOLD.IDR",
+            name: "Emas Logam Mulia (Antam/UBS per Gram)",
+            currency: "IDR",
+            regularMarketPrice: priceGram,
+            regularMarketChange: change,
+            regularMarketChangePercent: changePercent,
+            regularMarketDayHigh: highGram,
+            regularMarketDayLow: lowGram,
+            regularMarketVolume: parseFloat(data?.ticker?.vol_idr) || 0,
+            valuationStatus: fallback.valuationStatus || "Fair Value",
+            valuationSummary: fallback.valuationSummary || "Aset Safe Haven klasik pelindung nilai inflasi.",
+            news: fallback.news,
+            updatedAt: new Date(),
+          };
+        }
+      }
+    } catch {
+      // Fallback to CoinGecko
+    }
+  }
+
+  // 2. Try CoinGecko Simple Price API
+  try {
+    const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=pax-gold&vs_currencies=idr,usd&include_24hr_change=true", {
+      signal: AbortSignal.timeout(3500),
+    });
+    if (res.ok) {
+      const data: any = await res.json();
+      const pg = data?.["pax-gold"];
+      if (pg) {
+        if (isUsdPaxg && pg.usd) {
+          return {
+            ticker: "PAXG-USD",
+            name: "PAX Gold (Physical Backed)",
+            currency: "USD",
+            regularMarketPrice: Number(pg.usd.toFixed(2)),
+            regularMarketChange: Number(((pg.usd * (pg.usd_24h_change || 0)) / 100).toFixed(2)),
+            regularMarketChangePercent: Number((pg.usd_24h_change || 0).toFixed(2)),
+            regularMarketDayHigh: Number((pg.usd * 1.01).toFixed(2)),
+            regularMarketDayLow: Number((pg.usd * 0.99).toFixed(2)),
+            regularMarketVolume: 25000000,
+            valuationStatus: "Fair Value",
+            updatedAt: new Date(),
+          };
+        } else if (pg.idr) {
+          const priceGram = Math.round(pg.idr / TROY_OZ_TO_GRAM);
+          const changePct = Number((pg.idr_24h_change || 0).toFixed(2));
+          const change = Math.round((priceGram * changePct) / 100);
+          const fallback = FALLBACK_DATABASE["GOLD.IDR"] || {};
+          return {
+            ticker: "GOLD.IDR",
+            name: "Emas Logam Mulia (Antam/UBS per Gram)",
+            currency: "IDR",
+            regularMarketPrice: priceGram,
+            regularMarketChange: change,
+            regularMarketChangePercent: changePct,
+            regularMarketDayHigh: Math.round(priceGram * 1.01),
+            regularMarketDayLow: Math.round(priceGram * 0.99),
+            regularMarketVolume: 1500000000,
+            valuationStatus: fallback.valuationStatus || "Fair Value",
+            valuationSummary: fallback.valuationSummary,
+            news: fallback.news,
+            updatedAt: new Date(),
+          };
+        }
+      }
+    }
+  } catch {
+    // Fallback to Yahoo Finance / Coinbase
+  }
+
+  // 3. Try Yahoo Finance GC=F (Gold continuous futures contract)
+  try {
+    const res = await fetch("https://query2.finance.yahoo.com/v8/finance/chart/GC=F?interval=1d&range=1d", {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(3500),
+    });
+    if (res.ok) {
+      const json: any = await res.json();
+      const meta = json?.chart?.result?.[0]?.meta;
+      if (meta && meta.regularMarketPrice) {
+        const usdPriceOz = meta.regularMarketPrice;
+        if (isUsdPaxg) {
+          return {
+            ticker: "PAXG-USD",
+            name: "PAX Gold (Physical Backed)",
+            currency: "USD",
+            regularMarketPrice: Number(usdPriceOz.toFixed(2)),
+            regularMarketChange: Number((meta.regularMarketPrice - (meta.chartPreviousClose || meta.regularMarketPrice)).toFixed(2)),
+            regularMarketChangePercent: Number((((meta.regularMarketPrice - (meta.chartPreviousClose || meta.regularMarketPrice)) / (meta.chartPreviousClose || meta.regularMarketPrice)) * 100).toFixed(2)),
+            regularMarketDayHigh: meta.regularMarketDayHigh || Number((usdPriceOz * 1.01).toFixed(2)),
+            regularMarketDayLow: meta.regularMarketDayLow || Number((usdPriceOz * 0.99).toFixed(2)),
+            regularMarketVolume: 50000000,
+            valuationStatus: "Fair Value",
+            updatedAt: new Date(),
+          };
+        }
+
+        const usdToIdr = await getUsdIdrRate();
+        const priceGram = Math.round((usdPriceOz * usdToIdr) / TROY_OZ_TO_GRAM);
+        const fallback = FALLBACK_DATABASE["GOLD.IDR"] || {};
+        return {
+          ticker: "GOLD.IDR",
+          name: "Emas Logam Mulia (Antam/UBS per Gram)",
+          currency: "IDR",
+          regularMarketPrice: priceGram,
+          regularMarketChange: 0,
+          regularMarketChangePercent: 0,
+          regularMarketDayHigh: Math.round(priceGram * 1.01),
+          regularMarketDayLow: Math.round(priceGram * 0.99),
+          regularMarketVolume: 1000000000,
+          valuationStatus: fallback.valuationStatus || "Fair Value",
+          valuationSummary: fallback.valuationSummary,
+          news: fallback.news,
+          updatedAt: new Date(),
+        };
+      }
+    }
+  } catch {
+    // Fallback to Coinbase
+  }
+
+  // 4. Try Coinbase spot PAXG
+  try {
+    const res = await fetch("https://api.coinbase.com/v2/prices/PAXG-USD/spot", { signal: AbortSignal.timeout(3500) });
+    if (res.ok) {
+      const json: any = await res.json();
+      if (json?.data?.amount) {
+        const usdPrice = parseFloat(json.data.amount);
+        if (isUsdPaxg) {
+          return {
+            ticker: "PAXG-USD",
+            name: "PAX Gold",
+            currency: "USD",
+            regularMarketPrice: usdPrice,
+            regularMarketChange: 0,
+            regularMarketChangePercent: 0,
+            regularMarketDayHigh: Number((usdPrice * 1.01).toFixed(2)),
+            regularMarketDayLow: Number((usdPrice * 0.99).toFixed(2)),
+            regularMarketVolume: 20000000,
+            valuationStatus: "Fair Value",
+            updatedAt: new Date(),
+          };
+        }
+        const usdToIdr = await getUsdIdrRate();
+        const priceGram = Math.round((usdPrice * usdToIdr) / TROY_OZ_TO_GRAM);
+        const fallback = FALLBACK_DATABASE["GOLD.IDR"] || {};
+        return {
+          ticker: "GOLD.IDR",
+          name: "Emas Logam Mulia (Antam/UBS per Gram)",
+          currency: "IDR",
+          regularMarketPrice: priceGram,
+          regularMarketChange: 0,
+          regularMarketChangePercent: 0,
+          regularMarketDayHigh: Math.round(priceGram * 1.01),
+          regularMarketDayLow: Math.round(priceGram * 0.99),
+          regularMarketVolume: 1000000000,
+          valuationStatus: fallback.valuationStatus || "Fair Value",
+          valuationSummary: fallback.valuationSummary,
+          news: fallback.news,
+          updatedAt: new Date(),
+        };
+      }
+    }
+  } catch {
+    //
+  }
+
+  return null;
+}
+
 async function fetchLiveMarketChart(symbol: string): Promise<Partial<StockQuote> | null> {
   try {
     const res = await fetch(`https://query2.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`, {
@@ -722,7 +919,29 @@ export const getStockQuote = async (
     }
   }
 
-  // 2. Fetch live quote via high-reliability query2 Yahoo Finance chart endpoint
+  // 2. If Gold / Precious Metal, fetch live price from dedicated providers (Indodax, CoinGecko, Yahoo GC=F, Coinbase)
+  const isGold =
+    assetType === "GOLD" ||
+    ticker === "GOLD.IDR" ||
+    ticker === "GOLD" ||
+    ticker === "EMAS" ||
+    ticker.startsWith("PAXG") ||
+    rawTicker.toUpperCase().includes("EMAS") ||
+    rawTicker.toUpperCase().includes("GOLD");
+
+  if (isGold) {
+    try {
+      const liveGold = await fetchLiveGoldQuote(rawTicker);
+      if (liveGold && liveGold.regularMarketPrice > 0) {
+        await cache.set(`quote:${ticker}`, liveGold, CACHE_TTL_SECONDS);
+        return liveGold;
+      }
+    } catch (e) {
+      // Continue to next provider
+    }
+  }
+
+  // 3. Fetch live quote via high-reliability query2 Yahoo Finance chart endpoint
   let liveQuote: Partial<StockQuote> | null = null;
   try {
     liveQuote = await fetchLiveMarketChart(ticker);
@@ -847,6 +1066,9 @@ const GLOBAL_SEARCH_DIRECTORY: MarketSearchResult[] = [
   { ticker: "UNVR.JK", name: "Unilever Indonesia Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
   { ticker: "AMMN.JK", name: "Amman Mineral Internasional Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
   { ticker: "BREN.JK", name: "Barito Renewables Energy Tbk", market: "IDX", asset_type: "STOCK", currency: "IDR" },
+  // Komoditas & Safe Haven Emas
+  { ticker: "GOLD.IDR", name: "Emas Logam Mulia (Antam/UBS per Gram)", market: "IDX", asset_type: "GOLD", currency: "IDR" },
+  { ticker: "PAXG-USD", name: "Pax Gold (Physical Backed Gold Token)", market: "CRYPTO", asset_type: "GOLD", currency: "USD" },
 ];
 
 export const searchMarket = async (query: string): Promise<MarketSearchResult[]> => {
@@ -866,7 +1088,8 @@ export const searchMarket = async (query: string): Promise<MarketSearchResult[]>
       (cleanQ === "APPLE" && item.ticker === "AAPL") ||
       (cleanQ === "TESLA" && item.ticker === "TSLA") ||
       (cleanQ === "GOOGLE" && item.ticker === "GOOGL") ||
-      (cleanQ === "NVIDIA" && item.ticker === "NVDA")
+      (cleanQ === "NVIDIA" && item.ticker === "NVDA") ||
+      ((cleanQ === "EMAS" || cleanQ === "GOLD" || cleanQ === "ANTAM") && (item.ticker === "GOLD.IDR" || item.ticker === "PAXG-USD"))
     );
   });
 

@@ -79,7 +79,7 @@ export const getPortfolioSummary = async (
       const isAssetUSD =
         row.currency === "USD" ||
         row.ticker.endsWith("-USD") ||
-        ["VT", "VOO", "SPY", "QQQ", "AAPL", "NVDA", "TSLA", "MSFT", "VTI"].includes(row.ticker);
+        ["VT", "VOO", "SPY", "QQQ", "AAPL", "NVDA", "TSLA", "MSFT", "VTI", "USDT", "USDC"].includes(row.ticker);
 
       const currency = isAssetUSD ? "USD" : (row.currency || "IDR");
 
@@ -1246,6 +1246,48 @@ export const getAggregatedPortfolioSummary = async (
     };
   });
 
+  // Compute Asset Allocation Breakdown for Aggregated Summary
+  const allocationMap = new Map<string, { label: string; total_value: number; count: number }>();
+  const labels: Record<string, string> = {
+    STOCK: "Saham",
+    CRYPTO: "Kripto (Crypto)",
+    ETF: "ETF",
+    BOND: "Obligasi / SBN",
+    MUTUAL_FUND: "Reksadana",
+    GOLD: "Emas & Logam Mulia",
+    CASH: "Kas / Saldo",
+  };
+
+  for (const h of holdingsWithWeights) {
+    const type = h.asset_type || "STOCK";
+    const existing = allocationMap.get(type) || {
+      label: labels[type] || type,
+      total_value: 0,
+      count: 0,
+    };
+    existing.total_value += Number(h.market_value_idr || 0);
+    existing.count += 1;
+    allocationMap.set(type, existing);
+  }
+
+  if (grandTotalCash > 0) {
+    allocationMap.set("CASH", {
+      label: "Kas & Tunai",
+      total_value: Number(grandTotalCash),
+      count: 1,
+    });
+  }
+
+  const asset_allocations: AssetAllocation[] = Array.from(allocationMap.entries()).map(
+    ([type, data]) => ({
+      asset_type: type as any,
+      label: data.label,
+      total_value: data.total_value,
+      percentage: grandTotalNetWorth > 0 ? Number(((data.total_value / grandTotalNetWorth) * 100).toFixed(1)) : 0,
+      count: data.count,
+    })
+  );
+
   return {
     portfolio_id: 0,
     portfolio_name: "Semua Dompet (Total Konsolidasi)",
@@ -1258,6 +1300,7 @@ export const getAggregatedPortfolioSummary = async (
     total_floating_pnl_percent: Number(grandTotalFloatingPnlPercent.toFixed(2)),
     holdings_count: holdingsWithWeights.length,
     holdings: holdingsWithWeights,
+    asset_allocations,
     is_aggregated: true,
     wallets,
   };
@@ -1310,13 +1353,12 @@ export const calibrateHolding = async (input: CalibrateHoldingInput) => {
   let totalInvested = input.total_invested_idr !== undefined ? Number(input.total_invested_idr) : Number(current?.total_invested || 0);
 
   // Smart PnL% Auto-Calculation (Uang Saat Ini + PnL %)
-  if (input.current_value_idr !== undefined && input.pnl_percent !== undefined) {
+  if (input.pnl_percent !== undefined && input.pnl_percent !== null && String(input.pnl_percent).trim() !== "") {
     const pnlPct = Number(input.pnl_percent);
-    const curVal = Number(input.current_value_idr);
-    const calculatedInvested = pnlPct !== -100 ? curVal / (1 + pnlPct / 100) : curVal;
-    totalInvested = Math.round(calculatedInvested);
+    let curVal = input.current_value_idr !== undefined ? Number(input.current_value_idr) : 0;
 
-    if (!input.quantity || Number(input.quantity) <= 0 || (current && Number(current.avg_buy_price) <= 1)) {
+    // If current value is not provided or zero, derive from live market price
+    if (curVal <= 0 && qty > 0) {
       try {
         const quote = await marketService.getStockQuote(formattedTicker, assetType);
         const fxRate = await fxService.getUsdIdrRate();
@@ -1324,12 +1366,35 @@ export const calibrateHolding = async (input: CalibrateHoldingInput) => {
         const isUSD = formattedTicker.includes("-USD") || assetType === "CRYPTO" || assetType === "ETF";
         const priceIdr = isUSD ? rawPrice * fxRate : rawPrice;
         if (priceIdr > 0) {
+          curVal = qty * priceIdr;
+        }
+      } catch {
+        curVal = Number(current?.total_invested || 0);
+      }
+    }
+
+    if (curVal > 0 && pnlPct !== -100) {
+      const calculatedInvested = curVal / (1 + pnlPct / 100);
+      totalInvested = Math.round(calculatedInvested);
+    }
+
+    // Only fallback quantity if user explicitly has NO quantity specified at all
+    if ((!input.quantity || Number(input.quantity) <= 0) && (!current || Number(current.quantity || current.total_shares || 0) <= 0)) {
+      try {
+        const quote = await marketService.getStockQuote(formattedTicker, assetType);
+        const fxRate = await fxService.getUsdIdrRate();
+        const rawPrice = Number(quote.regularMarketPrice) || Number(current?.avg_buy_price || 0);
+        const isUSD = formattedTicker.includes("-USD") || assetType === "CRYPTO" || assetType === "ETF";
+        const priceIdr = isUSD ? rawPrice * fxRate : rawPrice;
+        if (priceIdr > 0 && curVal > 0) {
           qty = Number((curVal / priceIdr).toFixed(8));
         }
       } catch {
         // fallback
       }
     }
+  } else if (input.total_invested_idr !== undefined && Number(input.total_invested_idr) > 0) {
+    totalInvested = Math.round(Number(input.total_invested_idr));
   }
 
   if (qty <= 0) {

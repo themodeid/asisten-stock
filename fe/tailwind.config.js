@@ -11,45 +11,85 @@ module.exports = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        // GitHub Primer Dark Color Palette mapped to zinc so the entire UI inherits the authentic theme
         zinc: {
-          750: "#1e293b",
-          850: "#131a2b",
-          950: "#07090e",
+          50: "#ffffff",
+          100: "#f0f6fc", // GitHub FG Default (Crisp Headings)
+          200: "#e6edf3", // GitHub FG High Contrast
+          300: "#c9d1d9", // GitHub FG Body Text
+          400: "#8b949e", // GitHub FG Muted
+          500: "#8b949e", // GitHub FG Muted
+          600: "#6e7681", // GitHub FG Subtle
+          700: "#484f58", // GitHub Border Hover
+          750: "#38404a",
+          800: "#30363d", // GitHub Border Default
+          850: "#21262d", // GitHub Canvas Inset / Secondary Button
+          900: "#161b22", // GitHub Box / Canvas Subtle
+          950: "#0d1117", // GitHub Canvas Default
+        },
+        // Dedicated GitHub Primer tokens
+        gh: {
+          bg: "#0d1117",
+          card: "#161b22",
+          inset: "#010409",
+          border: "#30363d",
+          borderMuted: "#21262d",
+          borderActive: "#58a6ff",
+          text: "#f0f6fc",
+          muted: "#8b949e",
+          subtle: "#6e7681",
+          blue: "#58a6ff",
+          green: "#3fb950",
+          btnGreen: "#238636",
+          btnGreenHover: "#2ea043",
+          btnGray: "#21262d",
+          btnGrayHover: "#30363d",
+          red: "#f85149",
+          orange: "#f78166",
+          yellow: "#d29922",
+          purple: "#a371f7",
         },
         terminal: {
-          bg: "#07090e",
-          card: "#0e1322",
-          surface: "#13192c",
-          border: "rgba(255, 255, 255, 0.08)",
-          borderHover: "rgba(255, 255, 255, 0.20)",
+          bg: "#0d1117",
+          card: "#161b22",
+          surface: "#21262d",
+          border: "#30363d",
+          borderHover: "#8b949e",
         },
         brand: {
           50: "#eff6ff",
           100: "#dbeafe",
-          400: "#60a5fa",
-          500: "#3b82f6",
-          600: "#2563eb",
-          700: "#1d4ed8",
+          400: "#58a6ff",
+          500: "#1f6feb",
+          600: "#238636", // Primary buttons adopt iconic GitHub Green!
+          700: "#2ea043",
         },
         accent: {
-          gold: "#f59e0b",
-          goldLight: "#fbbf24",
-          cyan: "#06b6d4",
-          jade: "#10b981",
-          coral: "#f43f5e",
+          gold: "#d29922",
+          goldLight: "#e3b341",
+          cyan: "#58a6ff",
+          jade: "#3fb950",
+          coral: "#f85149",
         },
+      },
+      borderRadius: {
+        'gh': '6px',
       },
       backdropBlur: {
         "2xl": "40px",
         "3xl": "64px",
       },
       boxShadow: {
-        "glass": "0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06)",
-        "glass-hover": "0 16px 48px -8px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-        "glass-glow-emerald": "0 0 20px rgba(16, 185, 129, 0.3)",
-        "glass-glow-blue": "0 0 20px rgba(59, 130, 246, 0.3)",
-        "glass-glow-amber": "0 0 20px rgba(245, 158, 11, 0.3)",
-        "glass-glow-rose": "0 0 20px rgba(244, 63, 94, 0.3)",
+        "subtle": "0 1px 0 rgba(27, 31, 36, 0.04)",
+        "card": "none",
+        "gh-btn": "0 1px 0 rgba(27, 31, 36, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.03)",
+        "gh-box": "0 0 0 1px #30363d",
+        "glass": "none",
+        "glass-hover": "none",
+        "glass-glow-emerald": "none",
+        "glass-glow-blue": "none",
+        "glass-glow-amber": "none",
+        "glass-glow-rose": "none",
       },
     },
   },

@@ -21,40 +21,40 @@ export default function StatCard({
   trend,
   accentColor = "emerald",
 }: StatCardProps) {
-  const accentGradients = {
-    emerald: "from-emerald-500/15 to-emerald-700/5 text-emerald-600 dark:text-emerald-400 border-emerald-500/25 bg-emerald-50 dark:bg-emerald-950/30",
-    blue: "from-blue-500/15 to-blue-700/5 text-blue-600 dark:text-blue-400 border-blue-500/25 bg-blue-50 dark:bg-blue-950/30",
-    amber: "from-amber-500/15 to-amber-700/5 text-amber-600 dark:text-amber-400 border-amber-500/25 bg-amber-50 dark:bg-amber-950/30",
-    purple: "from-purple-500/15 to-purple-700/5 text-purple-600 dark:text-purple-400 border-purple-500/25 bg-purple-50 dark:bg-purple-950/30",
-    indigo: "from-indigo-500/15 to-indigo-700/5 text-indigo-600 dark:text-indigo-400 border-indigo-500/25 bg-indigo-50 dark:bg-indigo-950/30",
+  const iconAccents = {
+    emerald: "text-emerald-600 dark:text-[#3fb950] bg-emerald-500/10 dark:bg-[#238636]/15 border-emerald-500/20 dark:border-[#238636]/40",
+    blue: "text-blue-600 dark:text-[#58a6ff] bg-blue-500/10 dark:bg-[#388bfd]/15 border-blue-500/20 dark:border-[#388bfd]/40",
+    amber: "text-amber-600 dark:text-[#d29922] bg-amber-500/10 dark:bg-[#d29922]/15 border-amber-500/20 dark:border-[#d29922]/40",
+    purple: "text-purple-600 dark:text-[#a371f7] bg-purple-500/10 dark:bg-[#8957e5]/15 border-purple-500/20 dark:border-[#8957e5]/40",
+    indigo: "text-blue-600 dark:text-[#58a6ff] bg-blue-500/10 dark:bg-[#388bfd]/15 border-blue-500/20 dark:border-[#388bfd]/40",
   };
 
-  const iconClass = accentGradients[accentColor] || accentGradients.emerald;
+  const iconClass = iconAccents[accentColor] || iconAccents.emerald;
 
   return (
-    <div className="rounded-2xl bg-white/90 dark:bg-[#0e1322]/60 dark:backdrop-blur-2xl dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] border border-zinc-200/80 dark:border-white/[0.07] hover:border-zinc-300 dark:hover:border-white/[0.16] p-5 transition-all duration-200 shadow-sm dark:shadow-glass glass-card glass-card-hover flex flex-col justify-between">
+    <div className="rounded-md bg-white dark:bg-[#161b22] border border-zinc-200 dark:border-[#30363d] hover:dark:border-[#8b949e] p-4 sm:p-5 transition-colors duration-150 flex flex-col justify-between shadow-[0_1px_0_rgba(27,31,36,0.04)]">
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-[#8b949e]">
           {title}
         </span>
         <div
-          className={`w-9 h-9 rounded-xl bg-gradient-to-br ${iconClass} border flex items-center justify-center shadow-sm dark:backdrop-blur-md dark:border-white/[0.15]`}
+          className={`w-8 h-8 rounded-md ${iconClass} border flex items-center justify-center shrink-0`}
         >
           <Icon className="w-4 h-4" />
         </div>
       </div>
 
-      <div className="mt-4">
-        <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white tracking-tight break-words tabular-nums">
+      <div className="mt-3">
+        <h3 className="text-xl sm:text-2xl font-bold font-mono text-zinc-900 dark:text-[#f0f6fc] tracking-tight break-words tabular-nums">
           {value}
         </h3>
         <div className="flex flex-wrap items-center gap-2 mt-2">
           {trend && (
             <span
-              className={`inline-flex items-center gap-0.5 text-[11px] font-bold px-2 py-0.5 rounded-lg font-mono tabular-nums ${
+              className={`inline-flex items-center gap-0.5 text-[11px] font-medium px-2 py-0.5 rounded-full font-mono tabular-nums border ${
                 trend.isPositive
-                  ? "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30"
-                  : "bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-500/30"
+                  ? "bg-emerald-500/10 dark:bg-[#238636]/15 text-emerald-600 dark:text-[#3fb950] border-emerald-500/20 dark:border-[#238636]/40"
+                  : "bg-rose-500/10 dark:bg-[#da3633]/15 text-rose-600 dark:text-[#f85149] border-rose-500/20 dark:border-[#da3633]/40"
               }`}
             >
               {trend.isPositive ? (
@@ -66,7 +66,7 @@ export default function StatCard({
             </span>
           )}
           {subtitle && (
-            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+            <span className="text-[11px] text-zinc-500 dark:text-[#8b949e] font-medium">
               {subtitle}
             </span>
           )}

@@ -19,34 +19,34 @@ interface AssetAllocationBarProps {
 
 const colorMap: Record<string, { bg: string; dot: string; text: string; border: string }> = {
   CRYPTO: {
-    bg: "bg-emerald-500",
-    dot: "bg-emerald-400",
-    text: "text-emerald-400",
-    border: "border-emerald-500/30",
+    bg: "bg-[#3fb950]",
+    dot: "bg-[#3fb950]",
+    text: "text-[#3fb950]",
+    border: "border-[#238636]/40",
   },
   ETF: {
-    bg: "bg-blue-500",
-    dot: "bg-blue-400",
-    text: "text-blue-400",
-    border: "border-blue-500/30",
-  },
-  STOCK: {
-    bg: "bg-purple-500",
-    dot: "bg-purple-400",
-    text: "text-purple-400",
-    border: "border-purple-500/30",
+    bg: "bg-[#58a6ff]",
+    dot: "bg-[#58a6ff]",
+    text: "text-[#58a6ff]",
+    border: "border-[#388bfd]/40",
   },
   GOLD: {
-    bg: "bg-amber-500",
-    dot: "bg-amber-400",
-    text: "text-amber-400",
-    border: "border-amber-500/30",
+    bg: "bg-[#d29922]",
+    dot: "bg-[#d29922]",
+    text: "text-[#d29922]",
+    border: "border-[#d29922]/40",
+  },
+  STOCK: {
+    bg: "bg-[#a371f7]",
+    dot: "bg-[#a371f7]",
+    text: "text-[#a371f7]",
+    border: "border-[#8957e5]/40",
   },
   CASH: {
-    bg: "bg-slate-400",
-    dot: "bg-slate-300",
-    text: "text-slate-300",
-    border: "border-slate-500/30",
+    bg: "bg-[#8b949e]",
+    dot: "bg-[#8b949e]",
+    text: "text-[#8b949e]",
+    border: "border-[#30363d]",
   },
 };
 
@@ -57,32 +57,32 @@ export default function AssetAllocationBar({
   const safeTotal = totalValue > 0 ? totalValue : 1;
 
   return (
-    <div className="rounded-2xl bg-white/90 dark:bg-[#0e1322]/60 dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] border border-zinc-200/80 dark:border-white/[0.06] p-5 shadow-sm backdrop-blur-xl space-y-4 glass-card">
+    <div className="rounded-md bg-white dark:bg-[#161b22] border border-zinc-200 dark:border-[#30363d] p-4 sm:p-5 space-y-4 shadow-[0_1px_0_rgba(27,31,36,0.04)]">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-600/10 border border-indigo-500/30 flex items-center justify-center text-indigo-500 dark:text-indigo-400">
-            <PieChart className="w-4 h-4" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-md bg-zinc-100 dark:bg-[#21262d] border border-zinc-200 dark:border-[#30363d] flex items-center justify-center text-zinc-700 dark:text-[#c9d1d9]">
+            <PieChart className="w-4 h-4 text-[#58a6ff]" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <h3 className="text-sm font-semibold text-zinc-900 dark:text-[#f0f6fc] tracking-tight">
               Alokasi & Diversifikasi Aset
             </h3>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-              Sebaran kelas aset dalam portofolio Anda
+            <p className="text-[11px] text-zinc-500 dark:text-[#8b949e]">
+              Sebaran kelas aset dalam portofolio
             </p>
           </div>
         </div>
         <Link
           href="/portfolio"
-          className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 flex items-center gap-1 transition"
+          className="text-xs font-medium text-[#58a6ff] hover:underline flex items-center gap-1 transition-colors"
         >
           Lihat Aset
           <ArrowUpRight className="w-3.5 h-3.5" />
         </Link>
       </div>
 
-      {/* Segmented Multi-Color Progress Bar (Pluang Style) */}
-      <div className="w-full h-3 rounded-full bg-zinc-100 dark:bg-black/50 dark:shadow-inner border border-zinc-200 dark:border-white/[0.08] overflow-hidden flex p-0.5 gap-0.5">
+      {/* GitHub Repository Language Breakdown Bar Style */}
+      <div className="w-full h-2.5 rounded-full bg-zinc-100 dark:bg-[#0d1117] border border-zinc-200 dark:border-[#30363d] overflow-hidden flex p-0.5 gap-0.5">
         {allocations.map((alloc) => {
           const cfg = colorMap[alloc.asset_type] || colorMap.STOCK;
           const widthPct = Math.max(2, alloc.percentage);
@@ -90,26 +90,26 @@ export default function AssetAllocationBar({
             <div
               key={alloc.asset_type}
               style={{ width: `${widthPct}%` }}
-              className={`${cfg.bg} h-full rounded-sm transition-all duration-500 hover:opacity-90`}
+              className={`${cfg.bg} h-full rounded-sm transition-all duration-300 hover:opacity-90`}
               title={`${alloc.label}: ${alloc.percentage.toFixed(1)}% (${formatIDR(alloc.total_value)})`}
             />
           );
         })}
       </div>
 
-      {/* Allocation Breakdown Chips */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 pt-1">
+      {/* GitHub Breakdown Chips */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 pt-1">
         {allocations.map((alloc) => {
           const cfg = colorMap[alloc.asset_type] || colorMap.STOCK;
           return (
             <div
               key={alloc.asset_type}
-              className="p-3 rounded-xl bg-zinc-100/90 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] border border-zinc-200/80 dark:border-white/[0.06] dark:hover:border-white/[0.14] dark:backdrop-blur-md flex flex-col justify-between hover:bg-zinc-200/80 transition shadow-sm"
+              className="p-3 rounded-md bg-zinc-50 dark:bg-[#0d1117] border border-zinc-200 dark:border-[#30363d] hover:dark:border-[#8b949e] flex flex-col justify-between transition-colors"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-1.5">
                   <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
-                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                  <span className="text-xs font-bold text-zinc-800 dark:text-[#f0f6fc]">
                     {alloc.label}
                   </span>
                 </div>
@@ -117,10 +117,10 @@ export default function AssetAllocationBar({
                   {alloc.percentage.toFixed(1)}%
                 </span>
               </div>
-              <p className="text-xs font-mono font-bold text-zinc-900 dark:text-zinc-100">
+              <p className="text-xs font-mono font-bold text-zinc-900 dark:text-[#f0f6fc]">
                 {formatIDR(alloc.total_value)}
               </p>
-              <span className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
+              <span className="text-[10px] text-zinc-500 dark:text-[#8b949e] mt-0.5 font-medium">
                 {alloc.count} instrumen
               </span>
             </div>
